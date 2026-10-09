@@ -1,0 +1,99 @@
+# Nhật ký sự kiện đột biến trong dữ liệu mô phỏng (bão, cúm, đơn B2B...)
+
+
+## Sheet: Su_kien_dot_bien
+
+| nhom_ly_do | su_kien | tu_ngay | den_ngay | muc_do_0_1 | nguon_du_lieu | tac_dong_chinh | ghi_chu_hoac_sku |
+|---|---|---|---|---|---|---|---|
+| Đơn B2B đột biến | Đơn lớn Thiệp chúc mừng | 2023-11-03 | 2023-11-03 |  | Mô phỏng | Gấp khoảng 7.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU078 |
+| Đơn B2B đột biến | Đơn lớn Túi rác cuộn lớn | 2023-11-05 | 2023-11-06 |  | Mô phỏng | Gấp khoảng 9.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU103 |
+| dich_cum | Đợt cúm, bệnh hô hấp | 2023-12-04 | 2024-01-14 |  | Mô phỏng |  | Khẩu trang, nước rửa tay, dầu gió tăng |
+| Đơn B2B đột biến | Đơn lớn Giấy vệ sinh Pulppy lốc 10 cuộn | 2023-12-10 | 2023-12-11 |  | Mô phỏng | Gấp khoảng 7.2 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU025 |
+| Đơn B2B đột biến | Đơn lớn Xúc xích tiệt trùng gói 10 cây | 2024-01-10 | 2024-01-10 |  | Mô phỏng | Gấp khoảng 7.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU100 |
+| Đơn B2B đột biến | Đơn lớn Bia Tiger lon 330ml thùng 24 | 2024-01-19 | 2024-01-19 |  | Mô phỏng | Gấp khoảng 9.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU016 |
+| ret_dam | Rét đậm, rét hại | 2024-01-21 | 2024-01-28 |  | Mô phỏng |  | Chăn, máy sưởi, miếng dán, đồ lẩu tăng |
+| Đơn B2B đột biến | Đơn lớn Bột ngọt Ajinomoto 1kg | 2024-02-25 | 2024-02-25 |  | Mô phỏng | Gấp khoảng 8.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU098 |
+| Đơn B2B đột biến | Đơn lớn Nước dừa đóng hộp lốc 6 | 2024-03-03 | 2024-03-04 |  | Mô phỏng | Gấp khoảng 5.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU034 |
+| nang_nong | Nắng nóng diện rộng | 2024-05-01 | 2024-05-10 |  | Mô phỏng |  | Đợt nóng điển hình, nước giải khát, kem, quạt tăng |
+| Đơn B2B đột biến | Đơn lớn Nước cam ép Twister lốc 6 | 2024-05-07 | 2024-05-07 |  | Mô phỏng | Gấp khoảng 9.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU106 |
+| tin_don_gia | Tin đồn tăng giá, tích trữ | 2024-05-13 | 2024-05-19 |  | Mô phỏng |  | Người mua mua trước vì sợ tăng giá, sau đó nhu cầu tụt (kéo nhu cầu về trước) |
+| Đứt gãy cung ứng | Nhà cung cấp NCC03 giao chậm | 2024-05-20 | 2024-06-03 |  | Mô phỏng | Lead time +10 ngày cho SKU của NCC03 |  |
+| Đơn B2B đột biến | Đơn lớn Sữa tươi Vinamilk 1L thùng 12 | 2024-05-24 | 2024-05-25 |  | Mô phỏng | Gấp khoảng 6.9 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU009 |
+| Thể thao | Euro 2024 | 2024-06-14 | 2024-07-14 |  | Thực tế (lịch thi đấu) | Bia, snack, nước ngọt, đồ nhắm tăng |  |
+| nang_nong | Nắng nóng diện rộng | 2024-06-18 | 2024-06-27 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Bút bi Thiên Long hộp 20 | 2024-07-02 | 2024-07-02 |  | Mô phỏng | Gấp khoảng 9.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU081 |
+| Đơn B2B đột biến | Đơn lớn Nước tẩy Javel 1L | 2024-07-02 | 2024-07-02 |  | Mô phỏng | Gấp khoảng 7.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU119 |
+| Đơn B2B đột biến | Đơn lớn Kẹo Halloween túi 300g | 2024-07-16 | 2024-07-17 |  | Mô phỏng | Gấp khoảng 8.9 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU088 |
+| Đơn B2B đột biến | Đơn lớn Bánh trung thu Kinh Đô hộp 4 bánh | 2024-07-29 | 2024-07-29 |  | Mô phỏng | Gấp khoảng 5.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU067 |
+| sot_xuat_huyet | Cao điểm sốt xuất huyết | 2024-08-05 | 2024-10-13 |  | Mô phỏng |  | Bình xịt, nhang muỗi, ORS tăng |
+| Đơn B2B đột biến | Đơn lớn Bao lì xì xấp 10 | 2024-08-08 | 2024-08-09 |  | Mô phỏng | Gấp khoảng 8.1 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU062 |
+| Đơn B2B đột biến | Đơn lớn Kẹo Halloween túi 300g | 2024-09-04 | 2024-09-04 |  | Mô phỏng | Gấp khoảng 7.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU088 |
+| Thiên tai | Bão số 3 Yagi | 2024-09-07 | 2024-09-17 | 1 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Đổ bộ Hải Phòng–Quảng Ninh, lũ miền Bắc 8–12/9/2024, đường sắt và giao thông gián đoạn |
+| Đơn B2B đột biến | Đơn lớn Nước mắm Nam Ngư chai 750ml | 2024-09-12 | 2024-09-13 |  | Mô phỏng | Gấp khoảng 8.9 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU006 |
+| Đơn B2B đột biến | Đơn lớn Bột giặt OMO 3kg | 2024-09-19 | 2024-09-20 |  | Mô phỏng | Gấp khoảng 7.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU020 |
+| Đơn B2B đột biến | Đơn lớn Sữa bột Dielac Alpha 900g | 2024-09-28 | 2024-09-28 |  | Mô phỏng | Gấp khoảng 8.6 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU011 |
+| Đơn B2B đột biến | Đơn lớn Bánh trung thu Kinh Đô hộp 4 bánh | 2024-09-30 | 2024-09-30 |  | Mô phỏng | Gấp khoảng 5.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU067 |
+| Đơn B2B đột biến | Đơn lớn Cà phê G7 3in1 hộp 21 gói | 2024-10-27 | 2024-10-27 |  | Mô phỏng | Gấp khoảng 6.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU018 |
+| Đơn B2B đột biến | Đơn lớn Bột giặt OMO 3kg | 2024-11-02 | 2024-11-03 |  | Mô phỏng | Gấp khoảng 4.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU020 |
+| Đơn B2B đột biến | Đơn lớn Cháo ăn liền gói | 2024-11-09 | 2024-11-09 |  | Mô phỏng | Gấp khoảng 8.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU107 |
+| Đơn B2B đột biến | Đơn lớn Nước ngọt Pepsi chai 1.5L lốc 6 | 2024-11-26 | 2024-11-27 |  | Mô phỏng | Gấp khoảng 8.4 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU017 |
+| dich_cum | Đợt cúm, bệnh hô hấp | 2024-12-02 | 2025-01-12 |  | Mô phỏng |  |  |
+| Thể thao | AFF Cup 2024 | 2024-12-08 | 2025-01-05 |  | Thực tế (lịch thi đấu) | Bia, snack, nước ngọt, đồ nhắm tăng |  |
+| ret_dam | Rét đậm, rét hại | 2024-12-14 | 2024-12-21 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Bút bi Thiên Long hộp 20 | 2024-12-23 | 2024-12-24 |  | Mô phỏng | Gấp khoảng 7.4 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU081 |
+| ret_dam | Rét đậm, rét hại | 2025-01-08 | 2025-01-15 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Giấy vệ sinh Pulppy lốc 10 cuộn | 2025-02-19 | 2025-02-19 |  | Mô phỏng | Gấp khoảng 4.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU025 |
+| Đứt gãy cung ứng | Nhà cung cấp NCC07 giao chậm | 2025-02-24 | 2025-03-10 |  | Mô phỏng | Lead time +9 ngày cho SKU của NCC07 |  |
+| Đơn B2B đột biến | Đơn lớn Cà phê G7 3in1 hộp 21 gói | 2025-02-28 | 2025-02-28 |  | Mô phỏng | Gấp khoảng 7.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU018 |
+| Đơn B2B đột biến | Đơn lớn Sữa đặc Ông Thọ lon 380g | 2025-03-08 | 2025-03-08 |  | Mô phỏng | Gấp khoảng 8.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU010 |
+| tin_don_gia | Tin đồn tăng giá, tích trữ | 2025-03-10 | 2025-03-16 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Giấy vệ sinh Pulppy lốc 10 cuộn | 2025-03-24 | 2025-03-25 |  | Mô phỏng | Gấp khoảng 4.1 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU025 |
+| Đơn B2B đột biến | Đơn lớn Nước rửa chén Sunlight 3.6kg | 2025-04-14 | 2025-04-15 |  | Mô phỏng | Gấp khoảng 5.6 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU022 |
+| Đơn B2B đột biến | Đơn lớn Nước ngọt Pepsi chai 1.5L lốc 6 | 2025-04-20 | 2025-04-20 |  | Mô phỏng | Gấp khoảng 4.2 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU017 |
+| nang_nong | Nắng nóng diện rộng | 2025-05-20 | 2025-05-28 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Lương khô gói | 2025-06-01 | 2025-06-01 |  | Mô phỏng | Gấp khoảng 7.4 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU111 |
+| Đơn B2B đột biến | Đơn lớn Túi rác cuộn lớn | 2025-06-29 | 2025-06-30 |  | Mô phỏng | Gấp khoảng 4.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU103 |
+| Thiên tai | Bão số 3 Wipha | 2025-07-22 | 2025-08-01 | 0.5 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Đổ bộ Hưng Yên–Ninh Bình, mưa lớn Bắc Bộ và Bắc Trung Bộ |
+| sot_xuat_huyet | Cao điểm sốt xuất huyết | 2025-08-04 | 2025-10-12 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Túi rác cuộn lớn | 2025-08-15 | 2025-08-16 |  | Mô phỏng | Gấp khoảng 5.2 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU103 |
+| Thiên tai | Bão số 5 Kajiki | 2025-08-25 | 2025-09-04 | 0.6 | Thực tế (cuối tháng 8); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Đổ bộ Nghệ An–Hà Tĩnh–Quảng Trị, Hà Nội ngập sâu ngày 26/8 |
+| Đơn B2B đột biến | Đơn lớn Sữa bột Dielac Alpha 900g | 2025-09-18 | 2025-09-19 |  | Mô phỏng | Gấp khoảng 9.4 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU011 |
+| Thiên tai | Bão số 9 Ragasa | 2025-09-25 | 2025-10-05 | 0.3 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Ảnh hưởng gián tiếp, mưa diện rộng |
+| Thiên tai | Bão số 10 Bualoi | 2025-09-29 | 2025-10-09 | 0.7 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Bắc Trung Bộ |
+| Thiên tai | Bão số 11 Matmo | 2025-10-06 | 2025-10-16 | 0.8 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Mưa lũ Thái Nguyên, Bắc Ninh, Cao Bằng, Lạng Sơn |
+| Đơn B2B đột biến | Đơn lớn Bao lì xì xấp 10 | 2025-10-08 | 2025-10-09 |  | Mô phỏng | Gấp khoảng 9.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU062 |
+| Đơn B2B đột biến | Đơn lớn Nước suối Aquafina 500ml thùng 24 | 2025-10-08 | 2025-10-08 |  | Mô phỏng | Gấp khoảng 4.2 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU013 |
+| Đơn B2B đột biến | Đơn lớn Lương khô gói | 2025-10-11 | 2025-10-12 |  | Mô phỏng | Gấp khoảng 7.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU111 |
+| Đơn B2B đột biến | Đơn lớn Đường tinh luyện 1kg | 2025-10-12 | 2025-10-12 |  | Mô phỏng | Gấp khoảng 6.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU005 |
+| Đơn B2B đột biến | Đơn lớn Bút bi Thiên Long hộp 20 | 2025-10-17 | 2025-10-18 |  | Mô phỏng | Gấp khoảng 5.1 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU081 |
+| Thiên tai | Bão số 12 và lũ miền Trung | 2025-10-23 | 2025-11-02 | 0.6 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Lũ Huế, Đà Nẵng cuối tháng 10/2025 |
+| Đứt gãy cung ứng | Nhà cung cấp NCC11 giao chậm | 2025-11-03 | 2025-11-17 |  | Mô phỏng | Lead time +8 ngày cho SKU của NCC11 |  |
+| Thiên tai | Bão số 13 Kalmaegi | 2025-11-06 | 2025-11-16 | 0.7 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Lũ Gia Lai, Đắk Lắk, Khánh Hòa |
+| tin_don_gia | Tin đồn tăng giá, tích trữ | 2025-11-17 | 2025-11-23 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Bánh trung thu lẻ nhân thập cẩm | 2025-11-19 | 2025-11-19 |  | Mô phỏng | Gấp khoảng 9.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU068 |
+| dich_cum | Đợt cúm, bệnh hô hấp | 2025-11-24 | 2026-01-04 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Sữa tươi Vinamilk 1L thùng 12 | 2025-11-27 | 2025-11-28 |  | Mô phỏng | Gấp khoảng 4.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU009 |
+| Đơn B2B đột biến | Đơn lớn Trà xanh 0 độ chai 455ml thùng 24 | 2025-12-02 | 2025-12-03 |  | Mô phỏng | Gấp khoảng 7.2 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU015 |
+| Thiên tai | Bão số 15 Koto | 2025-12-03 | 2025-12-13 | 0.3 | Thực tế (ngày); mức độ giả định | Mua tích trữ 3 ngày trước bão, nhu yếu phẩm cứu trợ 10 ngày sau, giao hàng chậm, quà tặng/trang trí giảm | Lũ Khánh Hòa, Lâm Đồng đầu tháng 12/2025 |
+| Đơn B2B đột biến | Đơn lớn Snack Poca khoai tây thùng 24 | 2025-12-06 | 2025-12-07 |  | Mô phỏng | Gấp khoảng 4.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU029 |
+| ret_dam | Rét đậm, rét hại | 2025-12-18 | 2025-12-27 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Xúc xích tiệt trùng gói 10 cây | 2026-01-08 | 2026-01-09 |  | Mô phỏng | Gấp khoảng 8.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU100 |
+| ret_dam | Rét đậm, rét hại | 2026-01-10 | 2026-01-17 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Trà gừng hòa tan hộp | 2026-01-18 | 2026-01-18 |  | Mô phỏng | Gấp khoảng 4.6 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU053 |
+| Đơn B2B đột biến | Đơn lớn Bia Tiger lon 330ml thùng 24 | 2026-01-29 | 2026-01-29 |  | Mô phỏng | Gấp khoảng 5.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU016 |
+| Đơn B2B đột biến | Đơn lớn Bia Tiger lon 330ml thùng 24 | 2026-03-21 | 2026-03-22 |  | Mô phỏng | Gấp khoảng 4.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU016 |
+| Đơn B2B đột biến | Đơn lớn Nước suối Aquafina 500ml thùng 24 | 2026-03-23 | 2026-03-24 |  | Mô phỏng | Gấp khoảng 5.4 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU013 |
+| Đơn B2B đột biến | Đơn lớn Nước mắm Nam Ngư chai 750ml | 2026-04-20 | 2026-04-20 |  | Mô phỏng | Gấp khoảng 9.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU006 |
+| Đơn B2B đột biến | Đơn lớn Sữa tươi Vinamilk 1L thùng 12 | 2026-04-21 | 2026-04-22 |  | Mô phỏng | Gấp khoảng 8.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU009 |
+| Đơn B2B đột biến | Đơn lớn Nước cam ép Twister lốc 6 | 2026-04-29 | 2026-04-29 |  | Mô phỏng | Gấp khoảng 6.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU106 |
+| Đơn B2B đột biến | Đơn lớn Giấy A4 Double A ream | 2026-05-10 | 2026-05-10 |  | Mô phỏng | Gấp khoảng 8.0 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU104 |
+| Thể thao | World Cup 2026 | 2026-06-11 | 2026-07-19 |  | Thực tế (lịch thi đấu) | Bia, snack, nước ngọt, đồ nhắm tăng |  |
+| nang_nong | Nắng nóng diện rộng | 2026-06-20 | 2026-06-30 |  | Mô phỏng |  |  |
+| Đơn B2B đột biến | Đơn lớn Bột ngọt Ajinomoto 1kg | 2026-07-11 | 2026-07-12 |  | Mô phỏng | Gấp khoảng 9.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU098 |
+| Đơn B2B đột biến | Đơn lớn Nước xả vải Comfort 3.2L | 2026-07-15 | 2026-07-16 |  | Mô phỏng | Gấp khoảng 9.5 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU021 |
+| Đơn B2B đột biến | Đơn lớn Giấy A4 Double A ream | 2026-07-30 | 2026-07-31 |  | Mô phỏng | Gấp khoảng 9.7 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU104 |
+| Đơn B2B đột biến | Đơn lớn Giấy vệ sinh Pulppy lốc 10 cuộn | 2026-08-04 | 2026-08-04 |  | Mô phỏng | Gấp khoảng 4.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU025 |
+| Đơn B2B đột biến | Đơn lớn Sữa bột Dielac Alpha 900g | 2026-08-08 | 2026-08-08 |  | Mô phỏng | Gấp khoảng 9.3 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU011 |
+| Đơn B2B đột biến | Đơn lớn Giấy gói quà, hộp quà rỗng | 2026-08-24 | 2026-08-24 |  | Mô phỏng | Gấp khoảng 6.6 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU077 |
+| Đơn B2B đột biến | Đơn lớn Lịch Tết treo tường | 2026-08-28 | 2026-08-29 |  | Mô phỏng | Gấp khoảng 6.8 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU064 |
+| Đơn B2B đột biến | Đơn lớn Túi rác cuộn lớn | 2026-09-07 | 2026-09-08 |  | Mô phỏng | Gấp khoảng 6.6 lần mức TB (tiệc, khai trương điểm bán, đơn dự án) | SKU103 |

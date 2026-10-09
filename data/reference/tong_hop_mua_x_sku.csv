@@ -1,0 +1,122 @@
+﻿ma_sku,ten_sku,nhom_hang,loai_mua_vu,tb_xuat_ngay,chi_so_Xuân,chi_so_Hạ,chi_so_Thu,chi_so_Đông,mua_cao_diem,mua_thap_diem,ban_it_ngoai_mua,ton_cuoi_ky,so_ngay_ton_kho_(DOH)
+SKU001,Mì gói Hảo Hảo thùng 30 gói,Thực phẩm khô,Quanh năm,230.2,0.95,0.97,1.04,1.04,Thu,Xuân,,1245,5.0
+SKU002,Mì ly Modern 24 ly,Thực phẩm khô,Quanh năm,111.7,0.94,0.98,1.06,1.02,Thu,Xuân,,390,4.0
+SKU003,Gạo ST25 túi 5kg,Thực phẩm khô,"Quanh năm, đỉnh Tết",156.2,0.98,0.93,1.09,0.99,Thu,Hạ,,789,5.0
+SKU004,Dầu ăn Simply chai 1L,Thực phẩm khô,"Quanh năm, đỉnh Tết",143.4,1.03,0.95,0.97,1.05,Đông,Hạ,,902,7.0
+SKU005,Đường tinh luyện 1kg,Thực phẩm khô,"Quanh năm, đỉnh Tết",51.5,1.03,0.98,0.97,1.02,Xuân,Thu,,562,12.0
+SKU006,Nước mắm Nam Ngư chai 750ml,Gia vị,"Quanh năm, đỉnh Tết",62.5,0.98,0.97,1.03,1.03,Thu,Hạ,,965,16.0
+SKU007,Nước tương Maggi chai 700ml,Gia vị,Quanh năm,26.8,1.01,1.01,0.99,0.99,Xuân,Thu,,561,21.0
+SKU008,Hạt nêm Knorr 900g,Gia vị,Quanh năm,64.3,1.02,1.02,0.97,1.0,Xuân,Thu,,712,11.0
+SKU009,Sữa tươi Vinamilk 1L thùng 12,Sữa,Quanh năm,276.0,0.95,1.03,0.98,1.03,Hạ,Xuân,,501,2.0
+SKU010,Sữa đặc Ông Thọ lon 380g,Sữa,Quanh năm,58.2,1.03,0.96,0.99,1.01,Xuân,Hạ,,290,5.0
+SKU011,Sữa bột Dielac Alpha 900g,Sữa,Quanh năm,66.0,0.92,1.04,1.03,1.01,Hạ,Xuân,,117,2.0
+SKU012,Sữa chua Vinamilk lốc 4 hộp,Sữa,Mùa hè,68.4,1.0,1.25,1.08,0.67,Hạ,Đông,,716,8.0
+SKU013,Nước suối Aquafina 500ml thùng 24,Đồ uống,Mùa hè,167.6,0.92,1.42,1.03,0.63,Hạ,Đông,,928,5.0
+SKU014,Coca-Cola lon 330ml thùng 24,Đồ uống,Mùa hè,235.5,1.03,1.39,0.91,0.67,Hạ,Đông,,491,2.0
+SKU015,Trà xanh 0 độ chai 455ml thùng 24,Đồ uống,Mùa hè,132.6,0.92,1.37,1.0,0.71,Hạ,Đông,,456,3.0
+SKU016,Bia Tiger lon 330ml thùng 24,Đồ uống,Mùa hè,372.9,0.92,1.43,0.93,0.71,Hạ,Đông,,858,2.0
+SKU017,Nước ngọt Pepsi chai 1.5L lốc 6,Đồ uống,Mùa hè,81.1,0.96,1.36,0.94,0.73,Hạ,Đông,,118,1.0
+SKU018,Cà phê G7 3in1 hộp 21 gói,Đồ uống,Mùa đông,67.6,1.0,0.76,0.94,1.3,Đông,Hạ,,633,11.0
+SKU019,Trà Lipton hộp 25 túi,Đồ uống,Mùa đông,26.6,1.0,0.74,0.93,1.34,Đông,Hạ,,29,1.0
+SKU020,Bột giặt OMO 3kg,Hóa phẩm,Quanh năm,153.7,0.98,1.0,1.01,1.0,Thu,Xuân,,492,3.0
+SKU021,Nước xả vải Comfort 3.2L,Hóa phẩm,Quanh năm,75.6,0.99,1.06,0.95,1.01,Hạ,Thu,,309,4.0
+SKU022,Nước rửa chén Sunlight 3.6kg,Hóa phẩm,Quanh năm,63.4,1.03,1.04,0.95,0.99,Hạ,Thu,,67,1.0
+SKU023,Dầu gội Clear 630g,Chăm sóc cá nhân,Quanh năm,83.3,0.98,1.0,1.02,0.99,Thu,Xuân,,337,4.0
+SKU024,Kem đánh răng P/S 230g,Chăm sóc cá nhân,Quanh năm,43.4,1.02,1.02,0.95,1.01,Xuân,Thu,,530,13.0
+SKU025,Giấy vệ sinh Pulppy lốc 10 cuộn,Hóa phẩm,Quanh năm,87.1,1.03,0.99,1.0,0.98,Xuân,Đông,,979,11.0
+SKU026,Khăn giấy Tempo hộp 3 lớp,Hóa phẩm,"Quanh năm, đỉnh Tết",30.5,1.05,0.98,0.93,1.04,Xuân,Thu,,740,24.0
+SKU027,Bánh quy Cosy hộp thiếc 750g,Bánh kẹo,"Quanh năm, đỉnh Tết",33.1,0.98,0.92,0.98,1.12,Đông,Hạ,,330,11.0
+SKU028,Kẹo Alpenliebe gói 336g,Bánh kẹo,"Quanh năm, đỉnh Tết",24.5,1.04,0.95,0.94,1.07,Đông,Thu,,301,14.0
+SKU029,Snack Poca khoai tây thùng 24,Bánh kẹo,Mùa hè,39.8,0.96,1.39,0.97,0.67,Hạ,Đông,,294,6.0
+SKU030,Hạt dưa Chacheer túi 500g,Bánh kẹo,"Quanh năm, đỉnh Tết",16.0,0.94,0.97,0.99,1.1,Đông,Xuân,,303,19.0
+SKU031,Kem Wall's hộp 1L,Kem & đông lạnh,Mùa hè,100.5,0.5,2.49,0.68,0.27,Hạ,Đông,Có,580,5.0
+SKU032,Kem ốc quế Celano thùng 24,Kem & đông lạnh,Mùa hè,44.0,0.44,2.62,0.62,0.25,Hạ,Đông,Có,92,2.0
+SKU033,Nước tăng lực Redbull thùng 24,Đồ uống,Mùa hè,58.2,0.52,2.41,0.72,0.29,Hạ,Đông,Có,419,5.0
+SKU034,Nước dừa đóng hộp lốc 6,Đồ uống,Mùa hè,73.0,0.52,2.33,0.8,0.3,Hạ,Đông,,232,2.0
+SKU035,Quạt cây Senko,Điện gia dụng,Mùa hè,15.3,0.47,2.45,0.72,0.3,Hạ,Đông,,96,5.0
+SKU036,Quạt mini cầm tay,Điện gia dụng,Mùa hè,42.6,0.46,2.58,0.63,0.26,Hạ,Đông,Có,79,2.0
+SKU037,Kem chống nắng Nivea 50ml,Mỹ phẩm,Mùa hè,27.4,0.5,2.35,0.76,0.33,Hạ,Đông,,68,2.0
+SKU038,Bình xịt côn trùng Raid 600ml,Hóa phẩm,Mùa hè,49.8,0.46,2.17,1.0,0.3,Hạ,Đông,,647,9.0
+SKU039,Sữa tắm mát lạnh 650g,Chăm sóc cá nhân,Mùa hè,32.0,0.49,2.39,0.76,0.29,Hạ,Đông,Có,271,6.0
+SKU040,Đá lạnh túi 5kg,Kem & đông lạnh,Mùa hè,133.5,0.51,2.48,0.66,0.29,Hạ,Đông,Có,224,1.0
+SKU041,Áo mưa bộ Rando,Phụ kiện,Mùa mưa (hè-thu),30.1,0.28,1.64,1.67,0.32,Thu,Xuân,Có,350,5.0
+SKU042,Dù gấp tự động,Phụ kiện,Mùa mưa (hè-thu),13.9,0.33,1.68,1.59,0.33,Hạ,Xuân,,377,12.0
+SKU043,Ủng đi mưa nhựa,Phụ kiện,Mùa mưa (hè-thu),10.3,0.3,1.59,1.7,0.33,Thu,Xuân,,176,8.0
+SKU044,Nhang muỗi Jumbo hộp,Hóa phẩm,Mùa mưa (hè-thu),71.4,0.25,1.45,1.95,0.27,Thu,Xuân,Có,774,5.0
+SKU045,Thuốc diệt gián/kiến gói,Hóa phẩm,Mùa mưa (hè-thu),31.1,0.31,1.55,1.78,0.28,Thu,Đông,Có,73,1.0
+SKU046,Chăn lông cừu 1m8,Gia dụng,Mùa đông,11.0,1.02,0.28,0.37,2.34,Đông,Hạ,Có,14,5.0
+SKU047,Khăn len quàng cổ,Phụ kiện,Mùa đông,25.4,0.79,0.28,0.31,2.62,Đông,Hạ,Có,75,13.0
+SKU048,Máy sưởi dầu 11 thanh,Điện gia dụng,Mùa đông,4.1,0.97,0.28,0.3,2.47,Đông,Hạ,Có,20,20.0
+SKU049,Miếng dán giữ nhiệt hộp 10,Y tế & sức khỏe,Mùa đông,37.4,0.86,0.26,0.31,2.57,Đông,Hạ,Có,850,78.0
+SKU050,Bình giữ nhiệt Lock&Lock,Gia dụng,Mùa đông,13.8,0.88,0.24,0.31,2.57,Đông,Hạ,Có,33,9.0
+SKU051,Gia vị lẩu Thái gói,Gia vị,Mùa đông,90.7,0.87,0.26,0.31,2.56,Đông,Hạ,Có,191,9.0
+SKU052,Cá viên đông lạnh 500g,Kem & đông lạnh,Mùa đông,67.3,1.03,0.26,0.32,2.4,Đông,Hạ,Có,708,38.0
+SKU053,Trà gừng hòa tan hộp,Đồ uống,Mùa đông,69.9,0.89,0.23,0.28,2.61,Đông,Hạ,Có,217,15.0
+SKU054,Sữa hạt óc chó lốc 4,Sữa,Mùa đông,49.1,0.94,0.28,0.32,2.46,Đông,Hạ,Có,639,51.0
+SKU055,Dầu gió xanh chai 24ml,Y tế & sức khỏe,Mùa đông,74.2,0.79,0.23,0.31,2.66,Đông,Hạ,Có,1011,61.0
+SKU056,Kem dưỡng thể Vaseline 350ml,Mỹ phẩm,Mùa đông,30.5,0.91,0.25,0.33,2.5,Đông,Hạ,Có,63,8.0
+SKU057,Son dưỡng môi chống nứt,Mỹ phẩm,Mùa đông,37.3,1.1,0.28,0.33,2.32,Đông,Hạ,Có,380,37.0
+SKU058,Mứt Tết hộp 500g,Bánh kẹo,Chỉ dịp Tết,64.9,2.07,0.04,0.04,1.97,Xuân,Hạ,Có,6118,2213.0
+SKU059,Hộp quà Tết cao cấp,Quà tặng,Chỉ dịp Tết,14.0,1.9,0.06,0.05,2.1,Đông,Thu,Có,3147,4747.0
+SKU060,Hạt điều rang muối hộp 500g,Bánh kẹo,Chỉ dịp Tết,43.3,1.89,0.04,0.04,2.13,Đông,Hạ,Có,5577,3423.0
+SKU061,Rượu vang Đà Lạt chai,Đồ uống,Chỉ dịp Tết,28.6,1.65,0.04,0.04,2.35,Đông,Hạ,Có,1724,1686.0
+SKU062,Bao lì xì xấp 10,Văn phòng phẩm,Chỉ dịp Tết,177.4,2.11,0.03,0.04,1.93,Xuân,Hạ,Có,8384,1323.0
+SKU063,Hoa mai/đào giả trang trí,Trang trí,Chỉ dịp Tết,17.6,1.81,0.05,0.05,2.19,Đông,Hạ,Có,3908,4092.0
+SKU064,Lịch Tết treo tường,Văn phòng phẩm,Chỉ dịp Tết,42.2,2.22,0.06,0.06,1.8,Xuân,Hạ,Có,5943,2195.0
+SKU065,"Câu đối, tranh Tết",Trang trí,Chỉ dịp Tết,20.6,2.26,0.04,0.04,1.79,Xuân,Hạ,Có,358,419.0
+SKU066,Hương trầm hộp,Gia dụng,"Quanh năm, đỉnh Tết",39.4,0.99,1.02,0.98,1.01,Hạ,Thu,,1044,27.0
+SKU067,Bánh trung thu Kinh Đô hộp 4 bánh,Bánh kẹo,Chỉ dịp Trung thu,47.3,0.05,0.06,3.75,0.06,Thu,Xuân,Có,6599,34.0
+SKU068,Bánh trung thu lẻ nhân thập cẩm,Bánh kẹo,Chỉ dịp Trung thu,156.3,0.05,0.05,3.77,0.05,Thu,Xuân,Có,14457,23.0
+SKU069,Đèn lồng Trung thu,Đồ chơi,Chỉ dịp Trung thu,40.5,0.05,0.05,3.76,0.05,Thu,Xuân,Có,3106,20.0
+SKU070,"Mặt nạ, đồ chơi Trung thu",Đồ chơi,Chỉ dịp Trung thu,41.4,0.05,0.06,3.75,0.05,Thu,Xuân,Có,5180,29.0
+SKU071,Trà thượng hạng hộp quà biếu,Quà tặng,Quà tặng,17.5,1.01,0.87,1.13,0.99,Thu,Hạ,,255,12.0
+SKU072,Socola Ferrero hộp 16 viên,Bánh kẹo,Quà tặng,24.6,1.2,0.85,0.92,1.06,Xuân,Hạ,,65,3.0
+SKU073,Gấu bông 40cm,Quà tặng,Quà tặng,20.9,1.09,0.83,0.96,1.14,Đông,Hạ,,329,18.0
+SKU074,Set mỹ phẩm quà tặng,Mỹ phẩm,Quà tặng,13.1,1.07,0.89,0.92,1.13,Đông,Hạ,,88,8.0
+SKU075,Nước hoa 50ml,Mỹ phẩm,Quà tặng,10.8,1.1,0.87,1.01,1.03,Xuân,Hạ,,0,0.0
+SKU076,Hoa hồng sáp hộp,Quà tặng,Quà tặng,10.3,2.82,0.04,0.79,0.53,Xuân,Hạ,Có,160,548.0
+SKU077,"Giấy gói quà, hộp quà rỗng",Văn phòng phẩm,Quà tặng,57.2,1.04,0.78,0.9,1.29,Đông,Hạ,,1465,30.0
+SKU078,Thiệp chúc mừng,Văn phòng phẩm,Quà tặng,87.2,1.07,0.84,0.92,1.18,Đông,Hạ,,1380,20.0
+SKU079,Bút ký quà tặng hộp,Văn phòng phẩm,Quà tặng,8.1,0.97,0.92,1.07,1.04,Thu,Hạ,,68,10.0
+SKU080,Vở học sinh lốc 10 quyển,Văn phòng phẩm,Khai giảng (T8–T9),67.5,0.86,0.95,1.28,0.89,Thu,Xuân,,534,6.0
+SKU081,Bút bi Thiên Long hộp 20,Văn phòng phẩm,Khai giảng (T8–T9),53.4,0.92,0.97,1.18,0.93,Thu,Xuân,,259,4.0
+SKU082,Cặp sách học sinh,Văn phòng phẩm,Khai giảng (T8–T9),9.6,0.06,0.06,3.73,0.06,Thu,Xuân,Có,1981,53.0
+SKU083,"Hộp bút, bộ dụng cụ học tập",Văn phòng phẩm,Khai giảng (T8–T9),30.2,0.87,0.91,1.3,0.91,Thu,Xuân,,253,6.0
+SKU084,Bình nước học sinh 600ml,Gia dụng,Khai giảng (T8–T9),18.9,0.98,0.91,1.2,0.91,Thu,Hạ,,160,7.0
+SKU085,Sữa học đường hộp 180ml thùng 48,Sữa,Khai giảng (T8–T9),31.5,0.91,0.95,1.15,0.98,Thu,Xuân,,169,4.0
+SKU086,"Bao tập, nhãn vở lốc",Văn phòng phẩm,Khai giảng (T8–T9),75.9,0.05,0.05,3.76,0.05,Thu,Xuân,Có,2144,7.0
+SKU087,"Mặt nạ, đồ hóa trang Halloween",Trang trí,Chỉ dịp Halloween,31.7,0.1,0.11,3.58,0.12,Thu,Xuân,Có,12375,3611.0
+SKU088,Kẹo Halloween túi 300g,Bánh kẹo,Chỉ dịp Halloween,39.8,0.12,0.13,3.54,0.12,Thu,Xuân,Có,9669,2099.0
+SKU089,Cây thông Noel 1m2,Trang trí,Chỉ dịp Noel,13.9,0.07,0.06,0.06,3.75,Đông,Hạ,Có,598,783.0
+SKU090,Dây đèn LED nhấp nháy,Trang trí,Chỉ dịp Noel,26.9,0.7,0.05,0.04,3.2,Đông,Thu,Có,266,210.0
+SKU091,Bánh quy bơ hộp Noel,Bánh kẹo,Chỉ dịp Noel,25.7,0.06,0.06,0.07,3.75,Đông,Xuân,Có,492,294.0
+SKU092,"Mũ, vớ ông già Noel",Trang trí,Chỉ dịp Noel,40.6,0.06,0.06,0.06,3.76,Đông,Xuân,Có,6218,2112.0
+SKU093,Khẩu trang y tế hộp 50,Y tế & sức khỏe,"Quanh năm, tăng mùa đông",107.0,0.79,0.25,0.31,2.65,Đông,Hạ,Có,119,4.0
+SKU094,Nước rửa tay Lifebuoy 500ml,Chăm sóc cá nhân,Quanh năm,65.6,0.9,0.89,0.95,1.26,Đông,Hạ,,239,4.0
+SKU095,Bàn chải đánh răng P/S lốc 3,Chăm sóc cá nhân,Quanh năm,44.8,1.0,0.98,1.05,0.96,Thu,Đông,,650,14.0
+SKU096,Băng vệ sinh Diana lốc 8 gói,Chăm sóc cá nhân,Quanh năm,38.6,0.99,1.01,1.02,0.97,Thu,Đông,,448,11.0
+SKU097,Tã quần Bobby gói 40 miếng,Chăm sóc cá nhân,Quanh năm,25.8,0.94,0.99,1.08,0.98,Thu,Xuân,,91,3.0
+SKU098,Bột ngọt Ajinomoto 1kg,Gia vị,Quanh năm,68.2,1.04,1.02,0.93,1.02,Xuân,Thu,,400,6.0
+SKU099,Muối i-ốt 500g,Gia vị,Quanh năm,133.4,0.98,1.01,0.99,1.02,Đông,Xuân,,1274,10.0
+SKU100,Xúc xích tiệt trùng gói 10 cây,Thực phẩm khô,Quanh năm,75.9,1.0,0.99,0.97,1.04,Đông,Thu,,533,7.0
+SKU101,Pin AA Panasonic vỉ 4,Điện gia dụng,Quanh năm,73.5,0.91,0.95,1.09,1.04,Thu,Xuân,,176,3.0
+SKU102,Bóng đèn LED 9W,Điện gia dụng,Quanh năm,53.4,1.02,0.96,1.02,1.01,Xuân,Hạ,,809,16.0
+SKU103,Túi rác cuộn lớn,Hóa phẩm,Quanh năm,93.0,0.95,0.95,1.01,1.08,Đông,Xuân,,812,9.0
+SKU104,Giấy A4 Double A ream,Văn phòng phẩm,Quanh năm,47.0,0.92,1.03,1.04,1.01,Thu,Xuân,,434,8.0
+SKU105,Bánh gạo Ichi gói 150g,Bánh kẹo,Quanh năm,99.6,0.94,1.03,0.96,1.06,Đông,Xuân,,1411,14.0
+SKU106,Nước cam ép Twister lốc 6,Đồ uống,Mùa hè,64.3,0.96,1.39,0.96,0.68,Hạ,Đông,,712,10.0
+SKU107,Cháo ăn liền gói,Thực phẩm khô,Mùa đông,144.3,0.98,0.7,1.02,1.31,Đông,Hạ,,742,6.0
+SKU108,Hộp cơm điện tử giữ nhiệt,Gia dụng,Mùa đông,7.6,1.02,0.34,0.35,2.31,Đông,Hạ,,84,36.0
+SKU109,Cá hộp 150g,Thực phẩm khô,"Quanh năm, bùng nổ khi bão lũ",74.9,0.92,0.98,1.15,0.93,Thu,Xuân,,345,5.0
+SKU110,Thịt hộp 340g,Thực phẩm khô,"Quanh năm, bùng nổ khi bão lũ",39.1,0.91,0.94,1.12,1.02,Thu,Xuân,,326,9.0
+SKU111,Lương khô gói,Thực phẩm khô,"Quanh năm, bùng nổ khi bão lũ",48.5,0.9,0.96,1.16,0.97,Thu,Xuân,,344,7.0
+SKU112,Nến trắng gói 10 cây,Gia dụng,"Quanh năm, bùng nổ khi bão lũ",45.6,0.84,0.92,1.19,1.03,Thu,Xuân,,1271,32.0
+SKU113,Đèn pin sạc LED,Điện gia dụng,"Quanh năm, bùng nổ khi bão lũ",10.9,0.89,0.93,1.16,1.01,Thu,Xuân,,138,14.0
+SKU114,Sạc dự phòng 10000mAh,Điện gia dụng,"Quanh năm, bùng nổ khi bão lũ",9.6,0.92,1.03,1.0,1.04,Đông,Xuân,,177,18.0
+SKU115,Nước khoáng can 5L,Đồ uống,"Quanh năm, bùng nổ khi bão lũ",65.9,0.88,1.33,1.1,0.67,Hạ,Đông,,767,11.0
+SKU116,Viên khử khuẩn Cloramin B hộp,Y tế & sức khỏe,Bùng nổ sau bão lũ,16.3,0.96,0.99,1.11,0.94,Thu,Đông,,169,11.0
+SKU117,Gói bù nước ORS hộp 20,Y tế & sức khỏe,"Quanh năm, bùng nổ khi bão lũ",26.5,0.83,0.88,1.18,1.09,Thu,Xuân,,237,11.0
+SKU118,Bạt nilon che mưa cuộn,Gia dụng,Bùng nổ sau bão lũ,9.4,1.01,0.98,1.04,0.97,Thu,Đông,,81,11.0
+SKU119,Nước tẩy Javel 1L,Hóa phẩm,"Quanh năm, bùng nổ khi bão lũ",49.4,0.88,0.96,1.1,1.05,Thu,Xuân,,58,1.0
+SKU120,Găng tay cao su đôi,Hóa phẩm,Bùng nổ sau bão lũ,38.4,0.84,0.99,1.13,1.03,Thu,Xuân,,1039,30.0
+SKU121,Bật lửa gas,Gia dụng,"Quanh năm, bùng nổ khi bão lũ",117.2,0.93,0.92,1.05,1.1,Đông,Hạ,,3187,32.0

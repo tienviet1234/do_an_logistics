@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# File tam khi sinh du lieu
+*.pkl
+
+# File khoa tam cua Word/Excel khi dang mo
+~$*
+
+# He dieu hanh
+Thumbs.db
+desktop.ini
