@@ -1,0 +1,217 @@
+# Lộ trình thực hiện đồ án (từ sau khi làm sạch dữ liệu)
+
+Lập ngày 10/10/2026. Khung theo luồng 8 bước của Báo cáo GĐ1 (`docs/08`).
+
+**Lịch chính thức của trường:**
+| Mốc | Ngày |
+|---|---|
+| Sinh viên thực hiện đồ án (12 tuần) | 14/09/2026 – 06/12/2026 |
+| **Nộp báo cáo đồ án** | **09/12/2026** |
+| Phân công phản biện | 10/12/2026 |
+| Chấm phản biện (3 tuần) | 11/12/2026 – 26/12/2026 |
+| Thành lập hội đồng chấm | 27/12/2026 – 29/12/2026 |
+| **Bảo vệ đồ án** | **30/12/2026 – 31/12/2026** |
+
+Ngày 10/10/2026 là ngày thứ 27 của 12 tuần. Giai đoạn 1 (đề cương, Chương 2) và Bước 1 (dữ liệu, làm sạch) đã xong.
+Còn **8 tuần làm việc (12/10 – 06/12)** + 2 ngày hoàn thiện (07–08/12) trước khi nộp.
+Nguyên tắc nén lịch: **viết đồ án song song với chạy mô hình** (không dồn cuối); **LSTM bỏ** trừ khi vượt tiến độ; slide và tập bảo vệ làm từ sau khi nộp đến trước ngày bảo vệ (11–29/12).
+
+Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào thì cập nhật mục 3, 4, 6 của `docs/01`.
+
+---
+
+## 1. Bảng tổng quan
+
+| GĐ | Tên (thuật ngữ logistics) | Bước GĐ1 | Chương | Thời gian | Sản phẩm chính | Trạng thái |
+|---|---|---|---|---|---|---|
+| 0 | Data Preparation: đối soát, làm sạch | 1 | 3, 4 | trước 10/10 | `data/clean/`, `reports/bao_cao_lam_sach.md` | ✅ Xong |
+| A | Phân tích khám phá + tạo đặc trưng (Demand Drivers) | 2 | 4 | T1: 12–18/10 | `src/eda.py`, `src/dac_trung.py`, `reports/eda/` | ✅ Xong 10/10 (sớm hơn lịch) |
+| B | Khung đánh giá: chia dữ liệu, backtest, chỉ số | 5 (chuẩn bị) | 4 | T2: 19–21/10 | `src/danh_gia.py` | ✅ Xong 10/10 (sớm hơn lịch) |
+| C | Mô hình mốc (Baseline Forecast) | 3 | 4 | T2–T3: 22/10–28/10 | `src/mo_hinh_baseline.py` | ✅ Xong 23/10 |
+| D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` | |
+| E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền | |
+| F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau | |
+| G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | |
+| H1 | Viết Chương 1–3 (song song, buổi tối / cuối tuần) | — | 1–3 | T1–T5 | Bản nháp Chương 1, 2 (rà lại), 3 | |
+| H2 | Viết Chương 4–5, ráp đồ án, gửi GVHD xem | 8 | 4, 5 | T7–T8: 27/11–06/12 | Bản đồ án hoàn chỉnh | |
+| H3 | Sửa cuối, định dạng, in | — | — | 07–08/12 | File nộp | |
+| H4 | **Nộp** | — | — | **09/12** | | |
+| H5 | Slide, tập bảo vệ, chuẩn bị câu hỏi phản biện | 8 | — | 11–29/12 | Slide 15–20 trang | |
+| H6 | **Bảo vệ** | — | — | **30–31/12** | | |
+
+**Song song suốt lộ trình:** làm việc với đơn vị thực tập và giảng viên hướng dẫn (mục 3).
+
+---
+
+## 1b. Lịch theo tuần (dán lên chỗ dễ thấy)
+
+| Tuần | Ngày | Việc kỹ thuật (ban ngày) | Việc viết / liên hệ (song song) | Mốc kiểm tra cuối tuần |
+|---|---|---|---|---|
+| T1 | 12–18/10 | GĐ A: EDA + `dac_trung.py` | Hỏi GVHD về dữ liệu mô phỏng; xin dữ liệu đơn vị thực tập; hỏi ngày bảo vệ | Có file đặc trưng + 6–8 hình EDA |
+| T2 | 19–25/10 | GĐ B (3 ngày) → bắt đầu GĐ C | Viết Chương 1 (mở đầu) | Có WMAPE của Naive, Seasonal Naive |
+| T3 | 26/10–01/11 | Xong GĐ C → bắt đầu Prophet | Rà Chương 2 theo bảng "điểm khác" ở `docs/08` | Bảng chỉ số đủ mô hình mốc |
+| T4 | 02–08/11 | GĐ D: Prophet + LightGBM | Viết Chương 3 (thực trạng kho) | Có chỉ số Prophet, LightGBM |
+| T5 | 09–15/11 | GĐ E (3 ngày) → bắt đầu GĐ F | **Gửi GVHD bảng so sánh mô hình** | Đã chọn mô hình theo nhóm SKU |
+| T6 | 16–22/11 | GĐ F: SS/ROP/EOQ + mô phỏng | Viết Chương 4 phần dữ liệu, mô hình | **Có bảng trước–sau** |
+| T7 | 23–29/11 | GĐ G: dashboard bản gọn (3–4 ngày) | Viết Chương 4 phần tồn kho + Chương 5; **gửi GVHD bảng trước–sau** | Dashboard chạy được |
+| T8 | 30/11–06/12 | Không làm thêm mô hình mới | Ráp đồ án, gửi GVHD bản đầy đủ, sửa theo góp ý | Bản đồ án hoàn chỉnh |
+| — | 07–08/12 | | Định dạng, mục lục, tài liệu tham khảo, in | |
+| — | **09/12** | | **Nộp báo cáo** | |
+| — | 11–26/12 | | Slide, tập nói; trả lời nhận xét của phản biện (nếu có) | |
+| — | 27–29/12 | | Tập bảo vệ hoàn chỉnh (bấm giờ), chạy thử demo trên máy sẽ dùng | |
+| — | **30–31/12** | | **Bảo vệ** | |
+
+**Nếu trễ:** cuối T4 chưa xong Prophet + LightGBM → chỉ giữ 1 mô hình AI (LightGBM), dời phần còn lại vào "hướng phát triển". Cuối T6 chưa có bảng trước–sau → bỏ dashboard, dùng biểu đồ tĩnh.
+
+## 1c. Tiêu chí thành công (đề xuất 23/10, các ngưỡng số cần giảng viên duyệt)
+
+| Mặt | Tiêu chí đạt | Đo bằng | Trạng thái |
+|---|---|---|---|
+| **1. Được chấp nhận** | Giảng viên đồng ý dùng dữ liệu mô phỏng cho Chương 4 | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
+| | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
+| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ⏳ |
+| | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ⏳ |
+| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⏳ |
+| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⏳ |
+| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ⏳ |
+| **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
+| | Không rò rỉ dữ liệu: chia theo thời gian, chỉ dùng thông tin biết trước | Kiểm tra trong `danh_gia.py` | ✅ |
+| | Tự giải thích được từng bước và trả lời câu hỏi phản biện | `docs/11` câu hỏi tự kiểm tra | 🔄 Bài 1–4 |
+
+**Lưu ý trung thực:** nếu mô hình AI **không** thắng mô hình mốc ở một nhóm nào đó, đó vẫn là kết quả hợp lệ và đáng viết, miễn phân tích được vì sao. Không chỉnh dữ liệu hay cách chấm để AI "thắng".
+
+## 2. Chi tiết từng giai đoạn
+
+### GĐ A. Phân tích khám phá (EDA) + tạo đặc trưng (T1: 12–18/10)
+**Mục tiêu:** hiểu dữ liệu bằng hình, rồi biến lịch lễ/bão/sale/khuyến mãi thành cột số cho mô hình.
+
+Phân tích khám phá (`src/eda.py`, hình lưu `reports/eda/`):
+- [x] Biểu đồ tổng xuất theo ngày toàn kho; đánh dấu Tết, bão Yagi, 11.11.
+- [x] Biểu đồ 6 SKU đại diện: 2 nhóm X ổn định, 2 nhóm Z mùa vụ (bánh trung thu, mứt Tết), 1 hàng bão (mì gói), 1 hàng bán thưa.
+- [x] Tách xu hướng / mùa vụ / nhiễu (`seasonal_decompose`, chu kỳ 7 và 365, **không dùng 30**).
+- [x] Bảng ma trận ABC × XYZ (hiện: A-X 22, A-Z 8, B-Z 16, C-Z 19...).
+- [x] Phân loại hàng bán thưa theo ADI–CV² (Syntetos–Boylan): smooth / erratic / intermittent / lumpy. Hiện có 9 SKU có trên 30% ngày bán 0.
+
+Tạo đặc trưng (`src/dac_trung.py` → `data/features/dac_trung.csv`):
+- [x] Lịch: thứ, tháng, tuần trong năm, mùa (Xuân/Hạ/Thu/Đông), cuối tuần, đầu/giữa/cuối tháng.
+- [x] Sự kiện từ `data/reference/`: cờ lễ có cửa sổ trước–sau, số ngày đến Tết, cờ bão + mức độ (cửa sổ −3…+14), cờ sale 11.11/12.12/Black Friday, cờ khuyến mãi (`lich_khuyen_mai.csv`), cờ sự kiện đột biến.
+- [x] Giá trị trễ: lag_1, lag_7, lag_14, lag_28, lag_364; trung bình trượt 7/28 ngày (chỉ dùng dữ liệu **quá khứ**, `shift(1)` trước khi tính).
+- [x] Đặc trưng SKU: nhóm hàng, ABC, XYZ, loai_mua_vu, giá.
+- [x] Xử lý ngày hết hàng: gắn cờ, đặt `y` = rỗng khi huấn luyện (không coi là cầu thật).
+- [x] Kiểm tra: đối chiếu cờ dựng lại với answer_key (chỉ để kiểm tra), khớp ≥ 99%. → **Kết quả 10/10: thu, mua, khuyen_mai, trong_tuan_tet, bao_lu_muc_do khớp 100%; lag không nhìn tương lai.**
+- Ghi chú: phân loại ABC/XYZ trong `sku_master` tính trên cả 36 tháng (có cả giai đoạn test) → mô hình dùng `abc_train`, `xyz_train` tính trên tập train (8 SKU đổi nhóm ABC, 3 SKU đổi XYZ). Đơn B2B đột biến (`don_b2b`) không biết trước → chỉ dùng để loại khỏi huấn luyện, không làm biến dự báo.
+- Phân loại nhu cầu (ADI/CV²): 58 smooth, 54 erratic, 9 lumpy → 9 SKU lumpy thử thêm Croston/TSB.
+- EDA (`reports/bao_cao_eda.md`, 8 hình `reports/eda/h01–h08`): xu hướng tổng gần như **đi ngang**; mùa vụ năm mạnh (Tết, Trung thu, Noel); Chủ nhật chỉ bằng 0,53 mức TB → chu kỳ 7 ngày bắt buộc; khuyến mãi làm bán tăng trung vị 60% (so cùng tháng); Tết âm lịch đổi ngày mỗi năm nên chu kỳ 52 tuần không đủ, cần biến ngày lễ.
+
+**Xong khi:** file đặc trưng có đủ 132.616 dòng, không có cột nào nhìn thấy tương lai, có 6–8 hình EDA dùng được cho Chương 4.
+
+### GĐ B. Khung đánh giá (T2: 19–21/10)
+**Mục tiêu:** mọi mô hình được chấm trên **cùng** một đề thi.
+
+- [x] Chốt cách chia (đề xuất, cần duyệt):
+  - Train: 01/10/2023 – 30/09/2025 (24 tháng, đủ 2 mùa Tết).
+  - Validation (dò tham số): các mốc trong 04/2025 – 09/2025.
+  - Test (chấm điểm cuối): backtest cuốn chiếu 10/2025 – 09/2026, mỗi 4 tuần đặt 1 mốc, dự báo 28 ngày (12–13 lần). Năm test có Tết 2026, Trung thu 2026, 7 cơn bão năm 2025.
+- [x] Tầm dự báo: 28 ngày (lớn hơn lead time dài nhất 15 ngày + chu kỳ kiểm hàng).
+- [x] Viết hàm chỉ số: MAE, RMSE, WMAPE, MASE (so Seasonal Naive 7), Bias = mean(A − F).
+- [x] Bỏ ngày kho đóng cửa và ngày hết hàng khỏi phần chấm điểm.
+- [x] Hàm xuất kết quả theo SKU, theo nhóm ABC/XYZ, theo toàn kho.
+
+**Xong khi:** chạy thử với mô hình Naive ra được bảng chỉ số đầy đủ. → **Đạt 10/10.**
+
+Kết quả và quy ước đã chốt trong code:
+- Validation: 6 mốc (31/03/2025 … 18/08/2025); Test: 13 mốc (30/09/2025 … 01/09/2026); mỗi mốc dự báo 28 ngày.
+- Chấm điểm trên `y_cham` = nhu cầu tin được: bỏ ngày kho đóng cửa, ngày hết hàng, ngày đơn B2B đột biến.
+- Cột được nhìn thấy ở tương lai (`KNOWN_AHEAD`): lịch, lễ/sự kiện, sale, khuyến mãi, nghỉ kho, thông tin SKU. **Bão không được biết trước** (ngoài đời chỉ biết 3–5 ngày) → mô hình chỉ thấy bão trong quá khứ.
+- Chỉ số: MAE, RMSE, WMAPE, WMAPE theo tuần, MASE (mẫu số = Seasonal Naive 7 ngày một bước trên train, nên dự báo 28 ngày thường có MASE > 1), Bias % (dương = dự báo thiếu).
+- Mốc so sánh (test): Naive WMAPE 0,739; **Seasonal Naive 7 WMAPE 0,773**, WMAPE tuần 0,598. Theo nhóm: X 0,48 · Y 0,60 · Z 1,64. Mốc xấu nhất là mốc 17/02/2026 (ngày Tết, WMAPE 2,17): lặp lại tuần cao điểm trước Tết cho giai đoạn sau Tết.
+- Kết quả: `reports/ket_qua_mo_hinh.csv` (1 dòng / mô hình / tập), dự báo chi tiết `reports/du_bao/`.
+
+### GĐ C. Mô hình mốc (22–28/10)
+- [x] Naive, Seasonal Naive (7 ngày), Trung bình trượt 28 ngày.
+- [x] ETS / Holt-Winters.
+- [x] SARIMA cho nhóm A (31 SKU); dùng auto_arima hoặc statsforecast cho nhanh.
+- [x] Croston / TSB cho nhóm hàng bán thưa (từ GĐ A).
+- [x] Ghi kết quả vào `reports/ket_qua_mo_hinh.csv`. → **Mốc tốt nhất: TB trượt 28 ngày, WMAPE 0,640** (giảm 17,2% so với Seasonal Naive). Chi tiết: `docs/10` mục 7.
+
+**Xong khi:** có WMAPE mốc của Seasonal Naive. Đây là con số mọi mô hình AI phải thắng.
+
+### GĐ D. Mô hình AI (29/10–08/11)
+- [ ] **Prophet** từng SKU: holidays = `lich_su_kien_prophet.csv` + sale; thêm biến khuyến mãi, bão (extra regressor). Dò cửa sổ lễ trên validation.
+- [ ] **LightGBM hoặc XGBoost**: một mô hình chung cho cả 121 SKU, dùng file đặc trưng; dự báo nhiều bước bằng lag ≥ 28 (hoặc dự báo đệ quy).
+- [ ] Phân tích độ quan trọng đặc trưng (feature importance): biến nào quyết định nhu cầu (để viết Chương 4).
+- [ ] ~~LSTM~~: bỏ do lịch 12 tuần; chỉ làm nếu xong GĐ F trước 22/11. Trong đồ án ghi vào "hướng phát triển".
+
+**Xong khi:** mỗi mô hình có đủ chỉ số trên cùng tập test như GĐ C.
+
+### GĐ E. Chọn mô hình (09–11/11)
+- [ ] Điền `Bang_so_sanh` trong `reports/Mo_hinh_va_danh_gia.xlsx`.
+- [ ] So sánh theo nhóm ABC × XYZ: có thể mỗi nhóm thắng một mô hình khác nhau.
+- [ ] Tính FVA: mô hình AI giảm WMAPE bao nhiêu % so với Seasonal Naive.
+- [ ] Vẽ dự báo chồng thực tế quanh Tết 2026 và 1 cơn bão: mô hình có bắt được đỉnh không.
+- [ ] Quy tắc chọn: sai số thấp nhất; nếu chênh dưới ~2 điểm WMAPE thì chọn mô hình đơn giản hơn.
+
+### GĐ F. Chính sách tồn kho + mô phỏng (12–22/11)
+**Đây là phần "tối ưu tồn kho" trong tên đề tài; giám khảo nhìn vào đây đầu tiên.**
+
+- [ ] `src/ton_kho.py`: với mỗi SKU tính D, d, σ (độ lệch chuẩn **sai số dự báo** trong lead time), SS, ROP, EOQ; làm tròn theo MOQ.
+- [ ] Thử 3 mức phục vụ: 90%, 95%, 99%.
+- [ ] `src/mo_phong.py`: chạy lại 12 tháng test theo từng chính sách:
+  1. **Hiện trạng**: chính sách đặt hàng đang có trong dữ liệu (người lập kế hoạch có độ lệch).
+  2. **Seasonal Naive + công thức**: chính sách dựa trên dự báo mốc.
+  3. **AI + công thức**: chính sách dựa trên mô hình thắng ở GĐ E.
+- [ ] KPI mỗi chính sách: Fill Rate, số ngày hết hàng, tồn kho bình quân, DOH, vòng quay, chi phí đặt hàng + lưu kho, hàng tồn dư sau mùa.
+- [ ] Bảng **trước – sau** (sản phẩm quan trọng nhất của đồ án).
+- [ ] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`.
+
+**Xong khi:** có bảng trước–sau và 2–3 biểu đồ, ghi rõ "kết quả trên dữ liệu mô phỏng".
+
+### GĐ G. Dashboard bản gọn (23–26/11)
+- [ ] Streamlit, tối đa 4 khu: chọn SKU → dự báo vs thực tế; cảnh báo SKU dưới ROP; KPI trước–sau; bảng SS/ROP/EOQ.
+- [ ] Chạy được bằng 1 lệnh, dùng để demo khi bảo vệ.
+- [ ] (Thay thế) Power BI nếu bạn quen kéo–thả hơn: xuất CSV kết quả cho Power BI đọc.
+
+### GĐ H. Viết đồ án và bảo vệ (song song T1–T8, nộp 09/12, slide 11–29/12, bảo vệ 30–31/12)
+- [ ] Chương 1: Mở đầu (lý do, mục tiêu, phạm vi, phương pháp).
+- [ ] Chương 2: Cơ sở lý thuyết (đã có từ GĐ1, rà lại theo bảng "điểm khác" trong `docs/08`).
+- [ ] Chương 3: Thực trạng kho tại đơn vị thực tập (cần thông tin thật, mục 3).
+- [ ] Chương 4: Xây dựng mô hình (dữ liệu → EDA → mô hình → so sánh → tồn kho → dashboard).
+- [ ] Chương 5: Kết luận, đề xuất cho đơn vị (ví dụ: áp ROP tự động cho nhóm A trước, mở rộng B/C sau 3 tháng), hạn chế (dữ liệu mô phỏng), hướng phát triển.
+- [ ] Slide 15–20 trang, 2–3 biểu đồ chính, demo dashboard (làm trong 11–29/12, sau khi nộp).
+- [ ] Chuẩn bị câu hỏi phản biện: vì sao dữ liệu mô phỏng, vì sao WMAPE không phải MAPE, vì sao không chia ngẫu nhiên, LSTM có hơn không...
+
+---
+
+## 3. Việc song song: đơn vị thực tập và giảng viên
+
+| Khi nào | Việc | Ai |
+|---|---|---|
+| T1 (trước 18/10) | Hỏi giảng viên: dùng dữ liệu mô phỏng cho Chương 4 có được không; có cần dữ liệu thật không (ngày bảo vệ đã có: 30–31/12) | Bạn |
+| T1 (trước 18/10) | Xin đơn vị thực tập: file xuất nhập tồn theo ngày (date, mã SKU, nhập, xuất, tồn cuối), danh mục SKU, lead time nhà cung cấp, lịch khuyến mãi. Tối thiểu 12 tháng, ưu tiên nhóm A | Bạn |
+| Trong GĐ A–C | Hỏi kho: loại kho (B2B hay fulfillment cho sàn), chính sách đặt hàng hiện tại, mức phục vụ mục tiêu, chi phí đặt hàng và lưu kho ước tính | Bạn |
+| Khi có dữ liệu thật | Thay file raw, giữ tên cột, chạy lại toàn bộ script. **Hạn chót nhận dữ liệu thật: 08/11** (sau đó không kịp chạy lại, chỉ dùng cho Chương 3) | AI hỗ trợ |
+| Cuối GĐ E và F | Gửi giảng viên bảng so sánh mô hình và bảng trước–sau để xin góp ý | Bạn |
+
+---
+
+## 4. Quyết định cần chốt (ghi kết quả vào đây)
+
+| Quyết định | Đề xuất | Đã chốt |
+|---|---|---|
+| Hạn nộp đồ án, ngày bảo vệ | | Nộp 09/12/2026; bảo vệ 30–31/12/2026 |
+| Dự báo theo ngày hay theo tuần | Theo ngày, chấm điểm thêm tổng theo tầm lead time | |
+| Cách chia train/validation/test | Như GĐ B | |
+| Thư viện | statsforecast (baseline, Croston), prophet, lightgbm, streamlit | |
+| Có làm LSTM không | Không (lịch 12 tuần) | Bỏ, trừ khi xong GĐ F trước 22/11 |
+| Dashboard | Streamlit | |
+| Phân hệ điều vận (số xe, xếp chuyến, cảnh báo cao điểm) | Ngoài kế hoạch chính | Chỉ làm nếu xong GĐ G trước hạn, hoặc làm sau khi nộp (11–26/12) để làm hồ sơ xin thực tập. Không được làm chậm GĐ C–F |
+
+## 5. Rủi ro và cách xử lý
+| Rủi ro | Cách xử lý |
+|---|---|
+| Không xin được dữ liệu thật | Giữ dữ liệu mô phỏng, nói rõ ở phần hạn chế; quy trình đã sẵn sàng thay dữ liệu |
+| Prophet/LightGBM cài lỗi trên Windows | Dùng môi trường ảo (`.venv`), cài sớm ngay đầu GĐ C |
+| Chạy 121 SKU × 13 mốc backtest quá lâu | Chạy nhóm A trước, các nhóm khác chạy sau hoặc giảm số mốc |
+| Mô hình AI không thắng Seasonal Naive | Vẫn là kết quả hợp lệ; phân tích vì sao, nhóm nào AI có lợi |
+| Trễ tiến độ | Xem dòng "Nếu trễ" ở mục 1b; ưu tiên GĐ F và Chương 4 hơn dashboard |
+| Dồn viết vào cuối | Mỗi tuần viết ít nhất 1 phần (cột "Việc viết" mục 1b) |

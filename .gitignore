@@ -13,3 +13,9 @@ __pycache__/
 # He dieu hanh
 Thumbs.db
 desktop.ini
+
+# Dac trung: sinh lai duoc bang src/dac_trung.py (file lon)
+data/features/
+reports/du_bao/
+reports/word/
+reports/log_*.txt

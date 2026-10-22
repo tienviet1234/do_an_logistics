@@ -6,6 +6,7 @@ Cập nhật: 10/10/2026.
 - Đề tài: ứng dụng AI trong dự báo nhu cầu và tối ưu tồn kho, hướng thực tập kho.
 - Giảng viên hướng dẫn yêu cầu **xây dựng dữ liệu đầu vào** cho bài toán. Báo cáo giai đoạn 1 ("Kiến thức cần chuẩn bị") nằm ở `docs/Bao_cao_Giai_doan_1_Kien_thuc_can_chuan_bi.docx`, bản md: `docs/08_bao_cao_giai_doan_1.md` (có tóm tắt và bảng điểm khác với cách dự án đang làm).
 - **Chưa có dữ liệu thật** từ đơn vị thực tập. Vì vậy dữ liệu được mô phỏng bằng Python để xây dựng và kiểm thử quy trình. Khi có file xuất từ WMS/ERP, giữ nguyên tên cột để thay vào.
+- Lịch trường: thực hiện 14/09–06/12/2026 (12 tuần), nộp 09/12/2026, chấm phản biện 11–26/12/2026, thành lập hội đồng 27–29/12, bảo vệ 30–31/12/2026.
 - Chuỗi bài toán: dự báo nhu cầu (d) → tham số tồn kho (EOQ, SS, ROP) → so sánh mô hình bằng backtest.
 
 ## 2. Dữ liệu hiện có
@@ -40,6 +41,9 @@ Cập nhật: 10/10/2026.
 7. Dựng thư mục dự án cho VS Code và script `src/lam_sach.py` (bước 1–5 tiền xử lý).
 8. (10/10/2026) `sinh_du_lieu.py`: xuất thêm `lich_khuyen_mai.csv`; sửa lỗi tràn số cột `gia_tri_xuat_36t` khi chạy trên Windows (int 32-bit). Đã chạy lại và đối chiếu: mọi file cũ giống hệt nội dung. Lưu ý: bản thân script ghi tất cả file ra **một** thư mục (`python src/sinh_du_lieu.py <thu_muc>`), sau đó phải tự chia vào raw/reference/answer_key.
 9. (10/10/2026) Chuyển 2 file .docx sang md bằng `src/docx_sang_md.py`.
+10. (10/10/2026) `src/dac_trung.py` → `data/features/dac_trung.csv` (132.616 dòng × 64 cột, không lưu vào git, chạy lại script để có) và `data/features/phan_loai_sku.csv`. Báo cáo: `reports/bao_cao_dac_trung.md`. Cột chính: lịch, 17 cờ sự kiện `sk_*`, bão (mức độ, pha trước/sau), sale, khuyến mãi, lag 1/7/14/28/35/364, trung bình trượt, `y` (= qty_out), `y_cau` (bỏ ngày hết hàng và ngày kho đóng cửa), `abc_train`/`xyz_train`/`loai_nhu_cau`.
+12. (10/10/2026) `src/danh_gia.py`: khung backtest chung (6 mốc validation, 13 mốc test, tầm 28 ngày), Naive và Seasonal Naive làm mốc; kết quả `reports/ket_qua_mo_hinh.csv`. Chi tiết quy ước: `docs/09` GĐ B.
+11. (10/10/2026) `src/eda.py` → 8 hình `reports/eda/h01–h08.png` + `reports/bao_cao_eda.md` (kèm nhận xét từng hình).
 
 ## 4. Kết quả làm sạch (đã chạy)
 - Loại 198 dòng trùng; sửa 687 dòng (530 thiếu `qty_out`, 157 nhập sai gấp 10 hoặc 100 lần).
@@ -63,7 +67,9 @@ Cập nhật: 10/10/2026.
 - Lịch nghỉ Tết trong dữ liệu là 7 ngày cố định (giả định), không đúng hoàn toàn lịch nghỉ chính thức từng năm.
 
 ## 6. Việc tiếp theo (đề xuất, chưa làm)
-1. `src/dac_trung.py`: cờ lễ, bão, sale; mùa; giá trị trễ; trung bình trượt; ABC/XYZ; tỷ lệ ngày có bán (nhận biết hàng bán thưa).
+Lộ trình chi tiết từng giai đoạn, checklist và quyết định cần chốt: `docs/09_lo_trinh.md`.
+
+1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Tiếp theo: GĐ D Prophet, LightGBM.
 2. Chia train/validation/test theo thời gian; backtest cuốn chiếu.
 3. Chạy baseline (Naive, Seasonal Naive, trung bình trượt, ETS), Prophet, XGBoost; hàng bán thưa dùng Croston/TSB; LSTM chỉ khi đủ dữ liệu.
 4. Đo MAE, RMSE, WMAPE, MASE, Bias; so sánh theo nhóm ABC/XYZ; điền `Bang_so_sanh`.
