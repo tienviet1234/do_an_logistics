@@ -29,7 +29,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | B | Khung đánh giá: chia dữ liệu, backtest, chỉ số | 5 (chuẩn bị) | 4 | T2: 19–21/10 | `src/danh_gia.py` | ✅ Xong 10/10 (sớm hơn lịch) |
 | C | Mô hình mốc (Baseline Forecast) | 3 | 4 | T2–T3: 22/10–28/10 | `src/mo_hinh_baseline.py` | ✅ Xong 23/10 |
 | D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || ✅ Xong 24/10 (sớm 2 tuần) |
-| E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền | |
+| E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền || ✅ Xong 24/10 (2 vòng) |
 | F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau | |
 | G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | |
 | H1 | Viết Chương 1–3 (song song, buổi tối / cuối tuần) | — | 1–3 | T1–T5 | Bản nháp Chương 1, 2 (rà lại), 3 | |
@@ -63,15 +63,24 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 
 **Nếu trễ:** cuối T4 chưa xong Prophet + LightGBM → chỉ giữ 1 mô hình AI (LightGBM), dời phần còn lại vào "hướng phát triển". Cuối T6 chưa có bảng trước–sau → bỏ dashboard, dùng biểu đồ tĩnh.
 
+## 1d. Nhiệm vụ giảng viên giao thêm
+
+| Nhiệm vụ | Giao | Sản phẩm | Trạng thái |
+|---|---|---|---|
+| Xây dựng luồng cho hệ thống (nghiệp vụ + dữ liệu), trình bày trực tiếp trên máy trước hội đồng | Tuần 24/10 | `trinh_bay/luong_he_thong.html` (`python src/tao_trang_luong.py`) | ✅ 24/10 |
+| Hoàn thiện đẩy dữ liệu qua database | Tuần 24/10 | `data/kho_hang.db` (SQLite), `database/schema.sql`, `src/nap_database.py` | ✅ 24/10 |
+
+Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `dm_sku`, khung nhìn `v_du_bao_chon`) và ghi kết quả tồn kho ngược vào CSDL; sau mỗi lần nạp lại thì chạy lại `tao_trang_luong.py`.
+
 ## 1c. Tiêu chí thành công (đề xuất 23/10, các ngưỡng số cần giảng viên duyệt)
 
 | Mặt | Tiêu chí đạt | Đo bằng | Trạng thái |
 |---|---|---|---|
 | **1. Được chấp nhận** | Giảng viên đồng ý dùng dữ liệu mô phỏng cho Chương 4 | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
 | | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
-| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Prophet −41,3% (24/10) |
+| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Kết hợp theo nhóm −51% (24/10) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
-| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Prophet −4,9% đạt; LightGBM +11,6% không đạt → xử lý ở GĐ E |
+| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Mô hình chọn (kết hợp theo nhóm) +6,2%: vượt nhẹ → xử lý ở GĐ F |
 | **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⏳ |
 | | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ⏳ |
 | **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |

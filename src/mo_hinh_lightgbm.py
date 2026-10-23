@@ -82,6 +82,13 @@ if __name__ == "__main__":
         print(f"1 moc: {time.time() - t0:.0f} giay")
         print(score(p, df)[["WMAPE", "Bias_pct"]].round(3).to_string(index=False))
         sys.exit()
+    if "--tap" in sys.argv:                                  # vong 2 GD E: chi chay cau hinh da chon o vong 1
+        kind = sys.argv[sys.argv.index("--tap") + 1]
+        p = backtest(make_model("tweedie", cats, sk_cols), df, folds(kind), name=f"lightgbm_tweedie/{kind}")
+        r = save_results("lightgbm_tweedie", p, df, kind, "LightGBM tweedie (cau hinh vong 1), lag >= 28")
+        print("lightgbm_tweedie", kind, r[cols].round(3).to_string(index=False, header=False), flush=True)
+        keep_awake(False)
+        sys.exit()
     best, best_w = None, np.inf
     for obj in OBJECTIVES:
         name = f"lightgbm_{obj}"

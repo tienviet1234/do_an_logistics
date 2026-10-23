@@ -85,6 +85,13 @@ if __name__ == "__main__":
             print(f"1 moc, {p.ma_sku.nunique()} SKU, {WORKERS} loi CPU: {time.time() - t0:.0f} giay")
             print(score(p, df)[["WMAPE", "Bias_pct"]].round(3).to_string(index=False))
             sys.exit()
+        if "--tap" in sys.argv:                              # vong 2 GD E: chi chay cau hinh da chon o vong 1
+            kind = sys.argv[sys.argv.index("--tap") + 1]
+            p = backtest(make_model("additive", pool, hol), df, folds(kind), name=f"prophet_addi/{kind}")
+            r = save_results("prophet_addi", p, df, kind, "Prophet additive (cau hinh vong 1), holidays + sale + khuyen mai")
+            print(r[["mo_hinh", "tap", "WMAPE", "WMAPE_tuan", "WMAPE_A", "Bias_pct"]].round(3).to_string(index=False, header=False), flush=True)
+            keep_awake(False)
+            sys.exit()
         best, best_w = None, np.inf
         for mode in ["additive", "multiplicative"]:
             name = f"prophet_{mode[:4]}"

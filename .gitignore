@@ -19,3 +19,6 @@ data/features/
 reports/du_bao/
 reports/word/
 reports/log_*.txt
+
+# Co so du lieu: tao lai bang python src/nap_database.py (~190 MB)
+data/*.db

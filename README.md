@@ -14,7 +14,12 @@ mức độ tác động và các đột biến khác là giả định.
     python src/mo_hinh_baseline.py   # 5. mô hình mốc: TB trượt, ETS, ARIMA (nhóm A), Croston, TSB (~45 phút)
     python src/mo_hinh_prophet.py    # 6. Prophet từng SKU (~25 phút; chạy tiếp được, --lam-lai để chạy lại từ đầu)
     python src/mo_hinh_lightgbm.py   # 7. LightGBM chung 121 SKU (~2 phút) + độ quan trọng đặc trưng
-    python src/tong_hop_ket_qua.py   # 8. bảng so sánh mọi mô hình -> reports/bang_so_sanh_test.md
+    python src/mo_hinh_lightgbm.py --tap validation2 ; python src/mo_hinh_prophet.py --tap validation2   # 8. dự báo trên validation vòng 2 (~15 phút)
+    python src/chon_mo_hinh.py --vong 2   # 9. chọn/kết hợp mô hình -> reports/chon_mo_hinh_vong2.md
+    python src/tong_hop_ket_qua.py   # 10. bảng so sánh mọi mô hình -> reports/bang_so_sanh_test.md
+    python src/nap_database.py       # 11. đẩy toàn bộ dữ liệu + kết quả vào CSDL data/kho_hang.db, tự kiểm tra toàn vẹn (~2 phút)
+    python src/tao_trang_luong.py    # 12. trang trình bày luồng hệ thống -> trinh_bay/luong_he_thong.html (mở bằng trình duyệt)
+    python src/xem_database.py       # chạy các truy vấn mẫu trong database/truy_van_mau.sql
 
 Lệnh phụ (ít dùng):
     python src/sinh_du_lieu.py <thu_muc_ra>                 # sinh lại toàn bộ dữ liệu mô phỏng (ra 1 thư mục, tự chia vào data/)

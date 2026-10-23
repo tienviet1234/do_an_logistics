@@ -23,6 +23,7 @@ DATA_END = pd.Timestamp("2026-09-30")
 HORIZON = 28
 STEP = 28
 VAL_START = pd.Timestamp("2025-03-31")      # moc dau validation (do tham so)
+VAL2_START = pd.Timestamp("2024-09-30")     # vong 2 (GD E): validation cung mua voi test, som 1 nam -> co Tet 2025, Trung thu, bao
 PRED_DIR = "reports/du_bao"
 RESULT = "reports/ket_qua_mo_hinh.csv"
 
@@ -49,7 +50,7 @@ def load(path=FEAT):
 
 def folds(kind="test"):
     """Danh sach moc du bao (origin). Du bao cho origin+1 ... origin+HORIZON."""
-    start, end = (TRAIN_END, DATA_END) if kind == "test" else (VAL_START, TRAIN_END)
+    start, end = {"test": (TRAIN_END, DATA_END), "validation2": (VAL2_START, TRAIN_END)}.get(kind, (VAL_START, TRAIN_END))
     out, o = [], start
     while o + pd.Timedelta(days=HORIZON) <= end:
         out.append(o); o += pd.Timedelta(days=STEP)

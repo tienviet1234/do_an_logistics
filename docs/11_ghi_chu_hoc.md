@@ -224,3 +224,65 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 3. Không mâu thuẫn. Độ quan trọng đo tổng đóng góp trên mọi dòng dữ liệu; khuyến mãi tác động mạnh nhưng hiếm (8% số ngày).
 </details>
 
+---
+
+## Bài 8. Chọn mô hình: "đề luyện" phải giống "đề thi"
+
+**Kiến thức logistics:** khi một kho chọn phần mềm hay phương pháp dự báo, họ thường chạy thử vài tháng. Nếu chỉ chạy thử vào **mùa thấp điểm**, phương pháp nào trông cũng ổn; đến Tết mới lộ vấn đề. Muốn đánh giá đúng, phải thử **qua ít nhất một mùa cao điểm**.
+
+**Chuyện đã xảy ra trong dự án**
+- **Vòng 1:** dùng tập validation tháng 4–9/2025 (không có Tết) để chọn. Luật chọn ra **LightGBM**, vì trong giai đoạn êm nó chính xác nhất. Trên test, LightGBM thiếu hàng 41% trước Tết và Trung thu. Lựa chọn **sai**.
+- Không được nhìn test rồi đổi lựa chọn, vì như vậy là xem đề thi rồi mới chọn cách làm bài.
+- **Vòng 2:** chỉ sửa đúng một chỗ: tập validation mới **cùng mùa với test nhưng sớm một năm** (có Tết 2025). Giữ nguyên mô hình và luật chọn, và **ghi luật vào báo cáo trước khi chạy**.
+- Kết quả: vòng 2 thấy ngay LightGBM thiếu hàng (+13%, sát mức +12% trên test) và chọn **kết hợp theo nhóm**: hàng ổn định dùng gần hết LightGBM, hàng mùa vụ lấy 40% từ Prophet. Trên test, đây là phương án tốt nhất: sai 37,6%, theo tuần chỉ 23,5%.
+
+**Kỹ năng dữ liệu**
+- **Kết hợp mô hình (ensemble):** trung bình có trọng số của nhiều mô hình thường tốt hơn từng mô hình, vì lỗi của chúng bù trừ nhau. Ở đây LightGBM đoán thiếu, Prophet đoán thừa nhẹ.
+- **Trọng số theo nhóm hàng:** mỗi nhóm dùng tỷ lệ khác nhau, dò trên validation.
+- **Ghi trước luật chơi:** viết luật chọn ra giấy (vào báo cáo) **trước khi** có kết quả. Đây là cách các nhà khoa học tránh tự lừa mình.
+
+**Liên hệ điều vận:** tương tự khi đánh giá một nhà xe hay đối tác vận tải: chạy thử vào tháng thấp điểm thì ai cũng đúng giờ; phải xem họ làm thế nào trong **tuần trước Tết** mới biết có đáng tin không.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao vòng 1 chọn sai dù luật chọn hoàn toàn hợp lý?
+2. Sau khi thấy kết quả test vòng 1, nếu đổi luôn sang "trung bình hai mô hình" thì có gì sai?
+3. Mô hình được chọn vẫn thiếu hàng 6,2%, vượt ngưỡng ±5%. Có nên chỉnh trọng số cho tới khi Bias trên test dưới 5% không?
+
+<details><summary>Gợi ý</summary>
+
+1. Vì dữ liệu dùng để chọn (mùa êm) khác dữ liệu dùng mô hình thật (có Tết). Luật đúng nhưng "đề luyện" sai.
+2. Đó là chọn theo đề thi: kết quả test không còn khách quan, hội đồng sẽ không tin con số.
+3. Không. Mọi điều chỉnh phải ước lượng trên validation (ví dụ validation vòng 2 cho thấy thiếu 8,1%), rồi mới kiểm tra trên test. Chỉnh theo test là gian lận ngầm.
+</details>
+
+---
+
+## Bài 9. Luồng hệ thống và cơ sở dữ liệu
+
+**Kiến thức logistics**
+- **Luồng nghiệp vụ** trả lời "ai làm gì, theo thứ tự nào": kho ghi nhận → bán hàng gửi lịch → hệ thống dự báo, tính điểm đặt hàng → người lập kế hoạch duyệt → mua hàng đặt, điều vận lên xe. Hệ thống không thay con người; nó **đề xuất**, con người **quyết định**.
+- **Luồng dữ liệu** trả lời "dữ liệu đi qua những bước nào": thô → sạch → đặc trưng → mô hình → dự báo → tồn kho → dashboard.
+- Trong doanh nghiệp, dữ liệu kho nằm trong **WMS/ERP**, bản chất là một cơ sở dữ liệu. Dự án của bạn làm một bản thu nhỏ của điều đó.
+
+**Kỹ năng dữ liệu**
+- **Bảng danh mục và bảng giao dịch:** danh mục (`dm_sku`) ít thay đổi; giao dịch (`giao_dich_sach`) thêm mỗi ngày. Giao dịch chỉ lưu `ma_sku`, muốn biết tên hàng thì **nối (JOIN)** sang danh mục, không chép tên vào từng dòng.
+- **Khóa chính:** mỗi (ngày, SKU) chỉ một dòng, nên không thể trùng.
+- **Khóa ngoại:** mã hàng trong giao dịch phải có trong danh mục. Thử ghi `SKU999` thì bị từ chối.
+- **Ràng buộc CHECK:** lượng xuất không được âm, dự báo không được cho ngày trước mốc.
+- **Vùng tạm (staging):** `giao_dich_tho` nhận nguyên văn file kho, kể cả lỗi; chỉ dữ liệu đã làm sạch mới vào `giao_dich_sach`. Nhờ vậy luôn truy ngược được "dòng này ban đầu ra sao" (`nhat_ky_sua_loi`).
+- **Đối soát bằng SQL:** đẳng thức kho (tồn cuối = tồn đầu + nhập − xuất) kiểm tra được bằng một câu lệnh; kết quả 0 dòng lệch.
+
+**Liên hệ điều vận:** người điều vận hằng ngày tra cứu dữ liệu: đơn nào cần giao, hàng nào sắp về, xe nào trống. Biết đọc cơ sở dữ liệu và viết vài câu SQL đơn giản (SELECT, WHERE, JOIN, GROUP BY) là lợi thế lớn khi xin thực tập, vì phần lớn ứng viên chỉ biết Excel.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao không lưu tên hàng vào từng dòng giao dịch mà phải nối sang bảng danh mục?
+2. Nếu file kho mới có mã hàng chưa có trong danh mục, cơ sở dữ liệu sẽ làm gì? Đó là tốt hay xấu?
+3. Hội đồng hỏi: "Database để làm gì, sao không để file CSV?" Bạn trả lời thế nào?
+
+<details><summary>Gợi ý</summary>
+
+1. Để tên hàng chỉ nằm một chỗ: đổi tên thì sửa một dòng ở danh mục, không phải sửa 132.616 dòng giao dịch, và không bao giờ có hai tên khác nhau cho cùng một mã.
+2. Từ chối ghi (vi phạm khóa ngoại). Đó là điều tốt: buộc phải thêm mã hàng vào danh mục trước (kèm giá, lead time, MOQ), tránh dữ liệu "mồ côi" làm sai báo cáo.
+3. Database **chặn dữ liệu sai ngay khi ghi** (khóa chính, khóa ngoại, ràng buộc), cho nhiều người và nhiều chương trình dùng chung một nguồn, truy vấn nhanh bằng SQL, và ghi nhật ký mỗi lần nạp. File CSV không làm được những điều này; ai cũng có thể sửa tay làm sai lệch.
+</details>
+
