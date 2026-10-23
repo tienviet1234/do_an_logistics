@@ -269,3 +269,41 @@ SELECT k.ma_chinh_sach, c.mo_ta, k.muc_phuc_vu,
        ROUND((SUM(k.chi_phi_dat) + SUM(k.chi_phi_luu) + SUM(k.loi_nhuan_mat)) / 1e6, 1) AS chi_phi_lien_quan_trieu
 FROM ket_qua_ton_kho k JOIN chinh_sach c USING (ma_chinh_sach)
 GROUP BY k.ma_chinh_sach, k.muc_phuc_vu;
+
+-- ---------------------------------------------------------------------
+-- NHOM 6. THU DO NHAY (GD F bo sung) - bang do src/do_nhay.py ghi (chay sau ton_kho.py)
+-- IF NOT EXISTS: do_nhay.py tu chay lai phan nay tren CSDL cu, khong can nap lai toan bo.
+-- Kich ban theo docs/07: tac cang, lead time dai them, chi phi dat hang / luu kho tang. Muc phuc vu 95%.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS kich_ban_do_nhay (
+    ma_kich_ban         TEXT PRIMARY KEY,
+    nhom                TEXT NOT NULL CHECK (nhom IN ('goc','tac_cang','lead_time','chi_phi')),
+    mo_ta               TEXT NOT NULL,
+    tham_so             REAL,                   -- so ngay tre them, hoac he so nhan chi phi
+    tu_ngay             TEXT,                   -- dot tac cang: hang du kien ve trong [tu_ngay, den_ngay] bi tre
+    den_ngay            TEXT,
+    biet_truoc          INTEGER NOT NULL CHECK (biet_truoc IN (0,1))   -- 1: nguoi lap ke hoach cap nhat tham so
+);
+
+CREATE TABLE IF NOT EXISTS ket_qua_do_nhay (
+    ma_kich_ban         TEXT NOT NULL REFERENCES kich_ban_do_nhay(ma_kich_ban),
+    ma_chinh_sach       TEXT NOT NULL REFERENCES chinh_sach(ma_chinh_sach),
+    muc_phuc_vu         REAL NOT NULL,
+    ma_sku              TEXT NOT NULL REFERENCES dm_sku(ma_sku),
+    nhu_cau             REAL, da_dap_ung REAL, so_ngay_thieu INTEGER,
+    ton_tb              REAL, gia_tri_ton_tb REAL, so_lan_nhap INTEGER,
+    chi_phi_dat         REAL, chi_phi_luu REAL, doanh_thu_mat REAL, loi_nhuan_mat REAL, ton_cuoi_ky REAL,
+    PRIMARY KEY (ma_kich_ban, ma_chinh_sach, ma_sku)
+);
+
+CREATE VIEW IF NOT EXISTS v_do_nhay AS
+SELECT k.ma_kich_ban, b.nhom, b.tham_so, b.tu_ngay, b.biet_truoc, k.ma_chinh_sach,
+       ROUND(100.0 * SUM(k.da_dap_ung) / SUM(k.nhu_cau), 2)                          AS fill_rate_pt,
+       SUM(k.so_ngay_thieu)                                                          AS so_ngay_sku_thieu,
+       ROUND(SUM(k.gia_tri_ton_tb) / 1e6, 1)                                         AS ton_tb_trieu_vnd,
+       SUM(k.so_lan_nhap)                                                            AS so_lan_nhap,
+       ROUND((SUM(k.chi_phi_dat) + SUM(k.chi_phi_luu)) / 1e6, 1)                     AS chi_phi_dat_luu_trieu,
+       ROUND(SUM(k.loi_nhuan_mat) / 1e6, 1)                                          AS loi_nhuan_mat_trieu,
+       ROUND((SUM(k.chi_phi_dat) + SUM(k.chi_phi_luu) + SUM(k.loi_nhuan_mat)) / 1e6, 1) AS chi_phi_lien_quan_trieu
+FROM ket_qua_do_nhay k JOIN kich_ban_do_nhay b USING (ma_kich_ban)
+GROUP BY k.ma_kich_ban, k.ma_chinh_sach;

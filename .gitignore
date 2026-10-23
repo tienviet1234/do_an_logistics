@@ -22,3 +22,6 @@ reports/log_*.txt
 
 # Co so du lieu: tao lai bang python src/nap_database.py (~190 MB)
 data/*.db
+
+# Power BI: sinh lai duoc bang src/xuat_power_bi.py (file lon)
+reports/power_bi/*.csv

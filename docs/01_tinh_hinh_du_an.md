@@ -44,6 +44,9 @@ Cập nhật: 10/10/2026.
 10. (10/10/2026) `src/dac_trung.py` → `data/features/dac_trung.csv` (132.616 dòng × 64 cột, không lưu vào git, chạy lại script để có) và `data/features/phan_loai_sku.csv`. Báo cáo: `reports/bao_cao_dac_trung.md`. Cột chính: lịch, 17 cờ sự kiện `sk_*`, bão (mức độ, pha trước/sau), sale, khuyến mãi, lag 1/7/14/28/35/364, trung bình trượt, `y` (= qty_out), `y_cau` (bỏ ngày hết hàng và ngày kho đóng cửa), `abc_train`/`xyz_train`/`loai_nhu_cau`.
 12. (10/10/2026) `src/danh_gia.py`: khung backtest chung (6 mốc validation, 13 mốc test, tầm 28 ngày), Naive và Seasonal Naive làm mốc; kết quả `reports/ket_qua_mo_hinh.csv`. Chi tiết quy ước: `docs/09` GĐ B.
 11. (10/10/2026) `src/eda.py` → 8 hình `reports/eda/h01–h08.png` + `reports/bao_cao_eda.md` (kèm nhận xét từng hình).
+13. (23/10/2026) GĐ G: dashboard `app/dashboard.py` (Streamlit, chỉ đọc CSDL), chạy `streamlit run app/dashboard.py`. Từ 24/10 có 5 khu: tổng quan dữ liệu (6 biểu đồ phân tích), dự báo theo SKU, cảnh báo tồn kho theo ngày, trước – sau, bảng SS/ROP/EOQ. Chi tiết `docs/10` mục 12.
+14. (23/10/2026) Dữ liệu cho Power BI: `python src/xuat_power_bi.py` → `reports/power_bi/` (6 CSV + số đối chiếu). Hướng dẫn học 5 buổi: `docs/12_power_bi.md`, làm sau khi nộp.
+15. (23/10/2026) Thử độ nhạy chính sách tồn kho `src/do_nhay.py` (tắc cảng +3/+5/+7 ngày ở 13 đợt, lead time +2 ngày cả năm, chi phí đặt +20%, lưu kho +15%) → CSDL, `reports/do_nhay.md`, hình k07. Bổ sung 10 hạn chế "kho thật cần mà mô hình chưa có" vào `docs/10` mục 13.
 
 ## 4. Kết quả làm sạch (đã chạy)
 - Loại 198 dòng trùng; sửa 687 dòng (530 thiếu `qty_out`, 157 nhập sai gấp 10 hoặc 100 lần).
@@ -56,6 +59,7 @@ Cập nhật: 10/10/2026.
 ## 5. Điều đã kiểm chứng và điều là giả định
 - **Kiểm chứng từ nguồn:** ngày bão Yagi (07/09/2024); danh sách bão 2025 từ bão số 3 Wipha (22/7) đến bão số 15 Koto (3/12), lấy từ Wikipedia.
 - **Giả định (mô phỏng):** mức độ mạnh của bão, mọi hệ số tác động, các cú sốc khác, mọi mức tác động ở sheet chi phí.
+- **Giả định của thử độ nhạy (`src/do_nhay.py`):** mức trễ tắc cảng 3/5/7 ngày trong 3 tuần, lead time +2 ngày, chi phí đặt +20%, lưu kho +15% lấy theo `docs/07` (không phải số liệu thật); mọi SKU cùng bị tắc cảng.
 - **Nguồn bên thứ ba, chưa kiểm chứng chính thức:** lịch sale sàn (bài viết của một nhà bán lẻ). Chỉ 11.11, 12.12 và Black Friday có hiệu ứng trong dữ liệu mô phỏng; các sale còn lại chỉ là lịch tham khảo.
 - Black Friday là thứ Sáu thứ tư của tháng 11.
 - Sheet `Huong_dan` trong file Excel từng ghi nhầm "108 SKU"; số đúng là **121**.
@@ -69,11 +73,11 @@ Cập nhật: 10/10/2026.
 ## 6. Việc tiếp theo (đề xuất, chưa làm)
 Lộ trình chi tiết từng giai đoạn, checklist và quyết định cần chốt: `docs/09_lo_trinh.md`.
 
-1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,400, Bias +11,6%). GĐ E xong 24/10: chọn kết hợp theo nhóm (test WMAPE 0,376). GĐ F xong 24/10: Fill Rate 95,36%, chi phí liên quan −31% so với dự báo mốc. Tiếp theo: dashboard, viết Chương 4.
+1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,400, Bias +11,6%). GĐ E xong 24/10: chọn kết hợp theo nhóm (test WMAPE 0,376). GĐ F xong 24/10: Fill Rate 95,36%, chi phí liên quan −31% so với dự báo mốc. GĐ G dashboard xong 23/10 (`streamlit run app/dashboard.py`). Tiếp theo: viết Chương 2–5.
 2. Chia train/validation/test theo thời gian; backtest cuốn chiếu.
 3. Chạy baseline (Naive, Seasonal Naive, trung bình trượt, ETS), Prophet, XGBoost; hàng bán thưa dùng Croston/TSB; LSTM chỉ khi đủ dữ liệu.
 4. Đo MAE, RMSE, WMAPE, MASE, Bias; so sánh theo nhóm ABC/XYZ; điền `Bang_so_sanh`.
 5. Từ dự báo tính SS, ROP, EOQ (σd = độ lệch chuẩn sai số dự báo); mô phỏng chính sách tồn kho và so sánh KPI (Fill Rate, Stockout, DOH).
-5b. Dashboard (Streamlit hoặc Power BI) và bảng so sánh "trước – sau" cho slide bảo vệ (bước 7–8 của Báo cáo GĐ1).
+5b. ~~Dashboard và bảng so sánh "trước – sau"~~ (xong 23/10, Streamlit). Còn: chọn 2–3 màn hình dashboard đưa vào slide bảo vệ.
 6. Chưa làm: đưa vào dữ liệu mô phỏng các sự kiện chi phí (tăng giá xăng, tắc cảng), nguyên nhân phi thời tiết (rằm, mùng 1, nghỉ lễ dài, ngày lương, SKU mới và ngừng bán), và hiệu ứng của toàn bộ 12 ngày sale.
 7. Khi có dữ liệu thật: thay file raw, giữ tên cột, chạy lại `lam_sach.py`.

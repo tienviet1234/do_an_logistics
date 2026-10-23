@@ -8,3 +8,4 @@ Dữ liệu mô phỏng, không phải số liệu kho thật. Hinh luu o `repor
 - `k04_ton_kho_theo_thoi_gian.png`: Tồn kho theo thời gian của 4 chính sách; các đỉnh trước Tết là hàng chuẩn bị cho mùa cao điểm.
 - `k05_truoc_sau.png`: Chi phí liên quan = đặt hàng + lưu kho + lợi nhuận mất do thiếu hàng. Cùng công thức, AI giảm 31% so với dự báo mốc.
 - `k06_rang_cua_sku001.png`: Mỗi khi tồn + hàng đang về chạm ROP thì đặt hàng; ROP tăng trước Tết theo dự báo. Minh họa thực tế cho lý thuyết EOQ/ROP ở Chương 2.
+- `k07_do_nhay_lead_time.png`: Tắc cảng tạm thời chỉ làm Fill Rate giảm 0,5–1,5 điểm và AI + hiệu chỉnh vẫn rẻ nhất ở mọi đợt; lead time dài ra lâu dài mà không cập nhật công thức thì giảm 5 điểm, cập nhật thì gần như hồi phục.

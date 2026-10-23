@@ -322,3 +322,87 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 3. "Hiện trạng" trong dữ liệu mô phỏng biết trước nhu cầu kỳ vọng, ngoài đời không có. So với cách làm thực tế (công thức + dự báo đơn giản), AI giảm 31% chi phí liên quan và đáp ứng thêm 6,6 điểm. Ngay cả với đối thủ biết trước, AI đáp ứng tốt hơn, thiếu hàng ít hơn một nửa, tổng chi phí gần bằng; với hàng ổn định AI còn tồn ít hơn 24%. Phần tồn cao đến từ 5 mặt hàng chỉ bán dịp lễ, đã chỉ rõ nguyên nhân và hướng khắc phục.
 </details>
 
+
+## Bài 11. Dashboard: người lập kế hoạch nhìn gì mỗi sáng
+
+**Kiến thức logistics**
+- **Quản lý theo ngoại lệ (management by exception):** kho 121 SKU không ai xem hết từng mã mỗi ngày. Màn hình cảnh báo chỉ đưa ra những mã **cần làm gì đó**: hết hàng, cần đặt hôm nay, tồn thấp nhưng hàng đang về. Ngày 09/02/2026 (trước Tết): 50 mã cần chú ý, 71 mã không cần nhìn.
+- **Tồn thực khác vị thế tồn kho.** Tồn thực = hàng đang nằm trong kho. **Vị thế tồn kho** (inventory position) = tồn thực + hàng đang về (đã đặt, chưa nhận). Quy tắc ROP so **vị thế** với ROP, không so tồn thực. Ví dụ: hạt điều SKU060 ngày 09/02 tồn 777, ROP 7.456, nhưng đang về 7.200 → 777 + 7.200 > 7.456 nên **không đặt thêm**. Nếu so tồn thực, người lập kế hoạch sẽ đặt trùng, tồn dư sau Tết.
+- **Số ngày đủ bán (days of cover)** = tồn / nhu cầu bình quân 1 ngày. Đem so với **lead time**: đủ bán 2 ngày mà lead time 3 ngày thì gần như chắc chắn sẽ thiếu trước khi hàng về, phải gọi nhà cung cấp giao gấp.
+- **Biểu đồ "răng cưa"**: tồn giảm dần theo bán, chạm ROP thì đặt, hàng về thì vọt lên. Răng cưa chạm đáy (tồn = 0) là ngày hết hàng.
+
+**Kỹ năng dữ liệu**
+- **Dashboard chỉ đọc, không tính lại:** mọi số lấy từ CSDL mà các bước trước đã ghi, nên dashboard luôn khớp báo cáo. Muốn đổi số thì chạy lại `ton_kho.py`, không sửa trong dashboard.
+- **Tính lại đại lượng không lưu bằng phép bảo toàn:** hàng đang về không có trong CSDL, nhưng hàng đang về = đầu kỳ + tổng đã đặt − tổng đã nhận. Kiểm tra lại: không ngày nào âm, và không SKU nào "dưới ROP mà không đặt" khi vị thế ≤ ROP.
+- **Giả lập "hôm nay":** chọn một ngày trong năm test để xem hệ thống lúc đó sẽ cảnh báo gì. Đây là **phát lại mô phỏng**, phải nói rõ khi trình bày.
+- **Mỗi chỉ số một biểu đồ:** Fill Rate (%) và chi phí (triệu đồng) khác đơn vị, không vẽ chung một trục.
+
+**Liên hệ điều vận:** danh sách "đặt hàng hôm nay" là đầu vào của điều vận: bao nhiêu đơn, của nhà cung cấp nào, khi nào hàng về → bao nhiêu chuyến xe nhận hàng, xếp lịch dock (cửa nhận hàng) ra sao. Cột "hàng đang về" cho biết sắp tới kho phải nhận bao nhiêu.
+
+**Câu hỏi tự kiểm tra**
+1. Một SKU tồn thực dưới ROP. Có phải lúc nào cũng phải đặt thêm không?
+2. Vì sao dashboard nên đọc kết quả từ CSDL thay vì tự tính lại dự báo và tồn kho?
+3. Hội đồng hỏi: "Dashboard này có dùng ngay ở kho thật được không?" Bạn trả lời thế nào?
+
+<details><summary>Gợi ý</summary>
+
+1. Không. Xét vị thế tồn kho (tồn + hàng đang về). Nếu hàng đang về đủ đưa vị thế lên trên ROP thì chỉ theo dõi; đặt thêm là đặt trùng.
+2. Một nguồn số duy nhất: báo cáo, biểu đồ và dashboard cùng đọc một chỗ nên không lệch nhau; dashboard mở nhanh và không thể vô tình làm hỏng kết quả (chỉ đọc).
+3. Chưa dùng ngay được: đang chạy trên dữ liệu mô phỏng và phát lại một năm đã qua. Để dùng thật cần nạp dữ liệu nhập – xuất – tồn hằng ngày từ WMS/ERP vào cùng các bảng, chạy dự báo định kỳ (ví dụ mỗi tuần), thêm bước người lập kế hoạch duyệt đơn. Cấu trúc CSDL và các bước đã sẵn để thay nguồn dữ liệu.
+</details>
+
+## Bài 12. Thử độ nhạy: chính sách có chịu được cú sốc không
+
+**Kiến thức logistics**
+- **Thử độ nhạy (sensitivity analysis / stress test):** giữ nguyên mọi thứ, chỉ đổi **một** yếu tố (lead time, chi phí) rồi xem kết quả thay đổi bao nhiêu. Mục đích: biết chính sách **gãy ở đâu** trước khi gặp ngoài đời.
+- **Cú sốc tạm thời khác thay đổi lâu dài.** Tắc cảng 3 tuần (hàng về trễ 7 ngày) chỉ làm Fill Rate giảm trung bình 1,5 điểm, vì tồn kho an toàn (SS) hấp thụ được một phần. Nhưng lead time dài thêm chỉ 2 ngày **cả năm** mà công thức vẫn dùng lead time cũ thì Fill Rate giảm 5,3 điểm, chi phí +52%: ví dụ SKU001 (lead time TB 5 ngày), ROP vẫn tính cho 5 ngày chờ trong khi thật ra phải chờ khoảng 7 ngày, nên lần nào cũng dễ thiếu.
+- **Tham số phải được cập nhật.** Cập nhật lead time mới vào công thức thì chỉ còn giảm 0,8 điểm. Đây là việc của người điều vận / mua hàng: theo dõi **lead time thực tế** từng nhà cung cấp (ngày đặt → ngày nhận), báo cho người lập kế hoạch khi nó thay đổi.
+- **Thời điểm nguy hiểm nhất là trước cao điểm.** Đợt tắc cảng trước Tết (hàng dự kiến về 21/01–10/02/2026) gây thiệt hại lớn nhất: Fill Rate −3,2 điểm, chi phí +25%.
+- **Chi phí lưu kho tăng phạt chính sách giữ nhiều hàng.** Khi H +15% (giá điện, kho lạnh), khoảng cách chi phí giữa chính sách AI và hiện trạng giãn từ 0,9% lên 3,3%, vì AI giữ tồn nhiều hơn 36%.
+
+**Kỹ năng dữ liệu**
+- **Mỗi kịch bản chỉ đổi 1 yếu tố**, mọi thứ khác (nhu cầu, lead time ngẫu nhiên, dự báo) giống hệt; nếu không, không biết thay đổi do đâu.
+- **Không chọn đợt có lợi:** chạy tắc cảng ở **13 thời điểm** khác nhau trong năm, báo cả trung bình lẫn đợt xấu nhất. Chọn đúng 1 đợt là có thể (cố ý hoặc vô tình) chọn đợt làm kết quả đẹp.
+- **Kiểm tra kịch bản gốc trước:** chạy lại không đổi gì phải ra đúng kết quả cũ (script tự kiểm tra), để chắc chắn mọi chênh lệch là do cú sốc chứ không do lỗi code.
+- **So sánh bằng cả % và tiền:** chi phí của AI tăng nhiều hơn về % (+15% so với +9% của dự báo mốc) nhưng tính bằng tiền thì gần bằng (+910 so với +766 triệu đ) và AI vẫn rẻ hơn khoảng 2,5 tỷ. Chỉ nhìn % dễ kết luận sai.
+
+**Liên hệ điều vận:** người điều vận là người **nhìn thấy cú sốc đầu tiên**: xe về trễ, cảng ùn, cước tăng. Kết quả này cho thấy giá trị của việc báo sớm: cùng một lần trễ, nếu người lập kế hoạch biết và cập nhật thì thiệt hại giảm từ −5,3 xuống −0,8 điểm Fill Rate.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao lead time dài thêm 2 ngày cả năm lại nguy hiểm hơn tắc cảng 7 ngày trong 3 tuần?
+2. Vì sao phải chạy tắc cảng ở 13 thời điểm mà không chọn một đợt?
+3. Hội đồng hỏi: "Nếu tắc cảng thì chính sách AI có còn tốt không?" Bạn trả lời thế nào?
+
+<details><summary>Gợi ý</summary>
+
+1. Tắc cảng chỉ ảnh hưởng một số lô trong 3 tuần, tồn an toàn đủ đỡ phần lớn. Lead time dài ra cả năm làm **mọi** lô đều về trễ hơn mức công thức tính, nên lần nào cũng thiếu; nhưng cập nhật tham số thì gần như hết vấn đề.
+2. Kết quả phụ thuộc thời điểm (trước Tết thiệt hại gấp đôi trung bình). Chạy nhiều đợt cho thấy bức tranh đầy đủ và tránh chọn đợt có lợi.
+3. "Em đã thử tắc cảng 3 tuần với hàng về trễ 3, 5, 7 ngày, ở 13 thời điểm khác nhau. Fill Rate giảm trung bình 0,5–1,5 điểm, đợt xấu nhất (trước Tết, trễ 7 ngày) giảm 3,2 điểm. Ở cả 13 đợt, chính sách AI + hiệu chỉnh vẫn có chi phí thấp nhất trong các chính sách theo công thức. Điểm cần lưu ý là nếu lead time thay đổi lâu dài thì phải cập nhật vào công thức, nếu không Fill Rate giảm 5 điểm."
+</details>
+
+## Bài 13. Trình bày dữ liệu: mỗi biểu đồ trả lời một câu hỏi
+
+**Vì sao làm lại dashboard:** bản đầu đúng số nhưng mỗi trang chỉ có 1 biểu đồ, còn lại là bảng dài và mã kỹ thuật (σ, hệ số hiệu chỉnh…). Người xem không biết dữ liệu nói gì, và thấy số liệu "không thực". Bài học: **đúng số chưa đủ, người xem phải hiểu được**.
+
+**Kiến thức logistics (từ trang Tổng quan, số liệu mô phỏng)**
+- **Mùa vụ theo nhóm hàng:** đồ chơi bán gấp ~10 lần vào tháng 9 (Trung thu), đồ trang trí gấp ~5 lần tháng 12 (Noel), quà tặng gấp ~3,5 lần tháng 2 (Tết). Hàng này phải **đặt trước mùa**, không chờ chạm ROP.
+- **Thứ trong tuần:** Chủ nhật chỉ bán bằng ~0,53 ngày thường, thứ Bảy cao nhất. Người điều vận dùng điều này để xếp ca, lịch xe nhận/giao.
+- **Khuyến mãi:** một nửa số đợt làm bán tăng từ ~58% trở lên. Kho phải nhận lịch khuyến mãi **trước** khi đặt hàng.
+- **ABC × XYZ:** 22 mã A-X (18% số mã) chiếm ~65% giá trị xuất. Áp dụng đặt hàng tự động cho nhóm này trước là ít rủi ro, nhiều lợi nhất.
+
+**Kỹ năng trình bày dữ liệu**
+- **Mỗi biểu đồ kèm 2 dòng:** "Cách đọc" (trục, màu nghĩa là gì) và "Phát hiện" (điều rút ra). Phát hiện **tính từ dữ liệu**, không gõ tay, để chạy lại vẫn đúng.
+- **Kiểm tra phát hiện trước khi viết:** câu "ngày nhiều mã hết hàng nhất là mùa cao điểm" sai, vì ngày đó rơi vào tuần đầu mô phỏng (tồn kho ban đầu). Phải tách đầu kỳ ra rồi mới kết luận.
+- **Giải thích bảng bằng ví dụ:** một câu như "còn 608 thùng + 851 đang về = 1.459, chưa vượt ROP 1.652 → đặt thêm 851" dễ hiểu hơn 10 cột số.
+- **Nói rõ cái gì thật, cái gì giả định** ngay đầu trang; đừng để người xem tự đoán.
+- **Màu có nghĩa:** xanh = ít hơn bình thường, đỏ = nhiều hơn; đỏ/cam/vàng dành riêng cho trạng thái cảnh báo, luôn kèm chữ.
+
+**Câu hỏi tự kiểm tra**
+1. Hội đồng hỏi: "Số liệu này có thật không?" Bạn trả lời thế nào?
+2. Vì sao "Phát hiện" phải tính từ dữ liệu thay vì gõ tay?
+
+<details><summary>Gợi ý</summary>
+
+1. "Dữ liệu mô phỏng, vì chưa có dữ liệu kho thật. Ngày bão, ngày lễ, lịch sale lấy từ nguồn thật; lượng bán, chi phí, lead time là giả định. Mục tiêu là xây quy trình và so sánh các cách đặt hàng trên cùng dữ liệu; có file xuất – nhập – tồn thật thì chạy lại toàn bộ."
+2. Khi dữ liệu hoặc mô hình chạy lại, số thay đổi; câu gõ tay sẽ sai mà không ai biết. Tính tự động thì câu luôn khớp biểu đồ.
+</details>

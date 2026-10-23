@@ -8,3 +8,4 @@ statsforecast>=2.0
 pypandoc_binary>=1.13
 prophet>=1.1
 lightgbm>=4.0
+streamlit>=1.40

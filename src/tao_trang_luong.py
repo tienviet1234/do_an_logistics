@@ -62,7 +62,7 @@ business = [
     ("5", "Tính tồn kho an toàn, điểm đặt hàng, lượng đặt", "Hệ thống", "SS, ROP, EOQ cho từng SKU",
      DONE, f"Mô phỏng 12 tháng: đáp ứng {vn(tk['cong_thuc_du_bao_ai_hc'][0], 1)}% (dự báo mốc: {vn(tk['cong_thuc_du_bao_moc'][0], 1)}%)."),
     ("6", "Cảnh báo SKU chạm điểm đặt hàng, đề xuất đơn", "Hệ thống → Người lập kế hoạch", "Danh sách cần đặt, số lượng đề xuất",
-     PLAN, "Hiển thị trên dashboard; người lập kế hoạch duyệt."),
+     DONE, "Dashboard khu ③: chọn ngày, ra danh sách SKU cần đặt và lượng đề xuất (chưa có nút duyệt)."),
     ("7", "Đặt hàng nhà cung cấp, lên kế hoạch xe", "Mua hàng / Điều vận", "Đơn đặt hàng, lịch xe nhận – giao",
      OUTSIDE, "Phân hệ điều vận: mở rộng sau khi nộp."),
 ]
@@ -87,15 +87,19 @@ data_steps = [
      "src/nap_database.py", f"{len(tables)} bảng + {len(views)} khung nhìn · {vn(size_mb)} MB · vi phạm khóa ngoại: {fk_loi}",
      DONE, "data/kho_hang.db"),
     ("8. Tham số tồn kho và mô phỏng", "Đọc từ CSDL: chi phí, lead time, MOQ, nhu cầu thật, dự báo → SS, ROP, EOQ; mô phỏng 12 tháng, so sánh 4 chính sách; quy tắc lượng đặt chọn trên validation",
-     "src/ton_kho.py",
+     "src/ton_kho.py, src/do_nhay.py (thử độ nhạy: tắc cảng, chi phí tăng)",
      f"AI + hiệu chỉnh: đáp ứng {vn(tk['cong_thuc_du_bao_ai_hc'][0], 2)}%, chi phí liên quan {vn(tk['cong_thuc_du_bao_ai_hc'][1] / 1000, 2)} tỷ đ (dự báo mốc: {vn(tk['cong_thuc_du_bao_moc'][0], 2)}%, {vn(tk['cong_thuc_du_bao_moc'][1] / 1000, 2)} tỷ đ)",
-     DONE, "đọc dm_sku, du_bao, nhu_cau_that → ghi chinh_sach, ket_qua_ton_kho, mo_phong_ngay"),
-    ("9. Dashboard", "Đọc từ CSDL: dự báo, cảnh báo đặt hàng, KPI", "app/dashboard.py (Streamlit)",
-     "Trình bày trực tiếp trên máy", PLAN, "đọc các khung nhìn"),
+     DONE, "đọc dm_sku, du_bao, nhu_cau_that → ghi chinh_sach, ket_qua_ton_kho, mo_phong_ngay, ket_qua_do_nhay"),
+    ("9. Dashboard", "Đọc từ CSDL (chỉ đọc): tổng quan dữ liệu, dự báo vs thực tế, cảnh báo đặt hàng theo ngày, "
+                     "KPI trước – sau và thử độ nhạy, bảng SS/ROP/EOQ",
+     "app/dashboard.py (Streamlit)", "5 khu; chạy: streamlit run app/dashboard.py",
+     DONE, "đọc giao_dich_sach, v_xep_hang_mo_hinh, v_du_bao_chon, mo_phong_ngay, v_so_sanh_chinh_sach, v_do_nhay, "
+           "tham_so_ton_kho, ket_qua_ton_kho"),
 ]
 
 GROUPS = [("Danh mục", ["dm_nha_cung_cap", "dm_sku", "phan_loai_sku"]),
-          ("Tồn kho (GĐ F)", ["nhu_cau_that", "chinh_sach", "tham_so_ton_kho", "ket_qua_ton_kho", "mo_phong_ngay"]),
+          ("Tồn kho (GĐ F)", ["nhu_cau_that", "chinh_sach", "tham_so_ton_kho", "ket_qua_ton_kho", "mo_phong_ngay",
+                              "kich_ban_do_nhay", "ket_qua_do_nhay"]),
           ("Lịch và sự kiện", ["lich_su_kien", "lich_ngay_nghi", "lich_khuyen_mai", "su_kien_dot_bien"]),
           ("Giao dịch nhập – xuất – tồn", ["giao_dich_tho", "giao_dich_sach", "nhat_ky_sua_loi"]),
           ("Mô hình và dự báo", ["mo_hinh", "ket_qua_mo_hinh", "du_bao"]),
@@ -110,7 +114,9 @@ PURPOSE = {"dm_nha_cung_cap": "Nhà cung cấp", "dm_sku": "Mã hàng: giá, chi
            "du_bao": "Dự báo từng ngày, từng SKU, từng mốc", "nhat_ky_chay": "Mỗi lần nạp: bảng, số dòng, trạng thái",
            "nhu_cau_that": "Đáp án mô phỏng: nhu cầu kể cả ngày hết hàng; chỉ để chấm tồn kho", "chinh_sach": "4 chính sách đặt hàng được so sánh",
            "tham_so_ton_kho": "SS, ROP, EOQ, hệ số hiệu chỉnh theo SKU", "ket_qua_ton_kho": "KPI từng SKU: đáp ứng, tồn, chi phí",
-           "mo_phong_ngay": "Nhập, xuất, tồn, đặt hàng từng ngày (mức 95%)"}
+           "mo_phong_ngay": "Nhập, xuất, tồn, đặt hàng từng ngày (mức 95%)",
+           "kich_ban_do_nhay": "Kịch bản thử độ nhạy: tắc cảng, lead time dài thêm, chi phí tăng",
+           "ket_qua_do_nhay": "KPI từng SKU theo kịch bản thử độ nhạy"}
 
 
 def table_card(t):

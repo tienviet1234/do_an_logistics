@@ -1,6 +1,6 @@
 """Bieu do ket qua cho Chuong 4 (GD E va GD F). DOC TU CO SO DU LIEU.
 Chay: python src/nap_database.py && python src/ton_kho.py && python src/bieu_do_ket_qua.py
-Dau ra: reports/ket_qua/k01..k06.png, reports/bao_cao_bieu_do_ket_qua.md
+Dau ra: reports/ket_qua/k01..k07.png (k07 can chay src/do_nhay.py truoc), reports/bao_cao_bieu_do_ket_qua.md
 Mau co dinh theo doi tuong (giong nhau o moi hinh): thuc te = den, AI duoc chon = xanh duong,
 du bao moc (TB truot 28) = cam, Prophet = xanh ngoc, LightGBM = vang, hien trang = xam.
 """
@@ -160,6 +160,45 @@ ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m")); ax.set_ylim(bottom=
 ax.set_ylabel("Đơn vị (thùng)"); ax.legend(fontsize=9, ncol=4, loc="upper left")
 ax.set_title(f"Mô hình răng cưa: tồn kho, điểm đặt hàng và các lần đặt – SKU001 {ten_sku} (AI + hiệu chỉnh)")
 save(fig, "k06_rang_cua_sku001.png", "Mỗi khi tồn + hàng đang về chạm ROP thì đặt hàng; ROP tăng trước Tết theo dự báo. Minh họa thực tế cho lý thuyết EOQ/ROP ở Chương 2.")
+
+# ---------- k07: thu do nhay - tac cang va lead time dai them (can chay src/do_nhay.py truoc) ----------
+try:
+    dn = doc("SELECT * FROM v_do_nhay")
+except Exception:
+    dn = pd.DataFrame()
+if len(dn):
+    order = ["cong_thuc_du_bao_moc", "cong_thuc_du_bao_ai", "cong_thuc_du_bao_ai_hc"]
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), gridspec_kw={"width_ratios": [1.2, 1]})
+    ax = axes[0]
+    for cs in order:
+        goc = dn[(dn.ma_kich_ban == "goc") & (dn.ma_chinh_sach == cs)].fill_rate_pt.iloc[0]
+        tc = dn[(dn.nhom == "tac_cang") & (dn.ma_chinh_sach == cs)].groupby("tham_so").fill_rate_pt.agg(["mean", "min", "max"])
+        k = np.r_[0, tc.index.values]
+        ax.fill_between(k, np.r_[goc, tc["min"]], np.r_[goc, tc["max"]], color=CS_MAU[cs], alpha=0.15, linewidth=0)
+        ax.plot(k, np.r_[goc, tc["mean"]], color=CS_MAU[cs], marker="o", label=CS_TEN[cs])
+        ax.text(k[-1] + 0.15, tc["mean"].iloc[-1], f"{vn(tc['mean'].iloc[-1])}%", va="center", fontsize=8.5, color=INK2)
+    ax.set_xticks([0, 3, 5, 7], ["Không tắc", "+3 ngày", "+5 ngày", "+7 ngày"]); ax.set_xlim(-0.3, 7.9)
+    ax.set_ylabel("Fill Rate (%)"); ax.legend(fontsize=9, loc="lower left")
+    ax.set_title("Tắc cảng 3 tuần, hàng về trễ thêm\n(trung bình 13 đợt; dải màu: đợt tốt nhất – xấu nhất)", fontsize=10.5)
+    ax = axes[1]
+    kb = [("goc", "Bình thường"), ("lead_time_2", "LT +2 ngày,\nkhông cập nhật"), ("lead_time_2_cap_nhat", "LT +2 ngày,\ncó cập nhật")]
+    x = np.arange(len(kb)); w = 0.26
+    for j, cs in enumerate(order):
+        vals = [dn[(dn.ma_kich_ban == m) & (dn.ma_chinh_sach == cs)].fill_rate_pt.iloc[0] for m, _ in kb]
+        bs = ax.bar(x + (j - 1) * w, vals, width=w - 0.03, color=CS_MAU[cs])
+        if cs == "cong_thuc_du_bao_ai_hc":
+            for b, val in zip(bs, vals):
+                ax.text(b.get_x() + b.get_width() / 2, val + 0.3, f"{vn(val)}%", ha="center", fontsize=8.5, color=INK2)
+    ax.set_xticks(x, [t for _, t in kb], fontsize=9); ax.set_ylim(80, 100); ax.grid(axis="x", visible=False)
+    ax.set_title("Lead time dài thêm 2 ngày cả năm\n(công thức có / không cập nhật lead time mới)", fontsize=10.5)
+    ax.set_ylabel("Fill Rate (%)")
+    fig.suptitle("Thử độ nhạy: chính sách tồn kho khi hàng về trễ (mức phục vụ 95%)", x=0.0, ha="left", fontweight="bold")
+    fig.tight_layout()
+    save(fig, "k07_do_nhay_lead_time.png", "Tắc cảng tạm thời chỉ làm Fill Rate giảm 0,5–1,5 điểm và AI + hiệu chỉnh vẫn rẻ nhất ở mọi đợt; "
+         "lead time dài ra lâu dài mà không cập nhật công thức thì giảm 5 điểm, cập nhật thì gần như hồi phục.",
+         NOTE + " Kịch bản theo docs/07; người lập kế hoạch không biết trước đợt tắc cảng.")
+else:
+    print("Bo qua k07: chua co ket qua do nhay (chay python src/do_nhay.py)")
 
 with open(REPORT, "w", encoding="utf-8") as f:
     f.write("# Bieu do ket qua (Chuong 4)\n\n" + NOTE + " Hinh luu o `reports/ket_qua/`.\n\n" + "\n".join(lines) + "\n")

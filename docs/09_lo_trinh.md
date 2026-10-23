@@ -31,7 +31,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || ✅ Xong 24/10 (sớm 2 tuần) |
 | E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền || ✅ Xong 24/10 (2 vòng) |
 | F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau || ✅ Xong 24/10 (sớm ~4 tuần) |
-| G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | |
+| G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | ✅ Xong 23/10 (sớm ~5 tuần) |
 | H1 | Viết Chương 1–3 (song song, buổi tối / cuối tuần) | — | 1–3 | T1–T5 | Bản nháp Chương 1, 2 (rà lại), 3 | |
 | H2 | Viết Chương 4–5, ráp đồ án, gửi GVHD xem | 8 | 4, 5 | T7–T8: 27/11–06/12 | Bản đồ án hoàn chỉnh | |
 | H3 | Sửa cuối, định dạng, in | — | — | 07–08/12 | File nộp | |
@@ -57,7 +57,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | T8 | 30/11–06/12 | Không làm thêm mô hình mới | Ráp đồ án, gửi GVHD bản đầy đủ, sửa theo góp ý | Bản đồ án hoàn chỉnh |
 | — | 07–08/12 | | Định dạng, mục lục, tài liệu tham khảo, in | |
 | — | **09/12** | | **Nộp báo cáo** | |
-| — | 11–26/12 | | Slide, tập nói; trả lời nhận xét của phản biện (nếu có) | |
+| — | 11–26/12 | Học Power BI 5 buổi (`docs/12_power_bi.md`), làm hồ sơ xin thực tập | Slide, tập nói; trả lời nhận xét của phản biện (nếu có) | |
 | — | 27–29/12 | | Tập bảo vệ hoàn chỉnh (bấm giờ), chạy thử demo trên máy sẽ dùng | |
 | — | **30–31/12** | | **Bảo vệ** | |
 
@@ -171,14 +171,16 @@ Kết quả và quy ước đã chốt trong code:
   3. **AI + công thức**: chính sách dựa trên mô hình thắng ở GĐ E.
 - [ ] KPI mỗi chính sách: Fill Rate, số ngày hết hàng, tồn kho bình quân, DOH, vòng quay, chi phí đặt hàng + lưu kho, hàng tồn dư sau mùa.
 - [ ] Bảng **trước – sau** (sản phẩm quan trọng nhất của đồ án).
-- [ ] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`.
+- [x] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`. → **Xong 23/10** (`src/do_nhay.py`, thêm lead time +2 ngày cả năm và chi phí lưu kho +15%): tắc cảng chỉ làm Fill Rate giảm 0,5–1,5 điểm, AI + hiệu chỉnh vẫn rẻ nhất ở 13/13 đợt; lead time dài ra mà không cập nhật công thức thì −5,3 điểm. Chi tiết `docs/10` mục 11.1.
 
 **Xong khi:** có bảng trước–sau và 2–3 biểu đồ, ghi rõ "kết quả trên dữ liệu mô phỏng".
 
 ### GĐ G. Dashboard bản gọn (23–26/11)
-- [ ] Streamlit, tối đa 4 khu: chọn SKU → dự báo vs thực tế; cảnh báo SKU dưới ROP; KPI trước–sau; bảng SS/ROP/EOQ.
-- [ ] Chạy được bằng 1 lệnh, dùng để demo khi bảo vệ.
-- [ ] (Thay thế) Power BI nếu bạn quen kéo–thả hơn: xuất CSV kết quả cho Power BI đọc.
+- [x] Streamlit, tối đa 4 khu: chọn SKU → dự báo vs thực tế; cảnh báo SKU dưới ROP; KPI trước–sau; bảng SS/ROP/EOQ. → **24/10: tăng lên 5 khu** (người dùng duyệt): thêm khu ① Tổng quan dữ liệu (6 biểu đồ phân tích, nói rõ dữ liệu mô phỏng là gì).
+- [x] Chạy được bằng 1 lệnh, dùng để demo khi bảo vệ: `streamlit run app/dashboard.py` (cần chạy trước `nap_database.py`, `ton_kho.py`).
+- [x] Power BI: không thay Streamlit. Dữ liệu đã chuẩn bị 23/10 (`python src/xuat_power_bi.py` → `reports/power_bi/`); **học và dựng báo cáo sau khi nộp (11–26/12)** theo `docs/12_power_bi.md` (5 buổi, có số đối chiếu).
+
+Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ read-only). Khu ③ (cảnh báo tồn kho; số khu theo bản 5 khu từ 24/10) cho chọn một ngày trong năm test làm "hôm nay" và liệt kê SKU hết hàng / cần đặt hôm nay / tồn dưới ROP nhưng hàng đang về; đây là **phát lại mô phỏng** của GĐ F, không phải hệ thống chạy thật. Chi tiết: `docs/10` mục 12.
 
 ### GĐ H. Viết đồ án và bảo vệ (song song T1–T8, nộp 09/12, slide 11–29/12, bảo vệ 30–31/12)
 - [x] Chương 1: Mở đầu (lý do, mục tiêu, phạm vi, phương pháp). → Nháp lần 1: `do_an/chuong_1_mo_dau.md` (còn chỗ [CẦN TRÍCH DẪN] phải tự tra nguồn).
@@ -212,7 +214,7 @@ Kết quả và quy ước đã chốt trong code:
 | Cách chia train/validation/test | Như GĐ B | |
 | Thư viện | statsforecast (baseline, Croston), prophet, lightgbm, streamlit | |
 | Có làm LSTM không | Không (lịch 12 tuần) | Bỏ, trừ khi xong GĐ F trước 22/11 |
-| Dashboard | Streamlit | |
+| Dashboard | Streamlit | Streamlit (23/10), chỉ đọc CSDL; 5 khu từ 24/10 (thêm Tổng quan dữ liệu) |
 | Phân hệ điều vận (số xe, xếp chuyến, cảnh báo cao điểm) | Ngoài kế hoạch chính | Chỉ làm nếu xong GĐ G trước hạn, hoặc làm sau khi nộp (11–26/12) để làm hồ sơ xin thực tập. Không được làm chậm GĐ C–F |
 
 ## 5. Rủi ro và cách xử lý
