@@ -188,3 +188,39 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 2. Không. Lúc không có sự kiện, nhu cầu ổn định, cách đơn giản đã đủ tốt; Prophet không làm tệ hơn. Giá trị của nó nằm ở mùa cao điểm, nơi sai lầm tốn kém nhất.
 3. Không chắc con số 41%: dữ liệu là mô phỏng, và mô hình được dùng đúng lịch lễ mà dữ liệu được tạo ra. Điều chắc chắn hơn là **xu hướng**: mô hình biết lịch lễ cải thiện mạnh ở hàng mùa vụ. Muốn có con số thật phải chạy thử trên dữ liệu kho thật, quy trình đã sẵn sàng cho việc đó.
 </details>
+
+---
+
+## Bài 7. LightGBM: chính xác hơn chưa chắc tốt hơn
+
+**Kiến thức logistics**
+- **Sai số và độ lệch (Bias) là hai chuyện khác nhau.** Sai số cho biết trung bình đoán lệch bao nhiêu; Bias cho biết lệch **về phía nào**. Một mô hình sai ít nhưng luôn đoán thiếu sẽ làm kho **hết hàng lặp đi lặp lại**.
+- **Chi phí sai lệch không đối xứng:** trước Tết, thiếu hàng là mất doanh thu mùa cao điểm và mất khách; thừa một ít thì sau Tết vẫn bán dần được (trừ hàng chỉ bán dịp Tết). Vì vậy với hàng mùa vụ, **thà thừa nhẹ còn hơn thiếu**.
+
+**LightGBM hiểu bằng lời:** thay vì mỗi SKU một mô hình (như Prophet), LightGBM học **một mô hình chung cho cả 121 SKU** bằng cách xây hàng trăm "cây quyết định" nhỏ, mỗi cây sửa lỗi của các cây trước. Ví dụ một nhánh: "nếu là hàng loại Tết **và** còn dưới 20 ngày đến Tết **và** tuần trước bán nhiều → dự báo cao". Ưu điểm: các SKU giống nhau học hỏi lẫn nhau; chạy rất nhanh (3 giây/mốc so với 67 giây của Prophet).
+
+**Kết quả và bài học**
+- Theo ngày, LightGBM **tốt nhất**: sai 40% (Prophet 45%, trung bình trượt 64%), thắng Prophet 12/13 mốc. Hàng ổn định (nhóm X) chỉ sai 31%.
+- Nhưng **đoán thiếu 11,6%**, dồn vào hàng mùa vụ: nhóm Z thiếu 41%, đúng các mốc **trước Tết và trước Trung thu**, lúc kho cần hàng nhất.
+- Nguyên nhân: mô hình dựa nhiều vào "số bán cùng ngày năm ngoái" (lag_364), nhưng **Tết âm lịch lệch vài tuần mỗi năm**, nên cùng ngày năm ngoái có khi là trước Tết, có khi là sau Tết. Lại mới học được 2 mùa Tết.
+- **Bài học:** đừng chọn mô hình chỉ theo một con số. Phải xem cả Bias, xem theo nhóm hàng và theo thời điểm.
+- **Độ quan trọng đặc trưng** cho biết mô hình "dựa vào gì": mã SKU (36%, mỗi mặt hàng có mức bán riêng), số bán gần đây, số bán năm trước, loại mùa vụ, số ngày đến Tết. Khuyến mãi chỉ hạng 13 vì chỉ chiếm 8% số ngày, dù mỗi lần khuyến mãi làm bán tăng 60%. "Quan trọng" ở đây là **tổng đóng góp**, không phải **độ mạnh mỗi lần**.
+
+**Kỹ năng dữ liệu**
+- **Dự báo nhiều ngày tới mà không nhìn trộm:** chỉ dùng số bán cách ít nhất 28 ngày (lag ≥ 28). Muốn dự báo ngày thứ 28 thì không được dùng số bán hôm qua, vì lúc dự báo chưa có số đó.
+- **Hàm mất mát (tweedie)** phù hợp dữ liệu nhiều số 0 và số đếm; chọn trên validation (0,351 so với 0,420 của hàm thường).
+
+**Liên hệ điều vận:** nếu dùng LightGBM để lên kế hoạch xe, tuần trước Tết sẽ **thiếu xe khoảng 40% cho hàng mùa vụ**, đúng lúc thuê xe ngoài khó và đắt nhất. Người điều vận cần biết mô hình của mình "lệch về phía nào, lúc nào" để tự cộng thêm dự phòng.
+
+**Câu hỏi tự kiểm tra**
+1. Mô hình A sai 40% nhưng luôn đoán thiếu; mô hình B sai 45% nhưng không lệch về phía nào. Kho bán hàng Tết nên dùng mô hình nào? Vì sao?
+2. Vì sao "số bán cùng ngày năm ngoái" dự báo tốt cho Noel (25/12) nhưng kém cho Tết?
+3. Khuyến mãi làm bán tăng 60% mà chỉ xếp hạng 13 về độ quan trọng. Có mâu thuẫn không?
+
+<details><summary>Gợi ý</summary>
+
+1. Với hàng Tết, B an toàn hơn vì A đoán thiếu đúng lúc cao điểm, dẫn tới hết hàng. Tốt nhất là kết hợp: dùng A cho hàng ổn định, B (hoặc trung bình A và B) cho hàng mùa vụ, và quyết định trên tập validation.
+2. Noel luôn là 25/12 dương lịch; Tết theo âm lịch nên ngày dương lịch đổi mỗi năm (10/02/2024, 29/01/2025, 17/02/2026).
+3. Không mâu thuẫn. Độ quan trọng đo tổng đóng góp trên mọi dòng dữ liệu; khuyến mãi tác động mạnh nhưng hiếm (8% số ngày).
+</details>
+

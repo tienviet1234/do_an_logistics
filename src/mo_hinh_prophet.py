@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(__file__))
-from danh_gia import load, folds, backtest, save_results, score, UNFORESEEABLE, RESULT  # noqa: E402
+from danh_gia import load, folds, backtest, save_results, score, UNFORESEEABLE, keep_awake, saved_result  # noqa: E402
 
 REF = "data/reference"
 SALE_WINDOW = (-1, 1)
@@ -71,23 +71,6 @@ def make_model(mode, pool, hol):
         out["du_bao"] = np.where(out.la_ngay_nghi == 1, 0, out.du_bao.fillna(0))
         return out[["date", "ma_sku", "du_bao"]]
     return fn
-
-
-def keep_awake(on=True):
-    """Windows: khong cho may ngu khi dang chay (lan chay 23/10 bi treo ~9 gio vi may ngu giua chung)."""
-    if os.name == "nt":
-        import ctypes
-        ES_CONTINUOUS, ES_SYSTEM_REQUIRED = 0x80000000, 0x00000001
-        ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | (ES_SYSTEM_REQUIRED if on else 0))
-
-
-def saved_result(name, kind):
-    """Ket qua da luu trong reports/ket_qua_mo_hinh.csv (de chay tiep, khong chay lai). --lam-lai de bo qua."""
-    if "--lam-lai" in sys.argv or not os.path.exists(RESULT):
-        return None
-    r = pd.read_csv(RESULT, encoding="utf-8-sig")
-    r = r[(r.mo_hinh == name) & (r.tap == kind)]
-    return r if len(r) else None
 
 
 if __name__ == "__main__":

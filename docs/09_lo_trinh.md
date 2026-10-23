@@ -28,7 +28,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | A | Phân tích khám phá + tạo đặc trưng (Demand Drivers) | 2 | 4 | T1: 12–18/10 | `src/eda.py`, `src/dac_trung.py`, `reports/eda/` | ✅ Xong 10/10 (sớm hơn lịch) |
 | B | Khung đánh giá: chia dữ liệu, backtest, chỉ số | 5 (chuẩn bị) | 4 | T2: 19–21/10 | `src/danh_gia.py` | ✅ Xong 10/10 (sớm hơn lịch) |
 | C | Mô hình mốc (Baseline Forecast) | 3 | 4 | T2–T3: 22/10–28/10 | `src/mo_hinh_baseline.py` | ✅ Xong 23/10 |
-| D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || 🔄 Prophet xong 24/10 |
+| D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || ✅ Xong 24/10 (sớm 2 tuần) |
 | E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền | |
 | F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau | |
 | G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | |
@@ -71,7 +71,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
 | **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Prophet −41,3% (24/10) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
-| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ✅ Prophet −4,9% (sát ngưỡng) |
+| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Prophet −4,9% đạt; LightGBM +11,6% không đạt → xử lý ở GĐ E |
 | **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⏳ |
 | | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ⏳ |
 | **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
@@ -138,8 +138,8 @@ Kết quả và quy ước đã chốt trong code:
 
 ### GĐ D. Mô hình AI (29/10–08/11)
 - [x] **Prophet** từng SKU: holidays = `lich_su_kien_prophet.csv` + sale; thêm biến khuyến mãi, bão (extra regressor). Dò cửa sổ lễ trên validation. → **Xong 24/10: test WMAPE 0,454** (additive; −29% so với TB trượt 28). Bão không dùng (không biết trước).
-- [ ] **LightGBM hoặc XGBoost**: một mô hình chung cho cả 121 SKU, dùng file đặc trưng; dự báo nhiều bước bằng lag ≥ 28 (hoặc dự báo đệ quy).
-- [ ] Phân tích độ quan trọng đặc trưng (feature importance): biến nào quyết định nhu cầu (để viết Chương 4).
+- [x] **LightGBM hoặc XGBoost**: một mô hình chung cho cả 121 SKU, dùng file đặc trưng; dự báo nhiều bước bằng lag ≥ 28 (hoặc dự báo đệ quy). → **Xong 24/10: test WMAPE 0,400** (tốt nhất theo ngày) nhưng Bias +11,6% (thiếu hàng mùa vụ trước cao điểm).
+- [x] Phân tích độ quan trọng đặc trưng (feature importance): biến nào quyết định nhu cầu (để viết Chương 4). → `reports/lightgbm_quan_trong.csv`
 - [ ] ~~LSTM~~: bỏ do lịch 12 tuần; chỉ làm nếu xong GĐ F trước 22/11. Trong đồ án ghi vào "hướng phát triển".
 
 **Xong khi:** mỗi mô hình có đủ chỉ số trên cùng tập test như GĐ C.

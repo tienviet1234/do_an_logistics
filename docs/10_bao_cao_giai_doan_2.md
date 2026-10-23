@@ -26,7 +26,7 @@ Cập nhật lần cuối: 24/10/2026.
 | 12. Dashboard | Chương 4, mục 4.10 | |
 | 13. Hạn chế, 14. Nhật ký | Chương 5 (hạn chế), phụ lục | |
 
-Trạng thái: 1–7 ✅ · 8 🔄 (Prophet ✅) · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
+Trạng thái: 1–8 ✅ · 9 ⏳ · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
 
 ---
 
@@ -178,7 +178,7 @@ Validation (6 mốc, 4–9/2025, giai đoạn "êm"): TB trượt 28 0,426 · Cr
 
 **Đối chiếu tiêu chí thành công (`docs/09` mục 1c):** ngưỡng "giảm ≥ 20% so với Seasonal Naive" tương đương WMAPE ≤ 0,618. Mô hình mốc tốt nhất đạt 0,640 (chưa tới) → mô hình AI cần thắng **cả** 0,618 lẫn 0,640.
 
-## 8. Mô hình AI 🔄 (Prophet xong 24/10; LightGBM ⏳; kế hoạch 29/10–08/11)
+## 8. Mô hình AI ✅ (xong 24/10; kế hoạch 29/10–08/11)
 
 ### 8.1. Prophet ✅
 
@@ -206,9 +206,31 @@ Script: `src/mo_hinh_prophet.py`. Mỗi SKU một mô hình, học trên toàn b
 
 **Lưu ý trung thực (phải ghi vào phần hạn chế):** lịch lễ Prophet dùng (`lich_su_kien_prophet.csv`) chính là lịch mà bộ sinh dữ liệu mô phỏng dùng để tạo hiệu ứng lễ, và lịch khuyến mãi khớp tuyệt đối với dữ liệu. Ngoài đời, cửa sổ lễ (bắt đầu tăng từ bao nhiêu ngày trước) phải tự ước lượng và lịch khuyến mãi có thể thay đổi, nên mức cải thiện trên dữ liệu thật **nhiều khả năng thấp hơn**. Kết luận an toàn: "mô hình có biến lịch lễ cải thiện mạnh nhất ở hàng mùa vụ", không phải "giảm đúng 41%".
 
-### 8.2. LightGBM / XGBoost ⏳
+### 8.2. LightGBM ✅ (24/10)
 
-Mô hình chung cho 121 SKU, dùng file đặc trưng; độ quan trọng đặc trưng. Phải thắng Prophet (0,454) hoặc có lý do khác để giữ (nhanh hơn, giải thích được biến nào quan trọng).
+Script: `src/mo_hinh_lightgbm.py`. **Một mô hình chung cho cả 121 SKU** (global model), học lại tại mỗi mốc.
+- **Đặc trưng (43):** mã SKU và thông tin SKU (nhóm hàng, loại mùa vụ, ABC/XYZ, giá, lead time); lịch (thứ, tháng, ngày trong năm, số ngày đến/sau Tết...); 12 cờ sự kiện biết trước; sale; khuyến mãi; **giá trị trễ chỉ từ 28 ngày trở về trước** (lag 28/35/42/49/364, trung bình và độ lệch chuẩn 7 và 28 ngày tính đến t−28), để dự báo cả 28 ngày tới từ một mốc mà không cần dự báo đệ quy. Giá trị trễ tính lại bên trong từng mốc từ dữ liệu quá khứ (đã kiểm tra: lag_28 của ngày xa nhất bằng đúng số bán ngày mốc).
+- Không dùng bão / thời tiết / dịch bệnh (không biết trước).
+- Hàm mất mát chọn trên validation: **tweedie** WMAPE 0,351 tốt hơn l2 0,420. Tham số: 600 cây, learning rate 0,05, 63 lá. Rất nhanh: ~3 giây/mốc (Prophet ~67 giây).
+
+**Kết quả tập test:**
+| Mô hình | WMAPE | WMAPE tuần | Bias % | WMAPE A | WMAPE X | WMAPE Y | WMAPE Z | WMAPE lumpy | FVA so SN7 |
+|---|---|---|---|---|---|---|---|---|---|
+| **LightGBM** | **0,400** | 0,270 | **+11,6%** | **0,338** | **0,312** | **0,392** | 0,643 | 0,823 | **+48,3%** |
+| Prophet | 0,454 | **0,257** | −4,9% | 0,391 | 0,383 | 0,486 | **0,638** | **0,725** | +41,3% |
+| TB trượt 28 | 0,640 | 0,511 | −0,8% | 0,503 | 0,408 | 0,653 | 1,272 | 1,860 | +17,2% |
+
+- Theo mốc: LightGBM thắng Prophet ở **12/13 mốc** (thua mốc 01/09/2026: 0,57 so với 0,52).
+- **Bias theo nhóm:** X +2,3% · Y −2,3% · **Z +40,8%**. Dự báo thiếu dồn vào các mốc trước cao điểm: 30/09/2025 (+26%), 20/01/2026 (+38%, trước Tết), 01/09/2026 (+30%, trước Trung thu).
+
+**Độ quan trọng đặc trưng** (tỷ trọng gain, trung bình 13 mốc test; `reports/lightgbm_quan_trong.csv`): mã SKU 35,6% · TB 7 ngày tính đến t−28 10,9% · số bán cùng ngày năm trước (lag_364) 7,7% · loại mùa vụ 7,3% · TB 28 ngày đến t−28 5,7% · **số ngày đến Tết 5,5%** · lag_28 4,2% · cờ Trung thu 3,2% · ... · khuyến mãi 1,2% (hạng 13).
+
+**Nhận xét:**
+1. LightGBM chính xác nhất theo ngày (giảm 48% so với Seasonal Naive, 37% so với TB trượt 28), đặc biệt ở hàng ổn định (X: 0,312) và chạy nhanh hơn Prophet khoảng 20 lần.
+2. Nhưng **dự báo thiếu hàng mùa vụ trước cao điểm** (Z +40,8%), vượt ngưỡng Bias ±5% của tiêu chí thành công. Nguyên nhân có thể: mô hình dựa nhiều vào số bán cùng ngày năm trước (lag_364) trong khi Tết âm lịch lệch vài tuần mỗi năm, và dữ liệu học mới có 2 mùa Tết. Với kho, thiếu hàng trước Tết là sai lầm đắt nhất.
+3. Theo tuần, Prophet vẫn nhỉnh hơn (0,257 so với 0,270) nhờ không bị lệch có hệ thống.
+4. Hai mô hình mạnh ở hai nhóm khác nhau (LightGBM: X/Y; Prophet: Z ít lệch hơn) → hướng xử lý ở GĐ E: **chọn mô hình theo nhóm SKU** hoặc **kết hợp** (lấy trung bình hai dự báo), quyết định **trên tập validation**, không nhìn tập test.
+5. Khuyến mãi chỉ xếp hạng 13 dù EDA cho thấy tăng 60%: khuyến mãi chỉ chiếm ~8% số ngày, nên tổng "đóng góp" nhỏ dù tác động mỗi lần lớn. Độ quan trọng kiểu gain đo tổng đóng góp, không đo độ lớn tác động.
 
 ### 8.3. LSTM
 
@@ -276,6 +298,7 @@ Streamlit, tối đa 4 khu: dự báo vs thực tế theo SKU; cảnh báo SKU d
 | 23/10 | Mô hình mốc (GĐ C) | `src/mo_hinh_baseline.py`, `src/tong_hop_ket_qua.py` | Mốc tốt nhất: TB trượt 28, WMAPE 0,640 (giảm 17,2% so SN7); nhóm Z vẫn sai 127% | ARIMA chỉ chạy nhóm A vì quá chậm; không mở rộng vì không hơn Croston |
 | 23/10 | Bản nháp Chương 1 (Mở đầu) | `do_an/chuong_1_mo_dau.md` | Đủ 7 mục: lý do, mục tiêu, câu hỏi, phạm vi, phương pháp, ý nghĩa, bố cục | Tên đề tài theo báo cáo GĐ1, cần đối chiếu quyết định giao đề tài; Chương 3 đổi thành "Mô tả bài toán và dữ liệu" nếu không có dữ liệu thật |
 | 24/10 | Prophet (GĐ D) | `src/mo_hinh_prophet.py` | Test WMAPE 0,454 (−29% so TB trượt 28, −41% so SN7); nhóm Z 1,272 → 0,638; thắng 11/13 mốc | Chọn additive trên validation; loại 5 sự kiện không biết trước khỏi khung đánh giá; 4 tiến trình vì RAM; chặn máy ngủ khi chạy |
+| 24/10 | LightGBM (GĐ D) | `src/mo_hinh_lightgbm.py` | Test WMAPE 0,400 (tốt nhất theo ngày, thắng Prophet 12/13 mốc) nhưng Bias +11,6% (nhóm Z +40,8%, thiếu trước cao điểm) | Lag ≥ 28 để dự báo 28 ngày không đệ quy; tweedie chọn trên validation; GĐ E sẽ chọn/kết hợp theo nhóm trên validation |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

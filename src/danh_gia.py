@@ -136,6 +136,24 @@ def save_results(name, pred, df, kind="test", note=""):
     return row
 
 
+def keep_awake(on=True):
+    """Windows: khong cho may ngu khi dang chay (lan chay Prophet 23/10 bi treo ~9 gio vi may ngu giua chung)."""
+    if os.name == "nt":
+        import ctypes
+        ES_CONTINUOUS, ES_SYSTEM_REQUIRED = 0x80000000, 0x00000001
+        ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | (ES_SYSTEM_REQUIRED if on else 0))
+
+
+def saved_result(name, kind):
+    """Ket qua da luu trong RESULT (de chay tiep, khong chay lai). Tham so dong lenh --lam-lai de bo qua."""
+    import sys
+    if "--lam-lai" in sys.argv or not os.path.exists(RESULT):
+        return None
+    r = pd.read_csv(RESULT, encoding="utf-8-sig")
+    r = r[(r.mo_hinh == name) & (r.tap == kind)]
+    return r if len(r) else None
+
+
 # ---------------- 2 mo hinh moc de kiem tra khung ----------------
 def _last_week(hist):
     """7 ngay gan nhat co cau tin duoc cua tung SKU (ngay het hang / dong cua -> lay gia tri hop le truoc do)."""
