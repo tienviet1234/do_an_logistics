@@ -20,6 +20,7 @@ mức độ tác động và các đột biến khác là giả định.
     python src/nap_database.py       # 11. đẩy toàn bộ dữ liệu + kết quả vào CSDL data/kho_hang.db, tự kiểm tra toàn vẹn (~2 phút)
     python src/tao_trang_luong.py    # 12. trang trình bày luồng hệ thống -> trinh_bay/luong_he_thong.html (mở bằng trình duyệt)
     python src/ton_kho.py            # 13. GĐ F: chọn quy tắc trên validation, mô phỏng tồn kho 12 tháng test, ghi CSDL -> reports/ton_kho_so_sanh.md
+    python src/bieu_do_ket_qua.py    # 14. 6 biểu đồ kết quả cho Chương 4 (đọc CSDL) -> reports/ket_qua/
     python src/xem_database.py       # chạy các truy vấn mẫu trong database/truy_van_mau.sql
 
 Lệnh phụ (ít dùng):

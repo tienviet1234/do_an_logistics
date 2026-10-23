@@ -26,7 +26,7 @@ Cập nhật lần cuối: 24/10/2026.
 | 12. Dashboard | Chương 4, mục 4.10 | |
 | 13. Hạn chế, 14. Nhật ký | Chương 5 (hạn chế), phụ lục | |
 
-Trạng thái: 1–11 ✅ (9.3 còn biểu đồ) · 12 ⏳ · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
+Trạng thái: 1–11 ✅ · 12 ⏳ · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
 
 ---
 
@@ -279,9 +279,10 @@ Script: `src/chon_mo_hinh.py`. Kết quả vòng 1: `reports/chon_mo_hinh.md`; v
 
 **Bài học phương pháp (đưa vào Chương 4):** tập validation phải **cùng đặc điểm** với giai đoạn sẽ áp dụng mô hình (ở đây: có mùa cao điểm). Validation "êm" chọn nhầm mô hình chính xác trung bình nhưng thiếu hàng đúng lúc cao điểm.
 
-### 9.3. Còn lại ⏳
-- Biểu đồ dự báo chồng thực tế quanh Tết 2026 và một cơn bão.
-- Bảng tổng hợp cuối toàn bộ mô hình (từ `reports/bang_so_sanh_test.md`).
+### 9.3. Biểu đồ kết quả ✅ (24/10)
+`src/bieu_do_ket_qua.py` (đọc từ CSDL) → `reports/ket_qua/`, chú thích ở `reports/bao_cao_bieu_do_ket_qua.md`. Màu cố định theo đối tượng ở mọi hình (thực tế đen, AI xanh dương, dự báo mốc cam, Prophet xanh ngọc, LightGBM vàng, hiện trạng xám).
+- `k01` xếp hạng sai số các mô hình (tập test); `k02` dự báo so với thực tế, tổng toàn kho, mốc trước Tết và trước Trung thu 2026 (TB trượt dự báo phẳng, AI bám đỉnh nhưng vẫn thấp hơn đỉnh, khớp Bias dương); `k03` sai số theo nhóm XYZ; `k04` giá trị tồn kho theo ngày của 4 chính sách; `k05` trước–sau (Fill Rate, chi phí liên quan); `k06` mô hình răng cưa tồn kho – ROP – đặt hàng của SKU001 (minh họa lý thuyết Chương 2).
+- Bảng tổng hợp mọi mô hình: `reports/bang_so_sanh_test.md` và khung nhìn `v_xep_hang_mo_hinh`.
 
 ## 9b. Luồng hệ thống và cơ sở dữ liệu ✅ (24/10; nhiệm vụ giảng viên giao, trình bày trước hội đồng)
 
