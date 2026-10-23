@@ -7,7 +7,7 @@
 - Luôn ghi rõ đâu là giả định, đâu là số liệu thật. Dữ liệu hiện tại là **mô phỏng**.
 - Phần chưa làm đánh dấu ⏳; làm xong đổi thành ✅ và điền kết quả.
 
-Cập nhật lần cuối: 23/10/2026.
+Cập nhật lần cuối: 24/10/2026.
 
 ---
 
@@ -26,7 +26,7 @@ Cập nhật lần cuối: 23/10/2026.
 | 12. Dashboard | Chương 4, mục 4.10 | |
 | 13. Hạn chế, 14. Nhật ký | Chương 5 (hạn chế), phụ lục | |
 
-Trạng thái: 1–7 ✅ · 8 ⏳ · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
+Trạng thái: 1–7 ✅ · 8 🔄 (Prophet ✅) · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
 
 ---
 
@@ -178,12 +178,41 @@ Validation (6 mốc, 4–9/2025, giai đoạn "êm"): TB trượt 28 0,426 · Cr
 
 **Đối chiếu tiêu chí thành công (`docs/09` mục 1c):** ngưỡng "giảm ≥ 20% so với Seasonal Naive" tương đương WMAPE ≤ 0,618. Mô hình mốc tốt nhất đạt 0,640 (chưa tới) → mô hình AI cần thắng **cả** 0,618 lẫn 0,640.
 
-## 8. Mô hình AI ⏳ (kế hoạch 29/10–08/11)
+## 8. Mô hình AI 🔄 (Prophet xong 24/10; LightGBM ⏳; kế hoạch 29/10–08/11)
 
-- Prophet từng SKU (holidays + khuyến mãi + extra regressor): ⏳
-- LightGBM hoặc XGBoost mô hình chung 121 SKU, độ quan trọng đặc trưng: ⏳
-- LSTM: bỏ khỏi kế hoạch; ghi vào hướng phát triển (lý do: mỗi SKU chỉ ~1.096 điểm, khó giải thích, hiếm khi hơn Prophet/XGBoost; xem `docs/06`).
-- Tham số đã dò (trên validation): ⏳
+### 8.1. Prophet ✅
+
+Script: `src/mo_hinh_prophet.py`. Mỗi SKU một mô hình, học trên toàn bộ lịch sử đến mốc.
+- **Holidays (biết trước):** 12 loại sự kiện có lịch trong `lich_su_kien_prophet.csv` (Tết, Trung thu, Noel, các ngày lễ, khai giảng, thể thao) + sale 11.11, 12.12, Black Friday (cửa sổ −1…+1 ngày).
+- **Biến thêm (regressor):** `khuyen_mai` theo lịch khuyến mãi.
+- **Không dùng:** bão lũ, nắng nóng, rét đậm, dịch bệnh, tin đồn giá (không biết trước 28 ngày). Quyết định ngày 23/10: loại 5 cờ này khỏi danh sách "biết trước" của khung đánh giá (`UNFORESEEABLE` trong `src/danh_gia.py`).
+- **Mùa vụ:** năm + tuần; kiểu mùa vụ chọn trên validation: cộng (additive) WMAPE 0,434 tốt hơn nhân (multiplicative) 0,535 → dùng **additive**.
+- Kỹ thuật: chạy song song 4 tiến trình (11 tiến trình làm hết RAM máy 7,6 GB); khoảng 67 giây/mốc.
+
+**Kết quả tập test:**
+| Mô hình | WMAPE | WMAPE tuần | Bias % | WMAPE A | WMAPE X | WMAPE Y | WMAPE Z | WMAPE lumpy | FVA so SN7 |
+|---|---|---|---|---|---|---|---|---|---|
+| **Prophet** | **0,454** | **0,257** | −4,9% | **0,391** | **0,383** | **0,486** | **0,638** | **0,725** | **+41,3%** |
+| TB trượt 28 (mốc tốt nhất) | 0,640 | 0,511 | −0,8% | 0,503 | 0,408 | 0,653 | 1,272 | 1,860 | +17,2% |
+| Seasonal Naive 7 | 0,773 | 0,598 | −11,0% | 0,559 | 0,475 | 0,597 | 1,636 | 2,691 | 0 |
+
+**Theo từng mốc (WMAPE):** Prophet thắng TB trượt 28 ở **11/13 mốc**. Mốc Tết (17/02/2026): Prophet 0,45 · TB trượt 1,48 · Seasonal Naive 2,17. Hai mốc hòa/thua nhẹ là 12/05 và 09/06/2026 (giai đoạn không có lễ lớn: 0,39 so với 0,39; 0,46 so với 0,44).
+
+**Nhận xét:**
+1. Prophet giảm sai số **29%** so với mô hình mốc tốt nhất (0,454 so với 0,640) và **41%** so với Seasonal Naive.
+2. Lợi thế đến từ **lịch lễ**: nhóm Z (mùa vụ) giảm từ 1,272 xuống 0,638 (giảm một nửa); nhóm X (ổn định) chỉ cải thiện nhẹ (0,408 → 0,383). Ở giai đoạn không có lễ, Prophet ngang mô hình mốc. Điều này khớp với validation (tháng 4–9, ít lễ): Prophet 0,434 ngang TB trượt 0,426.
+3. Sai số theo tuần chỉ còn 0,257: cộng theo tuần, sai số ngày triệt tiêu bớt; đây là mức thời gian dùng cho quyết định đặt hàng.
+4. Bias −4,9%: dự báo thừa nhẹ, nằm trong ngưỡng ±5%.
+
+**Lưu ý trung thực (phải ghi vào phần hạn chế):** lịch lễ Prophet dùng (`lich_su_kien_prophet.csv`) chính là lịch mà bộ sinh dữ liệu mô phỏng dùng để tạo hiệu ứng lễ, và lịch khuyến mãi khớp tuyệt đối với dữ liệu. Ngoài đời, cửa sổ lễ (bắt đầu tăng từ bao nhiêu ngày trước) phải tự ước lượng và lịch khuyến mãi có thể thay đổi, nên mức cải thiện trên dữ liệu thật **nhiều khả năng thấp hơn**. Kết luận an toàn: "mô hình có biến lịch lễ cải thiện mạnh nhất ở hàng mùa vụ", không phải "giảm đúng 41%".
+
+### 8.2. LightGBM / XGBoost ⏳
+
+Mô hình chung cho 121 SKU, dùng file đặc trưng; độ quan trọng đặc trưng. Phải thắng Prophet (0,454) hoặc có lý do khác để giữ (nhanh hơn, giải thích được biến nào quan trọng).
+
+### 8.3. LSTM
+
+Bỏ khỏi kế hoạch; ghi vào hướng phát triển (lý do: mỗi SKU chỉ ~1.096 điểm, khó giải thích, hiếm khi hơn Prophet/XGBoost; xem `docs/06`).
 
 ## 9. So sánh và chọn mô hình ⏳ (kế hoạch 09–11/11)
 
@@ -221,6 +250,7 @@ Streamlit, tối đa 4 khu: dự báo vs thực tế theo SKU; cảnh báo SKU d
 ## 13. Hạn chế và việc còn treo
 
 **Hạn chế đã biết:**
+- **Lợi thế "biết đề" của dữ liệu mô phỏng:** mô hình dùng đúng lịch lễ và lịch khuyến mãi mà bộ sinh dữ liệu đã dùng; trên dữ liệu thật, cửa sổ lễ phải tự ước lượng nên mức cải thiện (Prophet −41% so với Seasonal Naive) nhiều khả năng thấp hơn.
 - Toàn bộ kết quả trên **dữ liệu mô phỏng**; mức tác động của bão, ngày lễ, khuyến mãi là giả định của người lập dữ liệu, nên độ chính xác tuyệt đối không phản ánh kho thật. Giá trị của đồ án nằm ở quy trình và ở việc so sánh tương đối giữa các mô hình.
 - Mô hình dự báo biết lịch lễ và khuyến mãi chính xác; ngoài đời lịch khuyến mãi có thể đến muộn hoặc thay đổi.
 - Hiệu ứng sale chỉ mô phỏng cho 11.11, 12.12, Black Friday; các sale khác chưa có.
@@ -244,6 +274,8 @@ Streamlit, tối đa 4 khu: dự báo vs thực tế theo SKU; cảnh báo SKU d
 | 10/10 | Khung đánh giá | `src/danh_gia.py` | Mốc Seasonal Naive test WMAPE 0,773 | Bão không biết trước; chia 24 tháng train / 12 tháng test |
 | 10/10 | Lập lộ trình theo lịch trường | `docs/09_lo_trinh.md` | Nộp 09/12; 8 tuần làm việc | Bỏ LSTM; viết song song với chạy mô hình |
 | 23/10 | Mô hình mốc (GĐ C) | `src/mo_hinh_baseline.py`, `src/tong_hop_ket_qua.py` | Mốc tốt nhất: TB trượt 28, WMAPE 0,640 (giảm 17,2% so SN7); nhóm Z vẫn sai 127% | ARIMA chỉ chạy nhóm A vì quá chậm; không mở rộng vì không hơn Croston |
+| 23/10 | Bản nháp Chương 1 (Mở đầu) | `do_an/chuong_1_mo_dau.md` | Đủ 7 mục: lý do, mục tiêu, câu hỏi, phạm vi, phương pháp, ý nghĩa, bố cục | Tên đề tài theo báo cáo GĐ1, cần đối chiếu quyết định giao đề tài; Chương 3 đổi thành "Mô tả bài toán và dữ liệu" nếu không có dữ liệu thật |
+| 24/10 | Prophet (GĐ D) | `src/mo_hinh_prophet.py` | Test WMAPE 0,454 (−29% so TB trượt 28, −41% so SN7); nhóm Z 1,272 → 0,638; thắng 11/13 mốc | Chọn additive trên validation; loại 5 sự kiện không biết trước khỏi khung đánh giá; 4 tiến trình vì RAM; chặn máy ngủ khi chạy |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

@@ -33,11 +33,14 @@ KNOWN_AHEAD = ["date", "ma_sku", "thu", "cuoi_tuan", "ngay_trong_thang", "thang"
                "la_ngay_nghi", "ngay_sale", "cua_so_sale", "khuyen_mai",
                "nhom_hang", "loai_mua_vu", "gia_ban", "lead_time_tb", "nha_cung_cap",
                "abc_train", "xyz_train", "loai_nhu_cau"]
+# Su kien KHONG biet truoc 28 ngay (thoi tiet, dich benh, tin don) -> khong dua vao tuong lai.
+# Chi lich le, lich thi dau the thao, sale, khuyen mai la biet truoc.
+UNFORESEEABLE = ["sk_nang_nong", "sk_ret_dam", "sk_dich_cum", "sk_sot_xuat_huyet", "sk_tin_don_gia"]
 
 
 def load(path=FEAT):
     df = pd.read_csv(path, encoding="utf-8-sig", parse_dates=["date"])
-    known = KNOWN_AHEAD + [c for c in df.columns if c.startswith("sk_")]
+    known = KNOWN_AHEAD + [c for c in df.columns if c.startswith("sk_") and c not in UNFORESEEABLE]
     df.attrs["known_ahead"] = [c for c in known if c in df.columns]
     # cot "y_cham": nhu cau dung de cham diem (rong = khong cham)
     df["y_cham"] = df.y_cau.where(df.don_b2b == 0)

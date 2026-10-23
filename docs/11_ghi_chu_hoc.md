@@ -149,3 +149,42 @@ Cách dùng: đọc bài sau khi bước đó xong, tự trả lời câu hỏi 
 2. Thiếu xe và thiếu hàng. Trung bình 28 ngày chỉ nhìn quá khứ, không biết nhu cầu sắp tăng mạnh (h01: tổng xuất trước Tết lên gần gấp 3 ngày thường).
 3. So với mô hình mốc **tốt nhất** (trung bình 28 ngày, 0,640). Thắng mô hình yếu nhất thì chưa chứng minh được gì.
 </details>
+
+---
+
+## Bài 6. Prophet: mô hình biết lịch
+
+**Kiến thức logistics**
+- Nhu cầu hàng tiêu dùng Việt Nam bị chi phối mạnh bởi **lịch**: Tết, Trung thu theo âm lịch (đổi ngày mỗi năm), các ngày lễ, sale 11.11, khuyến mãi. Người lập kế hoạch giỏi luôn có **lịch sự kiện** trên bàn.
+- Phân biệt hai loại sự kiện:
+  - **Biết trước:** lịch lễ, lịch sale, lịch khuyến mãi, lịch thi đấu bóng đá. Đưa được vào dự báo.
+  - **Không biết trước** (hoặc chỉ biết trước vài ngày): bão, nắng nóng, dịch bệnh, tin đồn tăng giá. Không đưa vào dự báo 28 ngày; khi có cảnh báo thì người điều vận tự điều chỉnh.
+
+**Prophet hiểu bằng lời:** Prophet tách nhu cầu thành các phần cộng lại:
+nhu cầu = **xu hướng** + **mùa vụ năm** + **chu kỳ tuần** + **hiệu ứng ngày lễ** + **hiệu ứng khuyến mãi** + nhiễu.
+Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày trước), nó tự học mỗi SKU tăng bao nhiêu vào dịp đó.
+
+**Kết quả và bài học**
+- Prophet sai **45%**, so với 64% của trung bình trượt (mô hình mốc tốt nhất): giảm 29%. So với Seasonal Naive: giảm 41%. Đạt tiêu chí "giảm ít nhất 20%".
+- **Thắng ở đâu:** hàng mùa vụ (nhóm Z) sai 127% → 64%, giảm một nửa. Mốc Tết 2026: 45% so với 148%.
+- **Không thắng ở đâu:** tháng 5–6 (không có lễ lớn) thì ngang mô hình mốc. Nghĩa là: **AI có giá trị nhất ở những lúc có sự kiện**, còn lúc bình thường thì cách đơn giản cũng đủ.
+- **Cảnh báo trung thực:** dữ liệu mô phỏng được tạo bằng **đúng** lịch lễ mà Prophet dùng, giống như học sinh được biết trước đề cương sát đề thi. Ngoài đời phải tự đoán "Tết bắt đầu tăng từ mấy tuần trước", nên kết quả thật sẽ kém hơn. Nói được điều này khi bảo vệ là điểm cộng, không phải điểm trừ.
+
+**Kỹ năng dữ liệu**
+- **Chọn tham số trên validation, chấm trên test:** thử 2 kiểu mùa vụ (cộng và nhân), chọn kiểu tốt hơn **trên validation** (cộng: 0,434 so với nhân: 0,535), rồi mới chạy test. Không được nhìn kết quả test để chọn, vì như thế là "gian lận" ngầm.
+- **Kiểm tra từng mốc, không chỉ con số trung bình:** Prophet thắng 11/13 mốc, nên kết quả ổn định chứ không phải nhờ may ở 1–2 mốc.
+- Kỹ thuật máy tính: chạy song song bị giới hạn bởi **RAM** (máy 7,6 GB chỉ chạy được 4 tiến trình Prophet cùng lúc); máy ngủ giữa chừng thì chương trình treo.
+
+**Liên hệ điều vận:** dự báo theo tuần của Prophet chỉ sai 26%. Đủ tốt để **lên kế hoạch thuê xe theo tuần** trước mùa cao điểm: tuần trước Tết, dự báo cho biết cần tăng khoảng bao nhiêu chuyến, để đặt thuê xe ngoài sớm (giá rẻ hơn, chắc có xe hơn). Mô hình mốc (trung bình 28 ngày) sẽ không báo trước được đỉnh này.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao không đưa bão vào Prophet, dù bão làm nhu cầu mì gói tăng mạnh?
+2. Prophet chỉ ngang mô hình mốc trong tháng 5–6. Điều đó có làm Prophet "kém" không?
+3. Nếu hội đồng hỏi "Có chắc AI giảm sai số 41% ở kho thật không?", bạn trả lời thế nào?
+
+<details><summary>Gợi ý</summary>
+
+1. Vì dự báo cho 28 ngày tới, mà bão chỉ được cảnh báo trước 3–5 ngày. Đưa vào là "nhìn trộm tương lai", kết quả đẹp giả tạo. Khi có cảnh báo bão, người lập kế hoạch điều chỉnh tay.
+2. Không. Lúc không có sự kiện, nhu cầu ổn định, cách đơn giản đã đủ tốt; Prophet không làm tệ hơn. Giá trị của nó nằm ở mùa cao điểm, nơi sai lầm tốn kém nhất.
+3. Không chắc con số 41%: dữ liệu là mô phỏng, và mô hình được dùng đúng lịch lễ mà dữ liệu được tạo ra. Điều chắc chắn hơn là **xu hướng**: mô hình biết lịch lễ cải thiện mạnh ở hàng mùa vụ. Muốn có con số thật phải chạy thử trên dữ liệu kho thật, quy trình đã sẵn sàng cho việc đó.
+</details>

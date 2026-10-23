@@ -6,3 +6,4 @@ matplotlib>=3.8
 statsmodels>=0.14
 statsforecast>=2.0
 pypandoc_binary>=1.13
+prophet>=1.1
