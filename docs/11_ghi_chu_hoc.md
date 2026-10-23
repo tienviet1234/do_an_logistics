@@ -286,3 +286,39 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 3. Database **chặn dữ liệu sai ngay khi ghi** (khóa chính, khóa ngoại, ràng buộc), cho nhiều người và nhiều chương trình dùng chung một nguồn, truy vấn nhanh bằng SQL, và ghi nhật ký mỗi lần nạp. File CSV không làm được những điều này; ai cũng có thể sửa tay làm sai lệch.
 </details>
 
+---
+
+## Bài 10. Từ dự báo đến quyết định đặt hàng: SS, ROP, EOQ và mô phỏng
+
+**Kiến thức logistics**
+- **Điểm đặt hàng (ROP)** = nhu cầu dự báo trong thời gian chờ hàng + **tồn kho an toàn (SS)**. Mỗi ngày: nếu "tồn hiện có + hàng đang về" ≤ ROP thì đặt.
+- **Tồn kho an toàn** bù cho hai thứ không chắc: dự báo sai và hàng về trễ. SS = z × √(σ² + d² × σ_LT²). Dự báo càng chính xác (σ nhỏ) thì SS càng nhỏ: đây là chỗ AI tiết kiệm tiền.
+- **EOQ** cân bằng chi phí đặt hàng (đặt nhiều lần thì tốn) và chi phí lưu kho (đặt nhiều một lúc thì tốn). Giả định **nhu cầu đều quanh năm**, nên **không hợp với hàng thời vụ**.
+- **Fill Rate** (tỷ lệ đáp ứng) = phần nhu cầu được phục vụ ngay từ kho.
+- **Chi phí liên quan** = đặt hàng + lưu kho + **lợi nhuận mất do thiếu hàng**. Chỉ nhìn chi phí lưu kho thì luôn thấy "giữ ít hàng là tốt", nhưng thiếu hàng cũng là chi phí.
+
+**Kết quả (12 tháng mô phỏng, mức phục vụ 95%)**
+- Cùng công thức, chỉ đổi dự báo: AI (có hiệu chỉnh lệch) đáp ứng **95,4%** so với 88,8% của dự báo mốc; lợi nhuận mất giảm một nửa; tồn kho gần như không đổi. **Chi phí liên quan giảm 31%.**
+- Với hàng ổn định (nhóm X), AI thắng cả "hiện trạng" (người lập kế hoạch biết trước nhu cầu): đáp ứng cao hơn mà tồn **ít hơn 24%**.
+- Với 5 mặt hàng **chỉ bán dịp lễ** (cây thông Noel, đồ Halloween...), EOQ thất bại: hàng về sau mùa, vừa thiếu trong mùa vừa tồn đến cuối năm. Thử hai cách đặt khác trên validation nhưng không tốt hơn, nên đây là **hạn chế** và **hướng phát triển** (hàng thời vụ nên đặt một lần trước mùa).
+
+**Kỹ năng dữ liệu**
+- **Mô phỏng (simulation):** chạy lại 12 tháng, từng ngày, cho từng chính sách, với **cùng nhu cầu, cùng thời gian giao hàng**. Chỉ như vậy mới so sánh công bằng.
+- **Nhu cầu thật (đáp án)** chỉ dùng để chấm, không cho mô hình biết.
+- **Hiệu chỉnh lệch:** dự báo thiếu có hệ thống 8% thì nhân dự báo với hệ số ước lượng **trên validation**.
+- **Đối thủ quá mạnh:** "hiện trạng" trong dữ liệu biết trước nhu cầu. Thua nó ở tồn kho không có nghĩa là AI kém. Phải nói rõ điều này khi trình bày.
+
+**Liên hệ điều vận:** EOQ nhỏ nghĩa là **nhập hàng nhiều lần hơn** (2.924 lần so với 1.910 lần của hiện trạng). Với kho, đó là thêm chuyến xe nhập, thêm lượt nhận hàng, xếp dỡ. Chi phí đặt hàng S trong công thức phải phản ánh đúng chi phí một chuyến xe nhận hàng. Đây là chỗ người điều vận góp ý được cho người lập kế hoạch.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao dự báo chính xác hơn lại giúp giảm tồn kho an toàn?
+2. Vì sao EOQ không hợp với cây thông Noel?
+3. Hội đồng hỏi: "Chính sách AI tồn kho nhiều hơn hiện trạng 36%, vậy AI có tốt không?" Bạn trả lời thế nào?
+
+<details><summary>Gợi ý</summary>
+
+1. SS tỷ lệ với độ lệch chuẩn của sai số dự báo (σ). Sai ít thì cần ít hàng dự phòng hơn mà vẫn giữ được cùng mức phục vụ.
+2. EOQ giả định nhu cầu đều. Cây thông chỉ bán khoảng 3 tuần; đặt theo EOQ khi dự báo vọt lên thì hàng về sau Noel, tồn đến năm sau.
+3. "Hiện trạng" trong dữ liệu mô phỏng biết trước nhu cầu kỳ vọng, ngoài đời không có. So với cách làm thực tế (công thức + dự báo đơn giản), AI giảm 31% chi phí liên quan và đáp ứng thêm 6,6 điểm. Ngay cả với đối thủ biết trước, AI đáp ứng tốt hơn, thiếu hàng ít hơn một nửa, tổng chi phí gần bằng; với hàng ổn định AI còn tồn ít hơn 24%. Phần tồn cao đến từ 5 mặt hàng chỉ bán dịp lễ, đã chỉ rõ nguyên nhân và hướng khắc phục.
+</details>
+

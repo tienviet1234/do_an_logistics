@@ -461,13 +461,13 @@ def simulate(r):
                 qo = int(max(qmin, round(target - ip)))
                 lt = max(1, int(round(rng.normal(LT, r.lead_time_std))) + int(lt_extra[t]) + int(sup_extra.get(r.nha_cung_cap, np.zeros(T))[t]))
                 pipeline.append((t + lt, qo)); order_flag = 1
-        rows.append((day, r.ma_sku, begin, qin, qout, stock, int(dem > qout), int(promo[t]), order_flag, qo))
+        rows.append((day, r.ma_sku, begin, qin, qout, stock, int(dem > qout), int(promo[t]), order_flag, qo, dem))
     return rows
 
 all_rows = []
 for _, r in sku.iterrows(): all_rows += simulate(r)
 tx = pd.DataFrame(all_rows, columns=["date", "ma_sku", "ton_dau_ngay", "qty_in", "qty_out", "ton_cuoi_ngay", "het_hang",
-                                     "khuyen_mai", "phat_sinh_don_dat", "so_luong_dat"])
+                                     "khuyen_mai", "phat_sinh_don_dat", "so_luong_dat", "nhu_cau_that"])
 tx["thu"] = tx.date.dt.dayofweek + 2
 tx["mua"] = tx.date.map(mua_of)
 tx["la_ngay_nghi"] = tx.date.isin(closed).astype(int)
@@ -580,5 +580,7 @@ lich_km = (km[km.khuyen_mai == 1].groupby(["ma_sku", "dot"]).date.agg(tu_ngay="m
            .reset_index().drop(columns="dot"))
 lich_km["so_ngay"] = (pd.to_datetime(lich_km.den_ngay) - pd.to_datetime(lich_km.tu_ngay)).dt.days + 1
 lich_km.to_csv(f"{OUT}/lich_khuyen_mai.csv", index=False, encoding="utf-8-sig")
+# Nhu cau that (ke ca ngay het hang) -> DAP AN, chi de cham diem chinh sach ton kho (GD F), KHONG dua vao mo hinh
+tx[["date", "ma_sku", "nhu_cau_that"]].to_csv(f"{OUT}/nhu_cau_that.csv", index=False, encoding="utf-8-sig")
 pd.to_pickle(dict(tx=tx_out, sku=sku_out, raw=raw_tx, lich=lich_su_kien, nghi=cal_nghi, mua=mua_tbl, le=le_tbl, lenhom=le_nhom, bao=bao_tbl, shock=shock_log, log=dirty_log, EVENTS={k: v[4] for k, v in EVENTS.items()}), f"{OUT}/_all.pkl")
 print(len(sku), len(tx_out), len(raw_tx)); print(sku.phan_loai_ABC.value_counts().to_dict(), sku.phan_loai_XYZ.value_counts().to_dict())

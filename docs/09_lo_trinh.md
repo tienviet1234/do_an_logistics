@@ -30,7 +30,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | C | Mô hình mốc (Baseline Forecast) | 3 | 4 | T2–T3: 22/10–28/10 | `src/mo_hinh_baseline.py` | ✅ Xong 23/10 |
 | D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || ✅ Xong 24/10 (sớm 2 tuần) |
 | E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền || ✅ Xong 24/10 (2 vòng) |
-| F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau | |
+| F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau || ✅ Xong 24/10 (sớm ~4 tuần) |
 | G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | |
 | H1 | Viết Chương 1–3 (song song, buổi tối / cuối tuần) | — | 1–3 | T1–T5 | Bản nháp Chương 1, 2 (rà lại), 3 | |
 | H2 | Viết Chương 4–5, ráp đồ án, gửi GVHD xem | 8 | 4, 5 | T7–T8: 27/11–06/12 | Bản đồ án hoàn chỉnh | |
@@ -81,8 +81,8 @@ Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `d
 | **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Kết hợp theo nhóm −51% (24/10) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
 | | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Mô hình chọn (kết hợp theo nhóm) +6,2%: vượt nhẹ → xử lý ở GĐ F |
-| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⏳ |
-| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ⏳ |
+| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⚠️ Fill Rate 95,36% đạt; tồn kho +36% so với hiện trạng (biết trước nhu cầu) không đạt; nhóm X thấp hơn 24% |
+| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −52%; chi phí liên quan ≈ hiện trạng (+0,9%), −31% so với dự báo mốc |
 | **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
 | | Không rò rỉ dữ liệu: chia theo thời gian, chỉ dùng thông tin biết trước | Kiểm tra trong `danh_gia.py` | ✅ |
 | | Tự giải thích được từng bước và trả lời câu hỏi phản biện | `docs/11` câu hỏi tự kiểm tra | 🔄 Bài 1–4 |

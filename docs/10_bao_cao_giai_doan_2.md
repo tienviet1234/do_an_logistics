@@ -26,7 +26,7 @@ Cập nhật lần cuối: 24/10/2026.
 | 12. Dashboard | Chương 4, mục 4.10 | |
 | 13. Hạn chế, 14. Nhật ký | Chương 5 (hạn chế), phụ lục | |
 
-Trạng thái: 1–8 ✅ · 9 🔄 · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
+Trạng thái: 1–11 ✅ (9.3 còn biểu đồ) · 12 ⏳ · 8 ⏳ · 9 ⏳ · 10 ⏳ · 11 ⏳ · 12 ⏳.
 
 ---
 
@@ -304,27 +304,85 @@ Script: `src/chon_mo_hinh.py`. Kết quả vòng 1: `reports/chon_mo_hinh.md`; v
 **Ràng buộc chặn dữ liệu sai (đã thử):** mã hàng không có trong danh mục (khóa ngoại), lượng xuất âm (CHECK), trùng (ngày, SKU) (khóa chính), dự báo cho ngày trước mốc (CHECK).
 **Trình diễn:** `database/truy_van_mau.sql` (8 truy vấn) hoặc `python src/xem_database.py`; xem bảng trực quan bằng phần mềm miễn phí DB Browser for SQLite.
 
-## 10. Chính sách tồn kho ⏳ (kế hoạch 12–22/11)
+## 10. Chính sách tồn kho ✅ (24/10; kế hoạch 12–22/11)
 
-- Công thức (xem `docs/02`): EOQ = √(2DS/H); SS = z·σd·√LT (khi LT dao động: SS = z·√(LT·σd² + d²·σLT²)); ROP = d·LT + SS.
-- σd lấy từ độ lệch chuẩn **sai số dự báo**, không phải độ lệch chuẩn nhu cầu thô.
-- Ba mức phục vụ thử: 90%, 95%, 99%. Làm tròn theo MOQ.
-- Bảng SS, ROP, EOQ theo SKU: ⏳
+Script: `src/ton_kho.py`, **đọc toàn bộ đầu vào từ CSDL** (`dm_sku`, `phan_loai_sku`, `nhu_cau_that`, `giao_dich_sach`, `lich_ngay_nghi`, `su_kien_dot_bien`, `du_bao`) và ghi kết quả vào CSDL (`chinh_sach`, `tham_so_ton_kho`, `ket_qua_ton_kho`, `mo_phong_ngay`, khung nhìn `v_so_sanh_chinh_sach`). Báo cáo: `reports/ton_kho_so_sanh.md`.
 
-## 11. Mô phỏng và bảng trước–sau ⏳
+**Thiết kế mô phỏng** (12 tháng test 01/10/2025–29/09/2026, 121 SKU). Mọi chính sách dùng **chung**: nhu cầu thật (kể cả ngày hết hàng; bảng `nhu_cau_that`, là **đáp án**, chỉ dùng để chấm, không đưa vào mô hình), thời gian giao hàng thực tế (bốc ngẫu nhiên một lần, hạt giống 20261023, cộng chậm do bão và nhà cung cấp theo `su_kien_dot_bien`), tồn kho và hàng đang về ban đầu, chi phí S, H, MOQ, mức phục vụ.
+- Kiểm tra mỗi ngày kho mở cửa: nếu tồn hiện có + hàng đang về ≤ ROP thì đặt hàng. Mất bán khi hết hàng (không nợ đơn).
+- ROP = dự báo nhu cầu trong lead time + SS; SS = z·√(σ_LTD² + d²·σ_LT²); σ_LTD = độ lệch chuẩn của **tổng sai số dự báo trong L ngày**, đo trên **validation2**.
+- Chỉ dùng dự báo của mốc gần nhất đã qua (không nhìn trước).
+- Chính sách: **hiện trạng** (đo từ dữ liệu); **công thức + dự báo mốc** (TB trượt 28); **công thức + dự báo AI** (kết hợp theo nhóm); **AI + hiệu chỉnh lệch** (hệ số theo nhóm XYZ ước lượng trên validation2).
+- ⚠️ **Hiện trạng là đối thủ rất mạnh:** trong bộ sinh dữ liệu, người lập kế hoạch dùng đường nhu cầu kỳ vọng của tương lai (biết trước mùa vụ, lễ), chỉ lệch ±10%. Ngoài đời không ai biết trước như vậy. So sánh chính là **AI với dự báo mốc dùng cùng công thức**.
 
-Ba chính sách so sánh trên 12 tháng test: (1) hiện trạng; (2) công thức + dự báo mốc; (3) công thức + dự báo AI.
+### 10.1. Vòng 1: lượng đặt = EOQ (đã chạy trên test 24/10)
 
-| KPI | Hiện trạng | Dự báo mốc | Dự báo AI |
-|---|---|---|---|
-| Fill Rate | ⏳ | ⏳ | ⏳ |
-| Số ngày hết hàng | ⏳ | ⏳ | ⏳ |
-| Tồn kho bình quân | ⏳ | ⏳ | ⏳ |
-| DOH | ⏳ | ⏳ | ⏳ |
-| Chi phí đặt hàng + lưu kho | ⏳ | ⏳ | ⏳ |
-| Hàng tồn dư sau mùa | ⏳ | ⏳ | ⏳ |
+Mức phục vụ 95%:
+| Chính sách | Fill Rate | Ngày-SKU thiếu | Tồn TB (triệu đ) | Lần nhập | Chi phí đặt + lưu (triệu đ) | Doanh thu mất (triệu đ) |
+|---|---|---|---|---|---|---|
+| Hiện trạng | 93,57% | 1.564 | 11.133,7 | 1.910 | 2.596,4 | 19.452,7 |
+| Công thức + dự báo mốc | 88,75% | 1.051 | 14.890,1 | 2.979 | 3.501,9 | 30.952,9 |
+| Công thức + dự báo AI | 93,15% | 933 | 12.673,9 | 2.968 | 3.028,3 | 19.361,7 |
+| AI + hiệu chỉnh lệch | 95,36% | 758 | 15.133,4 | 2.924 | 3.500,4 | 14.502,6 |
 
-Thử độ nhạy (lead time +3–7 ngày; chi phí đặt hàng +20%; xem `docs/07`): ⏳
+**Phát hiện (khi xem kết quả test vòng 1):** ở nhóm Z, chính sách AI giữ tồn 11,1 tỷ so với 6,1 tỷ của hiện trạng; 5 SKU **chỉ bán dịp lễ** (cây thông Noel, bánh quy Noel, đồ hóa trang và kẹo Halloween, dây đèn LED) chiếm 4,5/5,0 tỷ chênh lệch. Ví dụ cây thông Noel: AI đáp ứng 74% nhưng tồn TB gấp ~11 lần hiện trạng. Cơ chế: gần lễ dự báo tăng vọt → ROP vọt → công thức đặt nhiều lần EOQ → hàng về sau khi mùa đã qua → vừa thiếu trong mùa, vừa tồn đến cuối năm. **EOQ giả định nhu cầu đều**, không hợp với hàng thời vụ (hạn chế kinh điển, cần viết vào Chương 2 và Chương 4).
+
+### 10.2. Vòng 2: chọn quy tắc lượng đặt trên validation (luật viết ngày 24/10, TRƯỚC khi chạy)
+
+Vì phát hiện trên đến từ tập test, việc sửa **không được chọn trên test**. Luật:
+- Ứng viên quy tắc lượng đặt: (1) **EOQ** như vòng 1; (2) **đặt đến mức**: lượng đặt = dự báo trong (L + 7) ngày + SS − (tồn + hàng đang về), tối thiểu MOQ; (3) **lai**: EOQ cho nhóm X/Y, đặt đến mức cho nhóm Z.
+- Mô phỏng trên **giai đoạn validation2** (01/10/2024–29/09/2025, có Noel 2024, Tết 2025, Halloween, Trung thu), mức phục vụ 95%, cùng thiết kế như trên, với 2 chính sách AI (có / không hiệu chỉnh lệch). σ_LTD và hệ số hiệu chỉnh đều lấy từ validation2 (trong mẫu, như nhau cho mọi ứng viên).
+- **Tiêu chí:** chi phí liên quan thấp nhất = chi phí đặt hàng + chi phí lưu kho + **lợi nhuận mất** (đơn vị thiếu × (giá bán − giá vốn)). Chọn cặp (quy tắc lượng đặt, chính sách AI) có chi phí liên quan thấp nhất.
+- Quy tắc lượng đặt được chọn áp dụng **cho mọi chính sách theo công thức** (cả dự báo mốc), rồi chạy một lần trên test để báo cáo. Kết quả vòng 1 giữ nguyên trong báo cáo.
+
+**Kết quả bước chọn trên validation2** (`reports/ton_kho_chon_quy_tac.md`, mức phục vụ 95%):
+| Quy tắc | Chính sách | Fill Rate | Tồn TB (tỷ đ) | Đặt + lưu (tỷ đ) | Lợi nhuận mất (tỷ đ) | Chi phí liên quan (tỷ đ) |
+|---|---|---|---|---|---|---|
+| **EOQ** ✅ | **AI + hiệu chỉnh** | 95,68% | 14,45 | 3,43 | 1,87 | **5,29** |
+| Lai | AI + hiệu chỉnh | 96,25% | 15,94 | 3,78 | 1,64 | 5,42 |
+| EOQ | AI | 93,47% | 12,06 | 2,94 | 2,51 | 5,45 |
+| Lai | AI | 94,03% | 12,97 | 3,20 | 2,41 | 5,61 |
+| Đặt đến mức | AI + hiệu chỉnh | 95,73% | 16,18 | 4,04 | 1,69 | 5,73 |
+| Đặt đến mức | AI | 93,47% | 13,15 | 3,46 | 2,49 | 5,96 |
+
+→ Theo luật, **giữ EOQ** và chọn **AI + hiệu chỉnh lệch**. Quy tắc "đặt đến mức"/"lai" giảm thiếu hàng nhưng tăng tồn kho nhiều hơn phần lợi nhuận cứu được. Vấn đề hàng chỉ bán dịp lễ (mục 10.1) **chưa giải quyết được bằng quy tắc lượng đặt đơn giản** → ghi vào hạn chế và hướng phát triển (chính sách riêng cho hàng thời vụ: đặt một lần trước mùa kiểu "người bán báo" (newsvendor), dừng đặt khi hàng về sau mùa).
+
+
+## 11. Mô phỏng và bảng trước–sau ✅ (24/10)
+
+Quy tắc lượng đặt EOQ (chọn trên validation2), 12 tháng test, 121 SKU, mức phục vụ 95% (`reports/ton_kho_so_sanh.md`, CSDL `v_so_sanh_chinh_sach`). Chi phí liên quan = chi phí đặt hàng + chi phí lưu kho + lợi nhuận mất do thiếu hàng.
+
+| KPI | Hiện trạng ⚠️ | Công thức + dự báo mốc | Công thức + dự báo AI | **AI + hiệu chỉnh lệch** |
+|---|---|---|---|---|
+| Fill Rate | 93,57% | 88,75% | 93,15% | **95,36%** |
+| Số ngày-SKU thiếu hàng | 1.564 | 1.051 | 933 | **758** |
+| Tồn kho TB (triệu đ) | **11.133,7** | 14.890,1 | 12.673,9 | 15.133,4 |
+| Số lần nhập hàng | **1.910** | 2.979 | 2.968 | 2.924 |
+| Chi phí đặt + lưu (triệu đ) | **2.596,4** | 3.501,9 | 3.028,3 | 3.500,4 |
+| Lợi nhuận mất (triệu đ) | 3.327,6 | 5.148,1 | 3.331,0 | **2.479,4** |
+| **Chi phí liên quan (triệu đ)** | **5.924,0** | 8.650,1 | 6.359,3 | 5.979,9 |
+
+**So sánh chính (cùng công thức, chỉ khác dự báo): AI + hiệu chỉnh so với dự báo mốc:** Fill Rate +6,6 điểm (88,75% → 95,36%); ngày-SKU thiếu −28%; tồn kho +1,6%; chi phí đặt + lưu gần như bằng nhau; lợi nhuận mất −52%; **chi phí liên quan −31%** (8,65 → 5,98 tỷ đ).
+
+**So với hiện trạng** (đối thủ biết trước nhu cầu kỳ vọng): Fill Rate +1,8 điểm, ngày-SKU thiếu −52%, lợi nhuận mất −25%, nhưng tồn kho +36% và số lần nhập +53% (EOQ đặt nhỏ, nhiều lần); chi phí liên quan gần bằng (+0,9%).
+
+**Theo nhóm (95%):**
+| Nhóm | Chính sách | Fill Rate | Tồn TB (triệu đ) | Lợi nhuận mất (triệu đ) |
+|---|---|---|---|---|
+| X (ổn định) | AI + hiệu chỉnh | **95,6%** | 3.459,6 | **1.746,7** |
+| X | Hiện trạng | 93,8% | 4.542,9 | 2.481,4 |
+| X | Dự báo mốc | 95,2% | 3.923,0 | 2.300,4 |
+| Y | AI + hiệu chỉnh | 98,2% | 548,5 | 137,4 |
+| Y | Hiện trạng | 97,9% | 492,2 | 140,3 |
+| Z (mùa vụ) | AI + hiệu chỉnh | **94,0%** | 11.125,3 | **595,4** |
+| Z | Hiện trạng | 91,9% | **6.098,6** | 705,9 |
+| Z | Dự báo mốc | 69,6% | 10.255,5 | 2.582,0 |
+
+- **Hàng ổn định (X):** chính sách AI thắng **cả hiện trạng** dù hiện trạng biết trước nhu cầu: đáp ứng cao hơn (95,6% so với 93,8%) mà tồn kho **thấp hơn 24%**.
+- **Hàng mùa vụ (Z):** AI đáp ứng cao hơn nhưng tồn gần gấp đôi hiện trạng, do 5 SKU chỉ bán dịp lễ (mục 10.1).
+- **Độ nhạy mức phục vụ:** chi phí liên quan của AI + hiệu chỉnh: 90% → 6,53 tỷ; 95% → 5,98; 99% → 5,55. Chi phí thiếu hàng (lợi nhuận mất) lớn so với chi phí lưu kho nên mức phục vụ cao hơn có lợi hơn. Chưa đổi mức chính (95% đã chốt trước); nếu muốn đổi phải chọn lại trên validation.
+
+**Đối chiếu tiêu chí thành công (mục 1c `docs/09`):** Fill Rate ≥ 95% ✅ (95,36%); "tồn kho không cao hơn hiện trạng" ❌ (+36%, chủ yếu do hàng chỉ bán dịp lễ; nhóm X thì thấp hơn 24%); giảm thiếu hàng ✅; giảm tổng chi phí so với hiện trạng: gần bằng (+0,9%), so với dự báo mốc −31% ✅.
 
 ## 12. Dashboard ⏳ (kế hoạch 23–26/11)
 
@@ -333,6 +391,7 @@ Streamlit, tối đa 4 khu: dự báo vs thực tế theo SKU; cảnh báo SKU d
 ## 13. Hạn chế và việc còn treo
 
 **Hạn chế đã biết:**
+- **Chính sách tồn kho:** "hiện trạng" trong dữ liệu mô phỏng là người lập kế hoạch biết trước nhu cầu kỳ vọng (lệch ±10%), mạnh hơn thực tế; EOQ không hợp với 5 SKU chỉ bán dịp lễ (tồn sau mùa); mô phỏng mất bán (không nợ đơn), nhận hàng vào ngày kho mở cửa, tồn và hàng đang về ban đầu lấy xấp xỉ từ dữ liệu.
 - **Lợi thế "biết đề" của dữ liệu mô phỏng:** mô hình dùng đúng lịch lễ và lịch khuyến mãi mà bộ sinh dữ liệu đã dùng; trên dữ liệu thật, cửa sổ lễ phải tự ước lượng nên mức cải thiện (Prophet −41% so với Seasonal Naive) nhiều khả năng thấp hơn.
 - Toàn bộ kết quả trên **dữ liệu mô phỏng**; mức tác động của bão, ngày lễ, khuyến mãi là giả định của người lập dữ liệu, nên độ chính xác tuyệt đối không phản ánh kho thật. Giá trị của đồ án nằm ở quy trình và ở việc so sánh tương đối giữa các mô hình.
 - Mô hình dự báo biết lịch lễ và khuyến mãi chính xác; ngoài đời lịch khuyến mãi có thể đến muộn hoặc thay đổi.
@@ -362,6 +421,7 @@ Streamlit, tối đa 4 khu: dự báo vs thực tế theo SKU; cảnh báo SKU d
 | 24/10 | LightGBM (GĐ D) | `src/mo_hinh_lightgbm.py` | Test WMAPE 0,400 (tốt nhất theo ngày, thắng Prophet 12/13 mốc) nhưng Bias +11,6% (nhóm Z +40,8%, thiếu trước cao điểm) | Lag ≥ 28 để dự báo 28 ngày không đệ quy; tweedie chọn trên validation; GĐ E sẽ chọn/kết hợp theo nhóm trên validation |
 | 24/10 | Chọn mô hình (GĐ E), 2 vòng | `src/chon_mo_hinh.py` | Vòng 1 chọn LightGBM (validation không có Tết); vòng 2 chọn **kết hợp theo nhóm** (X 0,9 · Y 1,0 · Z 0,6 LightGBM): test WMAPE 0,376, tuần 0,235, Bias +6,2% | Vòng 2 chỉ đổi tập validation (cùng mùa với test, sớm 1 năm); cấu hình mô hình và luật chọn giữ nguyên, ghi trước khi có kết quả |
 | 24/10 | Luồng hệ thống + cơ sở dữ liệu (nhiệm vụ GVHD) | `database/schema.sql`, `src/nap_database.py`, `src/tao_trang_luong.py`, `trinh_bay/luong_he_thong.html` | SQLite 14 bảng + 3 khung nhìn, 1,39 triệu dòng; 7/7 kiểm tra toàn vẹn đạt; trang 3 phần chạy không cần mạng | SQLite vì GVHD không yêu cầu loại CSDL và cần chạy được khi bảo vệ; trang tự sinh từ CSDL để số liệu luôn khớp |
+| 24/10 | Tồn kho + mô phỏng (GĐ F) | `src/ton_kho.py` (đọc/ghi CSDL) | AI + hiệu chỉnh (EOQ): Fill Rate 95,36%, chi phí liên quan −31% so với dự báo mốc, ≈ hiện trạng; nhóm X thắng cả hiện trạng; tồn nhóm Z cao | Lỗi EOQ với hàng chỉ bán dịp lễ phát hiện trên test → thử quy tắc khác, chọn trên validation2 theo luật ghi trước: vẫn EOQ |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

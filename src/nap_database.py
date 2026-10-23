@@ -85,7 +85,9 @@ def giao_dich():
     tho = csv(raw_path).rename(columns={"date": "ngay"}).assign(nguon_file=os.path.basename(raw_path))
     sach = csv("data/clean/giao_dich_sach.csv").rename(columns={"date": "ngay"})
     sua = csv("reports/dong_da_sua.csv").rename(columns={"date": "ngay"})
-    return tho, sach, sua
+    nct = csv("data/answer_key/nhu_cau_that.csv")          # dap an: chi de cham chinh sach ton kho (GD F)
+    nct = pd.DataFrame({"ngay": nct.date, "ma_sku": nct.ma_sku, "nhu_cau": nct.nhu_cau_that})
+    return tho, sach, sua, nct
 
 
 def mo_hinh_va_du_bao(bo_du_bao=False):
@@ -149,9 +151,9 @@ if __name__ == "__main__":
         ev, nghi, km, sk = lich()
         print("2. Lich va su kien"); nap(con, "lich_su_kien", ev, "2_lich"); nap(con, "lich_ngay_nghi", nghi, "2_lich")
         nap(con, "lich_khuyen_mai", km, "2_lich"); nap(con, "su_kien_dot_bien", sk, "2_lich")
-        tho, sach, sua = giao_dich()
+        tho, sach, sua, nct = giao_dich()
         print("3. Giao dich"); nap(con, "giao_dich_tho", tho, "3_giao_dich"); nap(con, "giao_dich_sach", sach, "3_giao_dich")
-        nap(con, "nhat_ky_sua_loi", sua, "3_giao_dich")
+        nap(con, "nhat_ky_sua_loi", sua, "3_giao_dich"); nap(con, "nhu_cau_that", nct, "3_giao_dich")
         mh, kq, db = mo_hinh_va_du_bao(bo_du_bao)
         print("4. Mo hinh va du bao"); nap(con, "mo_hinh", mh, "4_mo_hinh"); nap(con, "ket_qua_mo_hinh", kq, "4_mo_hinh")
         if db is not None:

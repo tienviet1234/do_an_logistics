@@ -37,6 +37,8 @@ with closing(ket_noi()) as con:
                 + qty_in - qty_out) AS l FROM giao_dich_sach) WHERE ABS(l) > 0.5""")
     fk_loi = len(con.execute("PRAGMA foreign_key_check").fetchall())
     het_hang = q("SELECT COUNT(*) FROM giao_dich_sach WHERE het_hang = 1")
+    tk = {r[0]: r[1:] for r in con.execute("""SELECT ma_chinh_sach, fill_rate_pt, chi_phi_lien_quan_trieu, ton_tb_trieu_vnd
+                                              FROM v_so_sanh_chinh_sach WHERE muc_phuc_vu = 0.95""")}
     tables = [r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY rowid")]
     views = [r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='view' ORDER BY name")]
     info = {}
@@ -58,7 +60,7 @@ business = [
     ("4", "Dự báo nhu cầu 28 ngày tới cho từng SKU", "Hệ thống (AI)", "Dự báo theo ngày, theo tuần",
      DONE, f"Kết hợp LightGBM + Prophet: sai số {vn(w_chon * 100, 1)}% (cách đơn giản: {vn(sn7 * 100, 1)}%)."),
     ("5", "Tính tồn kho an toàn, điểm đặt hàng, lượng đặt", "Hệ thống", "SS, ROP, EOQ cho từng SKU",
-     DOING, "Giai đoạn F: dùng sai số dự báo để tính tồn kho an toàn."),
+     DONE, f"Mô phỏng 12 tháng: đáp ứng {vn(tk['cong_thuc_du_bao_ai_hc'][0], 1)}% (dự báo mốc: {vn(tk['cong_thuc_du_bao_moc'][0], 1)}%)."),
     ("6", "Cảnh báo SKU chạm điểm đặt hàng, đề xuất đơn", "Hệ thống → Người lập kế hoạch", "Danh sách cần đặt, số lượng đề xuất",
      PLAN, "Hiển thị trên dashboard; người lập kế hoạch duyệt."),
     ("7", "Đặt hàng nhà cung cấp, lên kế hoạch xe", "Mua hàng / Điều vận", "Đơn đặt hàng, lịch xe nhận – giao",
@@ -84,13 +86,16 @@ data_steps = [
     ("7. Đẩy vào cơ sở dữ liệu", "Tạo lại CSDL từ schema; nạp theo thứ tự khóa ngoại; tự kiểm tra toàn vẹn",
      "src/nap_database.py", f"{len(tables)} bảng + {len(views)} khung nhìn · {vn(size_mb)} MB · vi phạm khóa ngoại: {fk_loi}",
      DONE, "data/kho_hang.db"),
-    ("8. Tham số tồn kho và mô phỏng", "Đọc từ CSDL: chi phí, lead time, MOQ + dự báo được chọn → SS, ROP, EOQ; so sánh 3 chính sách",
-     "src/ton_kho.py, src/mo_phong.py", "Bảng trước – sau: Fill Rate, hết hàng, tồn kho, chi phí", DOING, "đọc v_du_bao_chon, dm_sku"),
+    ("8. Tham số tồn kho và mô phỏng", "Đọc từ CSDL: chi phí, lead time, MOQ, nhu cầu thật, dự báo → SS, ROP, EOQ; mô phỏng 12 tháng, so sánh 4 chính sách; quy tắc lượng đặt chọn trên validation",
+     "src/ton_kho.py",
+     f"AI + hiệu chỉnh: đáp ứng {vn(tk['cong_thuc_du_bao_ai_hc'][0], 2)}%, chi phí liên quan {vn(tk['cong_thuc_du_bao_ai_hc'][1] / 1000, 2)} tỷ đ (dự báo mốc: {vn(tk['cong_thuc_du_bao_moc'][0], 2)}%, {vn(tk['cong_thuc_du_bao_moc'][1] / 1000, 2)} tỷ đ)",
+     DONE, "đọc dm_sku, du_bao, nhu_cau_that → ghi chinh_sach, ket_qua_ton_kho, mo_phong_ngay"),
     ("9. Dashboard", "Đọc từ CSDL: dự báo, cảnh báo đặt hàng, KPI", "app/dashboard.py (Streamlit)",
      "Trình bày trực tiếp trên máy", PLAN, "đọc các khung nhìn"),
 ]
 
 GROUPS = [("Danh mục", ["dm_nha_cung_cap", "dm_sku", "phan_loai_sku"]),
+          ("Tồn kho (GĐ F)", ["nhu_cau_that", "chinh_sach", "tham_so_ton_kho", "ket_qua_ton_kho", "mo_phong_ngay"]),
           ("Lịch và sự kiện", ["lich_su_kien", "lich_ngay_nghi", "lich_khuyen_mai", "su_kien_dot_bien"]),
           ("Giao dịch nhập – xuất – tồn", ["giao_dich_tho", "giao_dich_sach", "nhat_ky_sua_loi"]),
           ("Mô hình và dự báo", ["mo_hinh", "ket_qua_mo_hinh", "du_bao"]),
@@ -102,7 +107,10 @@ PURPOSE = {"dm_nha_cung_cap": "Nhà cung cấp", "dm_sku": "Mã hàng: giá, chi
            "giao_dich_tho": "Vùng tạm: nhận nguyên văn file kho, chưa kiểm tra",
            "giao_dich_sach": "Mỗi (ngày, SKU) một dòng, đã đối soát", "nhat_ky_sua_loi": "Truy vết từng dòng đã sửa",
            "mo_hinh": "Danh sách mô hình; mô hình được chọn", "ket_qua_mo_hinh": "Sai số từng mô hình theo tập",
-           "du_bao": "Dự báo từng ngày, từng SKU, từng mốc", "nhat_ky_chay": "Mỗi lần nạp: bảng, số dòng, trạng thái"}
+           "du_bao": "Dự báo từng ngày, từng SKU, từng mốc", "nhat_ky_chay": "Mỗi lần nạp: bảng, số dòng, trạng thái",
+           "nhu_cau_that": "Đáp án mô phỏng: nhu cầu kể cả ngày hết hàng; chỉ để chấm tồn kho", "chinh_sach": "4 chính sách đặt hàng được so sánh",
+           "tham_so_ton_kho": "SS, ROP, EOQ, hệ số hiệu chỉnh theo SKU", "ket_qua_ton_kho": "KPI từng SKU: đáp ứng, tồn, chi phí",
+           "mo_phong_ngay": "Nhập, xuất, tồn, đặt hàng từng ngày (mức 95%)"}
 
 
 def table_card(t):
@@ -200,7 +208,7 @@ summary {{ cursor:pointer; color:var(--accent); font-size:13px; }}
 <section id="t2" class="tab"><h2>Luồng dữ liệu: dữ liệu đi qua những bước nào</h2>
 <p class="lead">Mỗi bước là một chương trình chạy lại được, có kiểm tra kết quả. Ô màu xanh: đã làm; vàng: đang làm; tím: kế hoạch. Dòng "CSDL" cho biết bước đó ghi vào / đọc từ bảng nào trong cơ sở dữ liệu.</p>
 <div class="dflow">{data_html}</div>
-<p class="honest"><b>Hiện trạng (nói rõ khi trình bày):</b> bước 1–6 xử lý trên file; bước 7 đẩy toàn bộ dữ liệu và kết quả vào cơ sở dữ liệu, kèm kiểm tra toàn vẹn. Từ bước 8, các bước đọc trực tiếp từ cơ sở dữ liệu.</p>
+<p class="honest"><b>Hiện trạng (nói rõ khi trình bày):</b> bước 1–6 xử lý trên file; bước 7 đẩy toàn bộ dữ liệu và kết quả vào cơ sở dữ liệu, kèm kiểm tra toàn vẹn. Từ bước 8, các bước đọc trực tiếp từ cơ sở dữ liệu và ghi kết quả ngược vào đó. "Hiện trạng" trong dữ liệu mô phỏng là người lập kế hoạch biết trước nhu cầu kỳ vọng, mạnh hơn thực tế.</p>
 </section>
 <section id="t3" class="tab"><h2>Cơ sở dữ liệu: <code>data/kho_hang.db</code> (SQLite)</h2>
 <p class="lead">Thiết kế ở <code>database/schema.sql</code>: khóa chính, khóa ngoại và ràng buộc kiểm tra chặn dữ liệu sai ngay khi ghi (ví dụ: lượng xuất âm, mã hàng không có trong danh mục, trùng ngày – SKU, dự báo cho ngày trước mốc).</p>

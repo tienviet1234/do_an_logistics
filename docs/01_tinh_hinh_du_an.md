@@ -69,7 +69,7 @@ Cập nhật: 10/10/2026.
 ## 6. Việc tiếp theo (đề xuất, chưa làm)
 Lộ trình chi tiết từng giai đoạn, checklist và quyết định cần chốt: `docs/09_lo_trinh.md`.
 
-1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,400, Bias +11,6%). GĐ E xong 24/10: chọn kết hợp theo nhóm (test WMAPE 0,376). Tiếp theo: GĐ F tồn kho.
+1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,400, Bias +11,6%). GĐ E xong 24/10: chọn kết hợp theo nhóm (test WMAPE 0,376). GĐ F xong 24/10: Fill Rate 95,36%, chi phí liên quan −31% so với dự báo mốc. Tiếp theo: dashboard, viết Chương 4.
 2. Chia train/validation/test theo thời gian; backtest cuốn chiếu.
 3. Chạy baseline (Naive, Seasonal Naive, trung bình trượt, ETS), Prophet, XGBoost; hàng bán thưa dùng Croston/TSB; LSTM chỉ khi đủ dữ liệu.
 4. Đo MAE, RMSE, WMAPE, MASE, Bias; so sánh theo nhóm ABC/XYZ; điền `Bang_so_sanh`.

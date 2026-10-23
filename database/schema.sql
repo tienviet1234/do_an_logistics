@@ -205,3 +205,67 @@ SELECT k.ma_mo_hinh, m.pham_vi, ROUND(k.wmape, 3) AS wmape, ROUND(k.wmape_tuan, 
 FROM ket_qua_mo_hinh k JOIN mo_hinh m USING (ma_mo_hinh)
 WHERE k.tap = 'test' AND k.wmape IS NOT NULL
 ORDER BY (m.pham_vi <> 'Toan bo 121 SKU'), k.wmape;
+
+-- ---------------------------------------------------------------------
+-- NHOM 5. TON KHO (GD F) - bang do src/ton_kho.py ghi (chay sau nap_database.py)
+-- ---------------------------------------------------------------------
+-- DAP AN cua du lieu mo phong: nhu cau that, ke ca ngay het hang.
+-- CHI dung de cham chinh sach ton kho (ty le dap ung), KHONG dua vao mo hinh du bao.
+CREATE TABLE nhu_cau_that (
+    ngay                TEXT NOT NULL,
+    ma_sku              TEXT NOT NULL REFERENCES dm_sku(ma_sku),
+    nhu_cau             REAL NOT NULL CHECK (nhu_cau >= 0),
+    PRIMARY KEY (ngay, ma_sku)
+);
+
+CREATE TABLE chinh_sach (
+    ma_chinh_sach       TEXT PRIMARY KEY,
+    mo_ta               TEXT NOT NULL,
+    mo_hinh_du_bao      TEXT,                   -- NULL: hien trang (do tu du lieu)
+    quy_tac_luong_dat   TEXT,                   -- eoq / dat_den_muc / lai (chon tren validation2)
+    hieu_chinh_lech     INTEGER NOT NULL DEFAULT 0 CHECK (hieu_chinh_lech IN (0,1))
+);
+
+CREATE TABLE tham_so_ton_kho (
+    ma_chinh_sach       TEXT NOT NULL REFERENCES chinh_sach(ma_chinh_sach),
+    muc_phuc_vu         REAL NOT NULL CHECK (muc_phuc_vu > 0 AND muc_phuc_vu < 1),
+    ma_sku              TEXT NOT NULL REFERENCES dm_sku(ma_sku),
+    he_so_hieu_chinh    REAL,                   -- nhan voi du bao (uoc luong tren validation2)
+    sigma_ltd           REAL,                   -- do lech chuan sai so du bao trong lead time (validation2)
+    ss_tb               REAL, rop_tb REAL, eoq_tb REAL,
+    PRIMARY KEY (ma_chinh_sach, muc_phuc_vu, ma_sku)
+);
+
+CREATE TABLE ket_qua_ton_kho (
+    ma_chinh_sach       TEXT NOT NULL REFERENCES chinh_sach(ma_chinh_sach),
+    muc_phuc_vu         REAL NOT NULL,
+    ma_sku              TEXT NOT NULL REFERENCES dm_sku(ma_sku),
+    nhu_cau             REAL, da_dap_ung REAL, so_ngay_thieu INTEGER,
+    ton_tb              REAL, gia_tri_ton_tb REAL, so_lan_nhap INTEGER,
+    chi_phi_dat         REAL, chi_phi_luu REAL, doanh_thu_mat REAL, loi_nhuan_mat REAL, ton_cuoi_ky REAL,
+    PRIMARY KEY (ma_chinh_sach, muc_phuc_vu, ma_sku)
+);
+
+CREATE TABLE mo_phong_ngay (
+    ma_chinh_sach       TEXT NOT NULL REFERENCES chinh_sach(ma_chinh_sach),
+    ngay                TEXT NOT NULL,
+    ma_sku              TEXT NOT NULL REFERENCES dm_sku(ma_sku),
+    nhap REAL, nhu_cau REAL, xuat REAL, ton_cuoi REAL, dat_hang REAL, rop REAL,
+    PRIMARY KEY (ma_chinh_sach, ngay, ma_sku)
+);
+
+-- So sanh chinh sach toan kho (dung cho bang truoc - sau)
+CREATE VIEW v_so_sanh_chinh_sach AS
+SELECT k.ma_chinh_sach, c.mo_ta, k.muc_phuc_vu,
+       ROUND(100.0 * SUM(k.da_dap_ung) / SUM(k.nhu_cau), 2)          AS fill_rate_pt,
+       SUM(k.so_ngay_thieu)                                          AS so_ngay_sku_thieu,
+       ROUND(SUM(k.gia_tri_ton_tb) / 1e6, 1)                         AS ton_tb_trieu_vnd,
+       SUM(k.so_lan_nhap)                                            AS so_lan_nhap,
+       ROUND(SUM(k.chi_phi_dat) / 1e6, 1)                            AS chi_phi_dat_trieu,
+       ROUND(SUM(k.chi_phi_luu) / 1e6, 1)                            AS chi_phi_luu_trieu,
+       ROUND((SUM(k.chi_phi_dat) + SUM(k.chi_phi_luu)) / 1e6, 1)     AS tong_chi_phi_trieu,
+       ROUND(SUM(k.doanh_thu_mat) / 1e6, 1)                          AS doanh_thu_mat_trieu,
+       ROUND(SUM(k.loi_nhuan_mat) / 1e6, 1)                          AS loi_nhuan_mat_trieu,
+       ROUND((SUM(k.chi_phi_dat) + SUM(k.chi_phi_luu) + SUM(k.loi_nhuan_mat)) / 1e6, 1) AS chi_phi_lien_quan_trieu
+FROM ket_qua_ton_kho k JOIN chinh_sach c USING (ma_chinh_sach)
+GROUP BY k.ma_chinh_sach, k.muc_phuc_vu;

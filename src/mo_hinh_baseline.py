@@ -22,6 +22,7 @@ from statsforecast.models import AutoETS, AutoARIMA, CrostonSBA, TSB, WindowAver
 
 FIT_DAYS = 365          # chi hoc 365 ngay gan nhat (du 1 chu ky nam ngan, chay nhanh)
 CHI_NHOM_A = {"arima"}  # mo hinh chi chay cho SKU nhom A
+ACTIVE = None          # None = moi mo hinh; --chi tb_truot_28,ets de chi chay mot so mo hinh
 
 MODELS = {              # ten luu ket qua -> (doi tuong statsforecast, ghi chu)
     "tb_truot_28": (WindowAverage(window_size=28, alias="tb_truot_28"), "TB 28 ngay gan nhat, du bao phang"),
@@ -51,8 +52,9 @@ def _forecast_all(hist):
     if o not in _cache:
         s = _series(hist)
         nhom_a = hist.loc[hist.abc_train == "A", "ma_sku"].unique()
-        fast = [m for k, (m, _) in MODELS.items() if k not in CHI_NHOM_A]
-        slow = [m for k, (m, _) in MODELS.items() if k in CHI_NHOM_A]
+        act = ACTIVE or list(MODELS)
+        fast = [m for k, (m, _) in MODELS.items() if k not in CHI_NHOM_A and k in act]
+        slow = [m for k, (m, _) in MODELS.items() if k in CHI_NHOM_A and k in act]
         fc = StatsForecast(models=fast, freq="D", n_jobs=1).forecast(df=s, h=HORIZON)
         if slow:
             fa = StatsForecast(models=slow, freq="D", n_jobs=1).forecast(df=s[s.unique_id.isin(nhom_a)], h=HORIZON)
@@ -79,10 +81,15 @@ if __name__ == "__main__":
         _forecast_all(df[df.date <= folds("test")[0]])
         print(f"1 moc, {df.ma_sku.nunique()} SKU, {len(MODELS)} mo hinh: {time.time() - t0:.0f} giay")
         sys.exit()
-    for kind in ["validation", "test"]:
+    kinds = [sys.argv[sys.argv.index("--tap") + 1]] if "--tap" in sys.argv else ["validation", "test"]
+    if "--chi" in sys.argv:
+        ACTIVE = sys.argv[sys.argv.index("--chi") + 1].split(",")
+    for kind in kinds:
         fo = folds(kind)
         _cache.clear()
         for name, (_, note) in MODELS.items():
+            if ACTIVE and name not in ACTIVE:
+                continue
             p = backtest(model_fn(name), df, fo, name=f"{name}/{kind}")
             r = save_results(name, p, df, kind, note)
             print(r[["mo_hinh", "tap", "WMAPE", "WMAPE_tuan", "WMAPE_A", "MASE", "Bias_pct"]].round(3).to_string(index=False, header=False), flush=True)
