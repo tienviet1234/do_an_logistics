@@ -8,7 +8,7 @@ Cac cot test chi de bao cao, KHONG dung de chon. Bias duong = du bao thieu. Du l
 | ung_vien | trong_so_LightGBM | val_WMAPE | val_Bias | test_WMAPE | test_WMAPE_tuan | test_Bias | test_WMAPE_Z | test_Bias_Z | duoc_chon |
 |---|---|---|---|---|---|---|---|---|---|
 | prophet | 0.0 | 0,488 | -0,014 | 0,454 | 0,257 | -0,049 | 0,638 | -0,097 |  |
-| lightgbm | 1.0 | 0,405 | 0,132 | 0,400 | 0,270 | 0,116 | 0,643 | 0,408 |  |
-| trung_binh | 0.5 | 0,408 | 0,059 | 0,388 | 0,236 | 0,034 | 0,545 | 0,156 |  |
-| ket_hop_toan_kho | 0.8 | 0,395 | 0,103 | 0,384 | 0,250 | 0,083 | 0,577 | 0,307 |  |
-| ket_hop_theo_nhom | {'X': 0.9, 'Y': 1.0, 'Z': 0.6} | 0,389 | 0,081 | 0,376 | 0,235 | 0,062 | 0,548 | 0,206 | ✅ |
+| lightgbm | 1.0 | 0,403 | 0,129 | 0,399 | 0,269 | 0,117 | 0,638 | 0,402 |  |
+| trung_binh | 0.5 | 0,408 | 0,058 | 0,388 | 0,235 | 0,034 | 0,544 | 0,153 |  |
+| ket_hop_toan_kho | 0.8 | 0,394 | 0,100 | 0,383 | 0,250 | 0,084 | 0,574 | 0,302 |  |
+| ket_hop_theo_nhom | {'X': 0.9, 'Y': 1.0, 'Z': 0.6} | 0,388 | 0,079 | 0,375 | 0,234 | 0,063 | 0,546 | 0,203 | ✅ |

@@ -78,11 +78,11 @@ Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `d
 |---|---|---|---|
 | **1. Được chấp nhận** | Giảng viên đồng ý dùng dữ liệu mô phỏng cho Chương 4 | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
 | | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
-| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Kết hợp theo nhóm −51% (24/10) |
+| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Kết hợp theo nhóm −51% (WMAPE 0,375; 24/10) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
-| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Mô hình chọn (kết hợp theo nhóm) +6,2%: vượt nhẹ → xử lý ở GĐ F |
-| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⚠️ Fill Rate 95,36% đạt; tồn kho +36% so với hiện trạng (biết trước nhu cầu) không đạt; nhóm X thấp hơn 24% |
-| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −52%; chi phí liên quan ≈ hiện trạng (+0,9%), −31% so với dự báo mốc |
+| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ⚠️ Mô hình chọn (kết hợp theo nhóm) +6,3%: vượt nhẹ → xử lý ở GĐ F (hiệu chỉnh lệch) |
+| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⚠️ Fill Rate 95,34% đạt; tồn kho +28% so với hiện trạng (biết trước nhu cầu) không đạt; nhóm X thấp hơn 28% (số liệu theo giá thị trường 24/10) |
+| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −50%; chi phí liên quan ≈ hiện trạng (+1,2%), −30% so với dự báo mốc (số liệu theo giá thị trường 24/10) |
 | **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
 | | Không rò rỉ dữ liệu: chia theo thời gian, chỉ dùng thông tin biết trước | Kiểm tra trong `danh_gia.py` | ✅ |
 | | Tự giải thích được từng bước và trả lời câu hỏi phản biện | `docs/11` câu hỏi tự kiểm tra | 🔄 Bài 1–4 |
@@ -98,7 +98,7 @@ Phân tích khám phá (`src/eda.py`, hình lưu `reports/eda/`):
 - [x] Biểu đồ tổng xuất theo ngày toàn kho; đánh dấu Tết, bão Yagi, 11.11.
 - [x] Biểu đồ 6 SKU đại diện: 2 nhóm X ổn định, 2 nhóm Z mùa vụ (bánh trung thu, mứt Tết), 1 hàng bão (mì gói), 1 hàng bán thưa.
 - [x] Tách xu hướng / mùa vụ / nhiễu (`seasonal_decompose`, chu kỳ 7 và 365, **không dùng 30**).
-- [x] Bảng ma trận ABC × XYZ (hiện: A-X 22, A-Z 8, B-Z 16, C-Z 19...).
+- [x] Bảng ma trận ABC × XYZ (tập train, giá thị trường 24/10: A-X 20, A-Z 5, B-Z 15, C-Z 20...).
 - [x] Phân loại hàng bán thưa theo ADI–CV² (Syntetos–Boylan): smooth / erratic / intermittent / lumpy. Hiện có 9 SKU có trên 30% ngày bán 0.
 
 Tạo đặc trưng (`src/dac_trung.py` → `data/features/dac_trung.csv`):
@@ -108,7 +108,7 @@ Tạo đặc trưng (`src/dac_trung.py` → `data/features/dac_trung.csv`):
 - [x] Đặc trưng SKU: nhóm hàng, ABC, XYZ, loai_mua_vu, giá.
 - [x] Xử lý ngày hết hàng: gắn cờ, đặt `y` = rỗng khi huấn luyện (không coi là cầu thật).
 - [x] Kiểm tra: đối chiếu cờ dựng lại với answer_key (chỉ để kiểm tra), khớp ≥ 99%. → **Kết quả 10/10: thu, mua, khuyen_mai, trong_tuan_tet, bao_lu_muc_do khớp 100%; lag không nhìn tương lai.**
-- Ghi chú: phân loại ABC/XYZ trong `sku_master` tính trên cả 36 tháng (có cả giai đoạn test) → mô hình dùng `abc_train`, `xyz_train` tính trên tập train (8 SKU đổi nhóm ABC, 3 SKU đổi XYZ). Đơn B2B đột biến (`don_b2b`) không biết trước → chỉ dùng để loại khỏi huấn luyện, không làm biến dự báo.
+- Ghi chú: phân loại ABC/XYZ trong `sku_master` tính trên cả 36 tháng (có cả giai đoạn test) → mô hình dùng `abc_train`, `xyz_train` tính trên tập train (2 SKU đổi nhóm ABC theo giá thị trường, 8 với giá mô phỏng cũ; 3 SKU đổi XYZ). Đơn B2B đột biến (`don_b2b`) không biết trước → chỉ dùng để loại khỏi huấn luyện, không làm biến dự báo.
 - Phân loại nhu cầu (ADI/CV²): 58 smooth, 54 erratic, 9 lumpy → 9 SKU lumpy thử thêm Croston/TSB.
 - EDA (`reports/bao_cao_eda.md`, 8 hình `reports/eda/h01–h08`): xu hướng tổng gần như **đi ngang**; mùa vụ năm mạnh (Tết, Trung thu, Noel); Chủ nhật chỉ bằng 0,53 mức TB → chu kỳ 7 ngày bắt buộc; khuyến mãi làm bán tăng trung vị 60% (so cùng tháng); Tết âm lịch đổi ngày mỗi năm nên chu kỳ 52 tuần không đủ, cần biến ngày lễ.
 
@@ -139,7 +139,7 @@ Kết quả và quy ước đã chốt trong code:
 ### GĐ C. Mô hình mốc (22–28/10)
 - [x] Naive, Seasonal Naive (7 ngày), Trung bình trượt 28 ngày.
 - [x] ETS / Holt-Winters.
-- [x] SARIMA cho nhóm A (31 SKU); dùng auto_arima hoặc statsforecast cho nhanh.
+- [x] SARIMA cho nhóm A (28 SKU theo giá thị trường 24/10; 31 với giá mô phỏng cũ); dùng auto_arima hoặc statsforecast cho nhanh.
 - [x] Croston / TSB cho nhóm hàng bán thưa (từ GĐ A).
 - [x] Ghi kết quả vào `reports/ket_qua_mo_hinh.csv`. → **Mốc tốt nhất: TB trượt 28 ngày, WMAPE 0,640** (giảm 17,2% so với Seasonal Naive). Chi tiết: `docs/10` mục 7.
 
@@ -147,7 +147,7 @@ Kết quả và quy ước đã chốt trong code:
 
 ### GĐ D. Mô hình AI (29/10–08/11)
 - [x] **Prophet** từng SKU: holidays = `lich_su_kien_prophet.csv` + sale; thêm biến khuyến mãi, bão (extra regressor). Dò cửa sổ lễ trên validation. → **Xong 24/10: test WMAPE 0,454** (additive; −29% so với TB trượt 28). Bão không dùng (không biết trước).
-- [x] **LightGBM hoặc XGBoost**: một mô hình chung cho cả 121 SKU, dùng file đặc trưng; dự báo nhiều bước bằng lag ≥ 28 (hoặc dự báo đệ quy). → **Xong 24/10: test WMAPE 0,400** (tốt nhất theo ngày) nhưng Bias +11,6% (thiếu hàng mùa vụ trước cao điểm).
+- [x] **LightGBM hoặc XGBoost**: một mô hình chung cho cả 121 SKU, dùng file đặc trưng; dự báo nhiều bước bằng lag ≥ 28 (hoặc dự báo đệ quy). → **Xong 24/10: test WMAPE 0,399** (tốt nhất theo ngày; 0,400 với giá cũ) nhưng Bias +11,7% (thiếu hàng mùa vụ trước cao điểm).
 - [x] Phân tích độ quan trọng đặc trưng (feature importance): biến nào quyết định nhu cầu (để viết Chương 4). → `reports/lightgbm_quan_trong.csv`
 - [ ] ~~LSTM~~: bỏ do lịch 12 tuần; chỉ làm nếu xong GĐ F trước 22/11. Trong đồ án ghi vào "hướng phát triển".
 
@@ -171,7 +171,7 @@ Kết quả và quy ước đã chốt trong code:
   3. **AI + công thức**: chính sách dựa trên mô hình thắng ở GĐ E.
 - [ ] KPI mỗi chính sách: Fill Rate, số ngày hết hàng, tồn kho bình quân, DOH, vòng quay, chi phí đặt hàng + lưu kho, hàng tồn dư sau mùa.
 - [ ] Bảng **trước – sau** (sản phẩm quan trọng nhất của đồ án).
-- [x] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`. → **Xong 23/10** (`src/do_nhay.py`, thêm lead time +2 ngày cả năm và chi phí lưu kho +15%): tắc cảng chỉ làm Fill Rate giảm 0,5–1,5 điểm, AI + hiệu chỉnh vẫn rẻ nhất ở 13/13 đợt; lead time dài ra mà không cập nhật công thức thì −5,3 điểm. Chi tiết `docs/10` mục 11.1.
+- [x] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`. → **Xong 23/10** (`src/do_nhay.py`, thêm lead time +2 ngày cả năm và chi phí lưu kho +15%): tắc cảng chỉ làm Fill Rate giảm 0,5–1,5 điểm, AI + hiệu chỉnh vẫn rẻ nhất ở 13/13 đợt (cả trước và sau cập nhật giá); lead time dài ra mà không cập nhật công thức thì −5,3 điểm. Chi tiết `docs/10` mục 11.1.
 
 **Xong khi:** có bảng trước–sau và 2–3 biểu đồ, ghi rõ "kết quả trên dữ liệu mô phỏng".
 
@@ -215,6 +215,8 @@ Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ 
 | Thư viện | statsforecast (baseline, Croston), prophet, lightgbm, streamlit | |
 | Có làm LSTM không | Không (lịch 12 tuần) | Bỏ, trừ khi xong GĐ F trước 22/11 |
 | Dashboard | Streamlit | Streamlit (23/10), chỉ đọc CSDL; 5 khu từ 24/10 (thêm Tổng quan dữ liệu) |
+| Loại kho mà dữ liệu mô phỏng đại diện | Kho tổng chuỗi bán lẻ / nhà phân phối B2B / kho TMĐT | **Kho tổng (trung tâm phân phối) của chuỗi siêu thị / bách hóa** (24/10): khớp nhất với dữ liệu (17 nhóm hàng lẫn lộn, đơn vị thùng, Chủ nhật bán 0,53, khuyến mãi theo mã, đơn B2B). Nếu đơn vị thực tập là loại kho khác thì xem lại để Chương 3–4 nhất quán |
+| Giá mặt hàng | Giữ giá mô phỏng cũ / cập nhật theo giá thị trường | **Cập nhật theo giá bán lẻ hiện tại** (24/10): giá bán = giá bán lẻ tra công khai (ghi nguồn, ngày); giá vốn = giá bán ÷ (1 + biên lãi cũ của mã) là giả định. Không sinh lại dữ liệu gốc; chạy lại từ bước đặc trưng (`data/reference/gia_thi_truong.csv`) |
 | Phân hệ điều vận (số xe, xếp chuyến, cảnh báo cao điểm) | Ngoài kế hoạch chính | Chỉ làm nếu xong GĐ G trước hạn, hoặc làm sau khi nộp (11–26/12) để làm hồ sơ xin thực tập. Không được làm chậm GĐ C–F |
 
 ## 5. Rủi ro và cách xử lý

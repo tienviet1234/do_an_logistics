@@ -100,8 +100,9 @@ def mo_hinh_va_du_bao(bo_du_bao=False):
         parsed.append((base[: -len(tap) - 1], tap, f))
     ten = sorted(set(kq.mo_hinh) | {m for m, _, _ in parsed})
     mo_ta = kq.groupby("mo_hinh").ghi_chu.last()
+    so_a = int((csv("data/features/phan_loai_sku.csv").abc_train == "A").sum())     # ARIMA chi chay nhom A (doi khi gia doi)
     mh = pd.DataFrame({"ma_mo_hinh": ten, "mo_ta": [mo_ta.get(t) for t in ten],
-                       "pham_vi": ["Chi 31 SKU nhom A" if t == "arima" else "Toan bo 121 SKU" for t in ten],
+                       "pham_vi": [f"Chi {so_a} SKU nhom A" if t == "arima" else "Toan bo 121 SKU" for t in ten],
                        "duoc_chon": [int(t == MO_HINH_DUOC_CHON) for t in ten]})
     kq = kq.rename(columns={"mo_hinh": "ma_mo_hinh"}).rename(columns=str.lower)
     kq = kq[[c for c in ["ma_mo_hinh", "tap", "so_diem", "mae", "rmse", "wmape", "wmape_tuan", "mase", "bias", "bias_pct",

@@ -27,7 +27,7 @@ ACTIVE = None          # None = moi mo hinh; --chi tb_truot_28,ets de chi chay m
 MODELS = {              # ten luu ket qua -> (doi tuong statsforecast, ghi chu)
     "tb_truot_28": (WindowAverage(window_size=28, alias="tb_truot_28"), "TB 28 ngay gan nhat, du bao phang"),
     "ets": (AutoETS(season_length=7, alias="ets"), "ETS tu chon (Holt-Winters), chu ky tuan"),
-    "arima": (AutoARIMA(season_length=7, alias="arima"), "ARIMA/SARIMA tu chon, chu ky tuan; CHI 31 SKU nhom A, so sanh qua WMAPE_A"),
+    "arima": (AutoARIMA(season_length=7, alias="arima"), "ARIMA/SARIMA tu chon, chu ky tuan; CHI SKU nhom A (abc_train), so sanh qua WMAPE_A"),
     "croston_sba": (CrostonSBA(alias="croston_sba"), "Croston co hieu chinh SBA, cho hang roi rac"),
     "tsb": (TSB(alpha_d=0.2, alpha_p=0.2, alias="tsb"), "TSB alpha 0,2, cho hang roi rac"),
 }

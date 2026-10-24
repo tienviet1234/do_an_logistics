@@ -28,6 +28,8 @@ mức độ tác động và các đột biến khác là giả định.
 
 Lệnh phụ (ít dùng):
     python src/sinh_du_lieu.py <thu_muc_ra>                 # sinh lại toàn bộ dữ liệu mô phỏng (ra 1 thư mục, tự chia vào data/)
+    python src/cap_nhat_gia.py                              # áp giá thị trường (data/reference/gia_thi_truong.csv) vào sku_master; chạy lại sau khi sinh lại dữ liệu, trước dac_trung
+    python src/cham_lai.py                                  # sau khi đổi giá / nhóm ABC: chấm lại dự báo đã lưu, xóa kết quả LightGBM/ARIMA/kết hợp để chạy lại
     python src/docx_sang_md.py <file.docx> <file.md>        # chuyển file Word sang Markdown
     python src/md_sang_docx.py                              # chuyển báo cáo GĐ2 (.md) sang Word -> reports/word/
 

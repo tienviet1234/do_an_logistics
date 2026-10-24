@@ -8,10 +8,10 @@
 - y_cau bo trong (het hang hoac kho dong cua): 8,706 dong
 
 ## Phan loai SKU tren tap train (den 2025-09-30)
-- ABC: {'A': 31, 'B': 41, 'C': 49}  (sku_master tinh tren 36 thang: {'A': 31, 'B': 41, 'C': 49})
+- ABC: {'A': 28, 'B': 40, 'C': 53}  (sku_master tinh tren 36 thang: {'A': 28, 'B': 40, 'C': 53})
 - XYZ: {'X': 71, 'Y': 10, 'Z': 40}  (sku_master: {'X': 71, 'Y': 7, 'Z': 43})
 - Loai nhu cau (ADI/CV2): {'smooth (đều)': 58, 'erratic (thất thường)': 54, 'lumpy (rời rạc + thất thường)': 9}
-- SKU doi nhom ABC so voi sku_master: 8; doi XYZ: 3
+- SKU doi nhom ABC so voi sku_master: 2; doi XYZ: 3
 
 ## Doi chieu voi answer_key (ty le dong khop)
 - thu: 100.00%

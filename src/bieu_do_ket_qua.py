@@ -141,7 +141,8 @@ axes[0].text(-0.45, 95.3, "mục tiêu 95%", fontsize=8, color=MUTED, ha="left",
 axes[1].set_yticks(axes[1].get_yticks(), [vn(y / 1000, 0) for y in axes[1].get_yticks()])
 fig.suptitle("Trước – sau: so sánh chính sách đặt hàng (12 tháng test, mức phục vụ 95%)", x=0.0, ha="left", fontweight="bold")
 fig.tight_layout()
-save(fig, "k05_truoc_sau.png", "Chi phí liên quan = đặt hàng + lưu kho + lợi nhuận mất do thiếu hàng. Cùng công thức, AI giảm 31% so với dự báo mốc.",
+save(fig, "k05_truoc_sau.png", f"Chi phí liên quan = đặt hàng + lưu kho + lợi nhuận mất do thiếu hàng. Cùng công thức, AI giảm "
+     f"{vn((1 - v.loc['cong_thuc_du_bao_ai_hc', 'chi_phi_lien_quan_trieu'] / v.loc['cong_thuc_du_bao_moc', 'chi_phi_lien_quan_trieu']) * 100, 0)}% so với dự báo mốc.",
      NOTE + " *Hiện trạng: người lập kế hoạch trong dữ liệu biết trước nhu cầu kỳ vọng (lệch ±10%), mạnh hơn thực tế.")
 
 # ---------- k06: "rang cua" ton kho 1 SKU (mi goi) duoi chinh sach AI ----------
