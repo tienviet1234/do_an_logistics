@@ -5,9 +5,9 @@ Giai doan 2024-10-01 .. 2025-09-29, muc phuc vu 95%. Tieu chi: chi phi lien quan
 
 | quy_tac     | chinh_sach             |   fill_rate_pt |   ton_tb_trieu |   chi_phi_dat_luu_trieu |   loi_nhuan_mat_trieu |   chi_phi_lien_quan_trieu | duoc_chon   |
 |:------------|:-----------------------|---------------:|---------------:|------------------------:|----------------------:|--------------------------:|:------------|
-| eoq         | cong_thuc_du_bao_ai_hc |          95.4  |        15019.9 |                 3551.54 |               2002.76 |                   5554.29 | ✅          |
-| eoq         | cong_thuc_du_bao_ai    |          93.39 |        12826.7 |                 3108.75 |               2746.5  |                   5855.25 |             |
-| lai         | cong_thuc_du_bao_ai_hc |          95.89 |        17073   |                 4011.62 |               1848.5  |                   5860.12 |             |
-| lai         | cong_thuc_du_bao_ai    |          94.15 |        13778.5 |                 3376.85 |               2612.04 |                   5988.88 |             |
-| dat_den_muc | cong_thuc_du_bao_ai    |          93.82 |        14207.8 |                 3672.31 |               2516.06 |                   6188.36 |             |
-| dat_den_muc | cong_thuc_du_bao_ai_hc |          95.5  |        17526.6 |                 4302.71 |               1897.06 |                   6199.77 |             |
+| eoq         | cong_thuc_du_bao_ai_hc |          94.83 |        14675.1 |                 3457.26 |               2059.54 |                   5516.8  | ✅          |
+| lai         | cong_thuc_du_bao_ai_hc |          95.53 |        16076.7 |                 3794.33 |               1778.19 |                   5572.53 |             |
+| lai         | cong_thuc_du_bao_ai    |          93.59 |        13235   |                 3247.11 |               2548.71 |                   5795.83 |             |
+| eoq         | cong_thuc_du_bao_ai    |          93    |        12606.8 |                 3056.05 |               2809.87 |                   5865.92 |             |
+| dat_den_muc | cong_thuc_du_bao_ai_hc |          95.07 |        16500.2 |                 4074.63 |               1880.97 |                   5955.6  |             |
+| dat_den_muc | cong_thuc_du_bao_ai    |          93.24 |        13563.1 |                 3515.21 |               2535.69 |                   6050.9  |             |

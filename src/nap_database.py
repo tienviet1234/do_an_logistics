@@ -18,7 +18,7 @@ from csdl import DB_PATH, SCHEMA, ket_noi  # noqa: E402
 from danh_gia import UNFORESEEABLE, PRED_DIR, RESULT  # noqa: E402
 
 REF = "data/reference"
-MO_HINH_DUOC_CHON = "ket_hop_theo_nhom_v2"       # ket qua GD E vong 2 (docs/10 muc 9.2)
+MO_HINH_DUOC_CHON = "ket_hop_v3"                 # GD E vong 3 (docs/10 muc 9.4); truoc do: ket_hop_theo_nhom_v2
 TAPS = ("validation2", "validation", "test")     # thu tu quan trong: "validation2" truoc "validation"
 
 

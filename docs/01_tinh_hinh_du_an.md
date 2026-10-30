@@ -47,6 +47,7 @@ Cập nhật: 10/10/2026.
 13. (23/10/2026) GĐ G: dashboard `app/dashboard.py` (Streamlit, chỉ đọc CSDL), chạy `streamlit run app/dashboard.py`. Từ 24/10 có 5 khu: tổng quan dữ liệu (6 biểu đồ phân tích), dự báo theo SKU, cảnh báo tồn kho theo ngày, trước – sau, bảng SS/ROP/EOQ. Chi tiết `docs/10` mục 12.
 14. (23/10/2026) Dữ liệu cho Power BI: `python src/xuat_power_bi.py` → `reports/power_bi/` (6 CSV + số đối chiếu). Hướng dẫn học 5 buổi: `docs/12_power_bi.md`, làm sau khi nộp.
 15. (23/10/2026) Thử độ nhạy chính sách tồn kho `src/do_nhay.py` (tắc cảng +3/+5/+7 ngày ở 13 đợt, lead time +2 ngày cả năm, chi phí đặt +20%, lưu kho +15%) → CSDL, `reports/do_nhay.md`, hình k07. Bổ sung 10 hạn chế "kho thật cần mà mô hình chưa có" vào `docs/10` mục 13.
+17. (31/10/2026) Nâng cấp dự báo vòng 3 (`src/nang_cap_du_bao.py`, luật ghi trước ở `docs/10` mục 9.4): dự báo theo tầm + lịch sự kiện / âm lịch giữ, dò tham số bỏ; mô hình dùng tiếp `ket_hop_v3`. Tồn kho: Fill Rate tăng nhưng tồn và chi phí liên quan tăng nhẹ (nút thắt là quy tắc đặt hàng cho hàng thời vụ). `ton_kho.py` đọc mô hình chọn từ CSDL.
 16. (24/10/2026) Dữ liệu được coi là kho tổng chuỗi siêu thị / bách hóa; cập nhật giá theo giá bán lẻ thị trường (`src/cap_nhat_gia.py`, nguồn `data/reference/gia_thi_truong.csv`): 37/121 mã đổi giá, giá vốn giữ biên lãi cũ (giả định). Chạy lại từ bước đặc trưng (`src/cham_lai.py` chấm lại mô hình không dùng giá). Mô hình chọn không đổi; kết luận chính không đổi. Chi tiết `docs/10` mục 2.1.
 
 ## 4. Kết quả làm sạch (đã chạy)
@@ -75,7 +76,7 @@ Cập nhật: 10/10/2026.
 ## 6. Việc tiếp theo (đề xuất, chưa làm)
 Lộ trình chi tiết từng giai đoạn, checklist và quyết định cần chốt: `docs/09_lo_trinh.md`.
 
-1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,399, Bias +11,7%). GĐ E xong 24/10: chọn kết hợp theo nhóm (test WMAPE 0,375). GĐ F xong 24/10: Fill Rate 95,34%, chi phí liên quan −29,8% so với dự báo mốc (số liệu theo giá thị trường 24/10). GĐ G dashboard xong 23/10 (`streamlit run app/dashboard.py`). Tiếp theo: viết Chương 2–5.
+1. ~~`src/dac_trung.py`, `src/eda.py`, `src/danh_gia.py`~~ (xong 10/10). GĐ C mô hình mốc xong 23/10 (`src/mo_hinh_baseline.py`; mốc tốt nhất TB trượt 28 ngày, WMAPE test 0,640). Prophet xong 24/10 (test WMAPE 0,454); LightGBM xong 24/10 (0,399, Bias +11,7%). GĐ E xong 24/10; vòng 3 (31/10) nâng cấp thành `ket_hop_v3` (test WMAPE 0,368, Bias +3,9%). GĐ F: Fill Rate 95,91%, chi phí liên quan −28,3% so với dự báo mốc (mô hình v3, giá thị trường). GĐ G dashboard xong 23/10 (`streamlit run app/dashboard.py`). Tiếp theo: viết Chương 2–5.
 2. Chia train/validation/test theo thời gian; backtest cuốn chiếu.
 3. Chạy baseline (Naive, Seasonal Naive, trung bình trượt, ETS), Prophet, XGBoost; hàng bán thưa dùng Croston/TSB; LSTM chỉ khi đủ dữ liệu.
 4. Đo MAE, RMSE, WMAPE, MASE, Bias; so sánh theo nhóm ABC/XYZ; điền `Bang_so_sanh`.

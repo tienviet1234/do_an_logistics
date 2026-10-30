@@ -38,18 +38,19 @@ LEVELS = [0.90, 0.95, 0.99]
 MAIN = 0.95
 R_COVER = 7
 RULES = ["eoq", "dat_den_muc", "lai"]
+AI = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]   # chon o nap_database.MO_HINH_DUOC_CHON
 POLICIES = {   # ma -> (mo ta, mo hinh du bao, hieu chinh lech)
     "hien_trang": ("Hiện trạng trong dữ liệu (người lập kế hoạch biết trước nhu cầu kỳ vọng, lệch ±10%)", None, 0),
     "cong_thuc_du_bao_moc": ("Công thức + dự báo mốc: trung bình trượt 28 ngày", "tb_truot_28", 0),
-    "cong_thuc_du_bao_ai": ("Công thức + dự báo AI: kết hợp LightGBM + Prophet theo nhóm", "ket_hop_theo_nhom_v2", 0),
-    "cong_thuc_du_bao_ai_hc": ("Công thức + dự báo AI + hiệu chỉnh lệch theo nhóm XYZ (ước lượng trên validation)", "ket_hop_theo_nhom_v2", 1),
+    "cong_thuc_du_bao_ai": ("Công thức + dự báo AI: kết hợp LightGBM + Prophet theo nhóm", AI, 0),
+    "cong_thuc_du_bao_ai_hc": ("Công thức + dự báo AI + hiệu chỉnh lệch theo nhóm XYZ (ước lượng trên validation)", AI, 1),
 }
 
 
 # ------------------------------------------------------------------ du lieu dau vao (tu CSDL)
 def load_inputs(tap):
     sku = doc("SELECT s.*, p.xyz_train FROM dm_sku s JOIN phan_loai_sku p USING (ma_sku) ORDER BY ma_sku")
-    rng_ = doc("SELECT MIN(moc) AS o, MAX(ngay) AS d FROM du_bao WHERE tap = ? AND ma_mo_hinh = 'ket_hop_theo_nhom_v2'", (tap,))
+    rng_ = doc("SELECT MIN(moc) AS o, MAX(ngay) AS d FROM du_bao WHERE tap = ? AND ma_mo_hinh = ?", (tap, AI))
     o0 = pd.Timestamp(rng_.o.iloc[0])
     days = pd.date_range(o0 + pd.Timedelta(days=1), rng_.d.iloc[0])
     ds = [d.strftime("%Y-%m-%d") for d in days]

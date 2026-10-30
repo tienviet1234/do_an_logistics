@@ -16,6 +16,7 @@ mức độ tác động và các đột biến khác là giả định.
     python src/mo_hinh_lightgbm.py   # 7. LightGBM chung 121 SKU (~2 phút) + độ quan trọng đặc trưng
     python src/mo_hinh_lightgbm.py --tap validation2 ; python src/mo_hinh_prophet.py --tap validation2   # 8. dự báo trên validation vòng 2 (~15 phút)
     python src/chon_mo_hinh.py --vong 2   # 9. chọn/kết hợp mô hình -> reports/chon_mo_hinh_vong2.md
+    python src/nang_cap_du_bao.py --buoc goc   # 9b. nâng cấp dự báo vòng 3 (lần lượt --buoc goc, A, B, F, ghep, test, bao_cao) -> reports/nang_cap_du_bao.md
     python src/tong_hop_ket_qua.py   # 10. bảng so sánh mọi mô hình -> reports/bang_so_sanh_test.md
     python src/nap_database.py       # 11. đẩy toàn bộ dữ liệu + kết quả vào CSDL data/kho_hang.db, tự kiểm tra toàn vẹn (~2 phút)
     python src/tao_trang_luong.py    # 12. trang trình bày luồng hệ thống -> trinh_bay/luong_he_thong.html (mở bằng trình duyệt)
