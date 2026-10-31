@@ -1,10 +1,54 @@
-# Giao dien dashboard (app/dashboard.py): nen sang co dinh, mau giong bieu do reports/ket_qua
+# Giao dien app/dashboard.py: "phieu ke hoach dat hang" - muc in phieu xanh Pho, so lieu muc den, giay nhieu lien.
+# (Streamlit 1.45: khoa trong [[theme.fontFaces]] la 'family', khong phai 'font' nhu chu thich trong ma.)
+# Font Be Vietnam Pro tu luu trong app/static/fonts (chay khong can mang), phuc vu qua enableStaticServing.
+[server]
+enableStaticServing = true
+
 [theme]
 base = "light"
-primaryColor = "#2a78d6"
-backgroundColor = "#fcfcfb"
-secondaryBackgroundColor = "#f0efec"
-textColor = "#0b0b0b"
+primaryColor = "#1d4f73"
+backgroundColor = "#fdfdfb"
+secondaryBackgroundColor = "#eef1f2"
+textColor = "#15171a"
+font = "Be Vietnam Pro"
+headingFont = "Be Vietnam Pro"
+baseFontSize = 16
+baseRadius = "0.125rem"
+borderColor = "#9db0bf"
+showWidgetBorder = true
+
+[[theme.fontFaces]]
+family = "Be Vietnam Pro"
+url = "app/static/fonts/BeVietnamPro-Regular.ttf"
+weight = 400
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Be Vietnam Pro"
+url = "app/static/fonts/BeVietnamPro-Medium.ttf"
+weight = 500
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Be Vietnam Pro"
+url = "app/static/fonts/BeVietnamPro-SemiBold.ttf"
+weight = 600
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Be Vietnam Pro"
+url = "app/static/fonts/BeVietnamPro-Bold.ttf"
+weight = 700
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Be Vietnam Pro"
+url = "app/static/fonts/BeVietnamPro-ExtraBold.ttf"
+weight = 800
+style = "normal"
+
+[client]
+toolbarMode = "viewer"
 
 [browser]
 gatherUsageStats = false

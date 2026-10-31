@@ -25,3 +25,6 @@ data/*.db
 
 # Power BI: sinh lai duoc bang src/xuat_power_bi.py (file lon)
 reports/power_bi/*.csv
+
+# Impeccable: anh chup DOM tam dung cho bo do thiet ke (tao lai khi ra soat)
+.impeccable/review/*.html

@@ -38,6 +38,24 @@ def hang_dang_ve(m, lead_time_tb, gd):
     return m.ma_sku.map(gd.groupby("ma_sku").qty_in.sum()).fillna(0) + by.dat_hang.cumsum().fillna(0) - by.nhap.cumsum()
 
 
+def de_xuat_ngay(f, st, L, sigma, z, lt_std, S, H, moq, ip):
+    """SS, ROP, EOQ va luong dat cua 1 SKU tai 1 ngay, CUNG cong thuc ton_kho.simulate (quy tac eoq) - dung cho "Thu neu..."
+    o dashboard (doi muc phuc vu z, lead time L). Kiem tra tai lap: so voi mo_phong_ngay (rop, dat_hang).
+    f: du bao 28 ngay cua dot dang dung (da nhan he so hieu chinh); st: vi tri ngay mai trong dot (1..28);
+    sigma: do lech chuan sai so du bao trong L ngay; ip: trong kho + dang ve, chua tinh don hom nay."""
+    fw = lambda m: (f[st:st + m] if st < len(f) else f[-1:]).mean() * m
+    ltd = fw(L)
+    ss = z * np.sqrt(sigma ** 2 + (ltd / L) ** 2 * lt_std ** 2)
+    rop = ltd + ss
+    dbar = f.mean()
+    eoq = np.sqrt(2 * dbar * 365 * S / H) if dbar > 0 else 0.0
+    dat = 0.0
+    if ip <= rop:
+        q = max(eoq, moq)
+        dat = float(np.ceil((np.floor((rop - ip) / q) + 1) * q))
+    return dict(ss=ss, rop=rop, eoq=eoq, dat=dat, ltd=ltd)
+
+
 TRANG_THAI = ["Hết hàng", "Đặt hàng hôm nay", "Dưới ROP, hàng đang về", "Đủ hàng"]   # thu tu uu tien
 
 

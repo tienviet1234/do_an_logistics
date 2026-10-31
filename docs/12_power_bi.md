@@ -1,7 +1,7 @@
 # Hướng dẫn Power BI cho người mới (dùng dữ liệu đồ án)
 
 Lập 23/10/2026. **Kế hoạch học: sau khi nộp đồ án (11–26/12/2026)**, không làm trước 09/12. Dashboard dùng khi bảo vệ vẫn là Streamlit (`app/dashboard.py`).
-Mục tiêu: tự dựng 4 trang báo cáo Power BI giống các khu ②–⑤ của dashboard, qua đó học kỹ năng hay gặp trong tin tuyển thực tập kho / kế hoạch / điều vận.
+Mục tiêu: tự dựng 4 trang báo cáo Power BI giống các phần dự báo, cảnh báo, trước – sau, tham số của dashboard (bản 5 khu 24/10; bản 31/10 gộp lại thành 4 màn), qua đó học kỹ năng hay gặp trong tin tuyển thực tập kho / kế hoạch / điều vận.
 
 **Chuẩn bị dữ liệu (AI đã làm sẵn):** `python src/xuat_power_bi.py` → 6 file CSV trong `reports/power_bi/` + `so_doi_chieu.md` (các con số đúng để tự kiểm tra). Chạy lại lệnh này mỗi khi chạy lại `ton_kho.py`.
 

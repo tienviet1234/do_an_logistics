@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T10:30:00+07:00",
+  "title": "Design System: Phiếu kế hoạch đặt hàng",
+  "extensions": {
+    "colorMeta": {
+      "form-ink": { "role": "primary", "displayName": "Mực phiếu xanh Phổ", "canonical": "#1d4f73",
+                    "tonalRamp": ["#0b2233", "#123247", "#173f5d", "#1d4f73", "#3d6d8f", "#6f93ad", "#a7bfd0", "#dde7ee"] },
+      "highlighter": { "role": "secondary", "displayName": "Dạ quang", "canonical": "#ffe45c",
+                       "tonalRamp": ["#5c4c00", "#8a7300", "#b89a00", "#e6c200", "#ffd820", "#ffe45c", "#fff09e", "#fff9d9"] },
+      "stamp-red": { "role": "tertiary", "displayName": "Dấu đỏ", "canonical": "#b3261e" },
+      "stamp-amber": { "role": "tertiary", "displayName": "Dấu hổ phách", "canonical": "#93560a" },
+      "stamp-green": { "role": "tertiary", "displayName": "Dấu xanh lá", "canonical": "#2e6b3f" },
+      "ply-white": { "role": "neutral", "displayName": "Liên trắng (Hôm nay)", "canonical": "#fdfdfb" },
+      "ply-canary": { "role": "neutral", "displayName": "Liên vàng hoàng yến (Mặt hàng)", "canonical": "#fbf5d6" },
+      "ply-pink": { "role": "neutral", "displayName": "Liên hồng (Kịch bản & kết quả)", "canonical": "#f9ebe8" },
+      "ply-green": { "role": "neutral", "displayName": "Liên xanh nhạt (Dữ liệu & phương pháp)", "canonical": "#eaf1e7" }
+    },
+    "shadows": {},
+    "motion": {
+      "stamp-press": { "duration": "340ms", "easing": "cubic-bezier(0.2, 0.9, 0.3, 1)",
+                       "keyframes": "scale 1.9 rotate -11deg blur 1.5px opacity 0 -> scale 0.94 rotate -4deg -> scale 1 rotate -3deg",
+                       "reducedMotion": "none" }
+    },
+    "breakpoints": { "mobile": "640px" },
+    "components": {
+      "stamp": {
+        "html": "<span class=\"dau la\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M8 12.2l2.8 2.8L16.2 9.5\"/></svg>Đã duyệt</span>",
+        "css": ".dau{display:inline-flex;align-items:center;gap:.3rem;color:var(--c);border:3px double var(--c);padding:.12rem .5rem .14rem .4rem;font:800 .78rem/1.3 'Be Vietnam Pro',sans-serif;letter-spacing:.06em;text-transform:uppercase;transform:rotate(-3deg);background:color-mix(in srgb,var(--c) 6%,transparent)}.dau.la{--c:#2e6b3f}"
+      },
+      "field-row": {
+        "html": "<div class=\"o-hang n3\"><div><span class=\"nhan\">Trong kho</span><span class=\"so\">381</span><span class=\"phu\">thùng</span></div><div><span class=\"nhan\">Đang về</span><span class=\"so\">1.138</span></div><div class=\"dao\"><span class=\"nhan\">ROP</span><span class=\"so\">1.591</span></div></div>",
+        "css": ".o-hang{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #1d4f73}.o-hang>div{padding:.45rem .7rem .55rem;border-left:1px solid #9db0bf}.o-hang>div:first-child{border-left:none}.nhan{font:600 .74rem 'Be Vietnam Pro';color:#1d4f73;letter-spacing:.05em;text-transform:uppercase}.so{display:block;font:700 1.3rem 'Be Vietnam Pro';color:#15171a}.phu{display:block;font-size:.8rem;color:#4a4d52}.dao{background:#1d4f73}.dao *{color:#fff!important}"
+      },
+      "button-action": {
+        "html": "<button class=\"btn-action\">Tải phiếu đặt hàng</button>",
+        "css": ".btn-action{background:#ffe45c;color:#15171a;border:1px solid #15171a;border-radius:2px;font:600 1rem 'Be Vietnam Pro';padding:.4rem .9rem}.btn-action:hover{background:#ffd820}"
+      }
+    },
+    "narrative": {
+      "northStar": "Bộ phiếu in sẵn được điền và đóng dấu",
+      "overview": "Khung, đường kẻ, nhãn in bằng một màu mực phiếu xanh Phổ; số liệu mực đen; quyết định là con dấu; mỗi màn một liên giấy màu riêng; không thanh bên, không lưới thẻ KPI.",
+      "keyCharacteristics": ["Một màu mực cho mọi cấu trúc", "Trạng thái là con dấu có chữ + biểu tượng", "Dạ quang chỉ cho việc cần làm", "Mỗi màn đúng một tấm nền đảo màu", "Số canh cột, đọc rõ trên máy chiếu"],
+      "rules": ["Quy tắc một màu mực", "Quy tắc vàng là việc"],
+      "dos": ["Đặt màu con dấu bằng class", "Ghi chữ cùng biểu tượng cho trạng thái", "Một tấm nền đảo màu mỗi màn"],
+      "donts": ["Viền màu dày một cạnh", "Bóng cứng", "Chữ gradient", "Emoji làm biểu tượng", "Nhãn nhỏ phía trên tiêu đề", "Dạ quang làm trang trí"]
+    }
+  }
+}

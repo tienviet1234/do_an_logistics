@@ -429,3 +429,25 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 1. Mô hình mới bớt dự báo thiếu ở hàng mùa vụ, nên đặt nhiều hơn trước cao điểm. Với hàng chỉ bán dịp lễ, công thức EOQ (giả định nhu cầu đều) đặt nhiều lần, hàng về sau mùa thành tồn dư. Dự báo tốt mà quy tắc đặt hàng không hợp thì lợi ích bị mất ở khâu sau.
 2. Nếu xem kết quả rồi mới đặt luật, rất dễ chọn cái "đẹp" một cách vô tình. Luật ghi trước giữ cho việc chọn công bằng và bảo vệ được trước hội đồng.
 </details>
+
+## Bài 15. Công cụ cho người ra quyết định: hệ thống trả lời theo thao tác
+
+**Kiến thức logistics**
+- **Màn hình buổi sáng của người lập kế hoạch:** mở ra là thấy việc cần làm (mấy mã phải đặt, vì sao), duyệt từng dòng, rồi gửi phiếu đặt hàng cho từng nhà cung cấp. Dashboard chỉ để "xem số" thì người dùng phải tự suy ra việc cần làm.
+- **Mỗi đề xuất phải kèm lý do bằng số:** "trong kho 381 + đang về 1.138 = 1.519 ≤ ROP 1.591 → đặt 569". Người lập kế hoạch tin và sửa được đề xuất khi thấy phép tính, không phải khi chỉ thấy con số cuối.
+- **Thử nếu… (what-if):** đổi mức phục vụ hoặc giả định hàng về chậm để thấy ngay SS, ROP và lượng đặt hôm nay thay đổi bao nhiêu, kèm số vốn dự phòng tăng thêm. Đây là cách trả lời câu hội đồng hay hỏi "nếu nhà cung cấp giao chậm thì sao?".
+
+**Kỹ năng dữ liệu**
+- **Cơ chế của Power BI** gồm 3 phần: bộ lọc chung (slicer) áp cho mọi trang, bấm vào biểu đồ để lọc các phần khác (cross-filter), và bấm một dòng để mở trang chi tiết (drill-through). Streamlit làm được cả 3 bằng trạng thái phiên (`session_state`) và sự kiện chọn trên biểu đồ / bảng.
+- **Tính lại trong giao diện phải dùng đúng công thức đã mô phỏng:** hàm `de_xuat_ngay` được kiểm bằng cách tái lập toàn bộ kết quả mô phỏng (127.776 dòng khớp hoàn toàn) trước khi gắn vào giao diện. Nếu không kiểm, "Thử nếu" có thể cho số khác báo cáo và mất lòng tin.
+- **Không tự bịa số khi thiếu dữ liệu:** muốn ước tính số chuyến xe phải có thể tích / trọng lượng từng mã; dữ liệu chưa có nên công cụ ghi rõ "chưa ước tính" thay vì đoán.
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao mỗi dòng đơn đề xuất nên ghi phép tính "trong kho + đang về ≤ ROP"?
+2. Nếu "Thử nếu…" ở mức 95% cho ROP khác với bảng mô phỏng thì có vấn đề gì?
+
+<details><summary>Gợi ý</summary>
+
+1. Người lập kế hoạch chịu trách nhiệm cho đơn hàng; thấy phép tính thì họ kiểm được (VD biết hàng đang về sắp tới nên có thể giảm số lượng), và hội đồng thấy hệ thống không phải "hộp đen".
+2. Nghĩa là giao diện tính theo công thức khác mô phỏng: con số người dùng thấy không khớp báo cáo, kết luận dựa trên "Thử nếu" không còn đáng tin. Vì vậy phải kiểm tái lập trước.
+</details>

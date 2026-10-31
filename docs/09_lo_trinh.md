@@ -28,9 +28,9 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | A | Phân tích khám phá + tạo đặc trưng (Demand Drivers) | 2 | 4 | T1: 12–18/10 | `src/eda.py`, `src/dac_trung.py`, `reports/eda/` | ✅ Xong 10/10 (sớm hơn lịch) |
 | B | Khung đánh giá: chia dữ liệu, backtest, chỉ số | 5 (chuẩn bị) | 4 | T2: 19–21/10 | `src/danh_gia.py` | ✅ Xong 10/10 (sớm hơn lịch) |
 | C | Mô hình mốc (Baseline Forecast) | 3 | 4 | T2–T3: 22/10–28/10 | `src/mo_hinh_baseline.py` | ✅ Xong 23/10 |
-| D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_ml.py` || ✅ Xong 24/10 (sớm 2 tuần) |
+| D | Mô hình AI: Prophet, LightGBM/XGBoost | 4 | 4 | T3–T4: 29/10–08/11 | `src/mo_hinh_prophet.py`, `src/mo_hinh_lightgbm.py` || ✅ Xong 24/10 (sớm 2 tuần) |
 | E | Đo độ chính xác, chọn mô hình (Forecast Accuracy, FVA) | 5 | 4 | T5: 09–11/11 | Sheet `Bang_so_sanh` đã điền || ✅ Xong 24/10 (2 vòng) |
-| F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py`, `src/mo_phong.py`, bảng trước–sau || ✅ Xong 24/10 (sớm ~4 tuần) |
+| F | Thiết lập chính sách tồn kho + mô phỏng (Inventory Policy, What-if) | 6 | 4, 5 | T5–T6: 12–22/11 | `src/ton_kho.py` (gồm mô phỏng), bảng trước–sau || ✅ Xong 24/10 (sớm ~4 tuần) |
 | G | Dashboard (bản gọn) | 7 | 4 | T7: 23–26/11 | `app/dashboard.py` (Streamlit) | ✅ Xong 23/10 (sớm ~5 tuần) |
 | H1 | Viết Chương 1–3 (song song, buổi tối / cuối tuần) | — | 1–3 | T1–T5 | Bản nháp Chương 1, 2 (rà lại), 3 | |
 | H2 | Viết Chương 4–5, ráp đồ án, gửi GVHD xem | 8 | 4, 5 | T7–T8: 27/11–06/12 | Bản đồ án hoàn chỉnh | |
@@ -165,14 +165,14 @@ Kết quả và quy ước đã chốt trong code:
 ### GĐ F. Chính sách tồn kho + mô phỏng (12–22/11)
 **Đây là phần "tối ưu tồn kho" trong tên đề tài; giám khảo nhìn vào đây đầu tiên.**
 
-- [ ] `src/ton_kho.py`: với mỗi SKU tính D, d, σ (độ lệch chuẩn **sai số dự báo** trong lead time), SS, ROP, EOQ; làm tròn theo MOQ.
-- [ ] Thử 3 mức phục vụ: 90%, 95%, 99%.
-- [ ] `src/mo_phong.py`: chạy lại 12 tháng test theo từng chính sách:
+- [x] `src/ton_kho.py`: với mỗi SKU tính D, d, σ (độ lệch chuẩn **sai số dự báo** trong lead time), SS, ROP, EOQ; làm tròn theo MOQ.
+- [x] Thử 3 mức phục vụ: 90%, 95%, 99%.
+- [x] Mô phỏng (trong `src/ton_kho.py`, xong 24/10): chạy lại 12 tháng test theo từng chính sách (thêm chính sách thứ 4: AI + hiệu chỉnh lệch):
   1. **Hiện trạng**: chính sách đặt hàng đang có trong dữ liệu (người lập kế hoạch có độ lệch).
   2. **Seasonal Naive + công thức**: chính sách dựa trên dự báo mốc.
   3. **AI + công thức**: chính sách dựa trên mô hình thắng ở GĐ E.
 - [ ] KPI mỗi chính sách: Fill Rate, số ngày hết hàng, tồn kho bình quân, DOH, vòng quay, chi phí đặt hàng + lưu kho, hàng tồn dư sau mùa.
-- [ ] Bảng **trước – sau** (sản phẩm quan trọng nhất của đồ án).
+- [x] Bảng **trước – sau** (sản phẩm quan trọng nhất của đồ án): `reports/ton_kho_so_sanh.md`, `docs/10` mục 10.2. Dòng KPI trên còn thiếu DOH, vòng quay, tồn dư sau mùa.
 - [x] Thử độ nhạy: lead time +3–7 ngày (tắc cảng), chi phí đặt hàng +20% (cước tăng), dùng bảng ở `docs/07`. → **Xong 23/10** (`src/do_nhay.py`, thêm lead time +2 ngày cả năm và chi phí lưu kho +15%): tắc cảng chỉ làm Fill Rate giảm 0,5–1,5 điểm, AI + hiệu chỉnh vẫn rẻ nhất ở 13/13 đợt (cả trước và sau cập nhật giá); lead time dài ra mà không cập nhật công thức thì −5,3 điểm. Chi tiết `docs/10` mục 11.1.
 
 **Xong khi:** có bảng trước–sau và 2–3 biểu đồ, ghi rõ "kết quả trên dữ liệu mô phỏng".
@@ -216,7 +216,7 @@ Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ 
 | Cách chia train/validation/test | Như GĐ B | |
 | Thư viện | statsforecast (baseline, Croston), prophet, lightgbm, streamlit | |
 | Có làm LSTM không | Không (lịch 12 tuần) | Bỏ, trừ khi xong GĐ F trước 22/11 |
-| Dashboard | Streamlit | Streamlit (23/10), chỉ đọc CSDL; 5 khu từ 24/10 (thêm Tổng quan dữ liệu) |
+| Dashboard | Streamlit | Streamlit (23/10), chỉ đọc CSDL; 5 khu từ 24/10; **31/10 làm lại thành 4 màn** kiểu Power BI (bộ lọc chung, lọc chéo, đi sâu, duyệt đơn, "Thử nếu…"), giao diện "phiếu vận đơn" |
 | Loại kho mà dữ liệu mô phỏng đại diện | Kho tổng chuỗi bán lẻ / nhà phân phối B2B / kho TMĐT | **Kho tổng (trung tâm phân phối) của chuỗi siêu thị / bách hóa** (24/10): khớp nhất với dữ liệu (17 nhóm hàng lẫn lộn, đơn vị thùng, Chủ nhật bán 0,53, khuyến mãi theo mã, đơn B2B). Nếu đơn vị thực tập là loại kho khác thì xem lại để Chương 3–4 nhất quán |
 | Giá mặt hàng | Giữ giá mô phỏng cũ / cập nhật theo giá thị trường | **Cập nhật theo giá bán lẻ hiện tại** (24/10): giá bán = giá bán lẻ tra công khai (ghi nguồn, ngày); giá vốn = giá bán ÷ (1 + biên lãi cũ của mã) là giả định. Không sinh lại dữ liệu gốc; chạy lại từ bước đặc trưng (`data/reference/gia_thi_truong.csv`) |
 | Phân hệ điều vận (số xe, xếp chuyến, cảnh báo cao điểm) | Ngoài kế hoạch chính | Chỉ làm nếu xong GĐ G trước hạn, hoặc làm sau khi nộp (11–26/12) để làm hồ sơ xin thực tập. Không được làm chậm GĐ C–F |

@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
+from matplotlib.ticker import FuncFormatter
 from matplotlib.colors import LinearSegmentedColormap
 from statsmodels.tsa.seasonal import seasonal_decompose
 
@@ -202,7 +202,7 @@ st = open_.groupby("ma_sku").y.agg(tb="mean", dlc="std", nho_nhat="min", lon_nha
 st = st.round(3).join(pl.set_index("ma_sku")[["ten_sku", "abc_train", "xyz_train", "loai_nhu_cau"]])
 st.to_csv(f"{OUT}/thong_ke_mo_ta.csv", encoding="utf-8-sig")
 say("\n## Thong ke mo ta")
-say(f"- `thong_ke_mo_ta.csv`: TB, do lech chuan, min, max, ty le ngay ban 0 cua tung SKU (ngay kho mo cua).")
+say("- `thong_ke_mo_ta.csv`: TB, do lech chuan, min, max, ty le ngay ban 0 cua tung SKU (ngay kho mo cua).")
 say(f"- TB xuat/ngay moi SKU: tu {st.tb.min():.1f} den {st.tb.max():.1f}; ty le ngay ban 0 cao nhat: {st.ty_le_ngay_0.max() * 100:.1f}%")
 
 with open(REPORT, "w", encoding="utf-8") as f:

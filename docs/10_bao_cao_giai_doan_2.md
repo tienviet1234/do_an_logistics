@@ -485,7 +485,20 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 
 **Nguyên tắc:** dashboard **chỉ đọc** CSDL `data/kho_hang.db` (mở SQLite ở chế độ read-only), không tính lại mô hình hay tồn kho; mọi số lấy từ bảng/khung nhìn do các bước trước ghi, nên luôn khớp với báo cáo. Màu giống hình `reports/ket_qua/` (thực tế đen, AI xanh dương, dự báo mốc cam, hiện trạng xám). Mọi trang ghi "dữ liệu mô phỏng".
 
-**Bản 24/10 (5 khu, người dùng duyệt tăng từ 4 lên 5):** bản đầu chỉ có 1 biểu đồ mỗi khu, còn lại là bảng số và mã kỹ thuật, nên người xem không thấy "dữ liệu nói gì" và thấy số liệu "không thực". Đã thêm khu ① Tổng quan, mỗi biểu đồ kèm **Cách đọc** và **Phát hiện** (phát hiện tính trực tiếp từ dữ liệu, không ghi tay số); thêm ví dụ bằng lời cho bảng cảnh báo và bảng tham số; cột kỹ thuật giấu sau nút "Hiện thêm cột kỹ thuật"; đổi tên cột sang lời dễ hiểu.
+**Bản 31/10 (giao diện mới, 4 màn, cơ chế kiểu Power BI; người dùng chọn hướng "phiếu vận đơn"):** người dùng chính là người lập kế hoạch kho, hệ thống chỉ ra kết quả khi người dùng thao tác. Giao diện dựng như **bộ phiếu kế hoạch đặt hàng nhiều liên**: khung và nhãn in một màu mực xanh, số liệu mực đen, trạng thái là con dấu (luôn có chữ + biểu tượng), việc cần làm tô dạ quang vàng, mỗi màn một màu liên giấy. Font Be Vietnam Pro lưu sẵn trong `app/static/fonts` (chạy không cần mạng). Hệ thiết kế ghi ở `DESIGN.md`.
+
+**Cơ chế kiểu Power BI:** (1) **bộ lọc chung** ở đầu phiếu (ngày lập phiếu, chính sách, nhóm ABC, nhóm XYZ) áp cho mọi màn; (2) **lọc chéo**: bấm 1 ô trạng thái → lọc dải cả năm và danh sách theo dõi; bấm 1 ngày trên dải cả năm (màn Hôm nay) hoặc dải trạng thái từng ngày của mã (màn Mặt hàng) → đổi ngày lập phiếu; bấm 1 chính sách trên biểu đồ → tô đậm ở mọi biểu đồ và chọn làm chính sách chung; (3) **đi sâu**: bấm 1 dòng / "Xem mặt hàng" → mở màn Mặt hàng của mã đó. Số ở màn Kịch bản & kết quả **cộng lại theo bộ lọc nhóm** (không phải số toàn kho cố định).
+
+| Màn | Nội dung | Đọc từ |
+|---|---|---|
+| Hôm nay | 4 ô trạng thái cuối ngày (bấm để lọc); **đơn cần duyệt**: mỗi dòng ghi lý do bằng số (trong kho + đang về ≤ ROP), chọn Duyệt / Sửa (đổi số lượng) / Bỏ qua → con dấu; "Duyệt các dòng còn lại"; **tải phiếu đặt hàng** CSV xếp theo nhà cung cấp, có ngày về dự kiến theo lead time TB; dải cả năm số mã cần chú ý; danh sách theo dõi | `mo_phong_ngay`, `du_bao`, `tham_so_ton_kho`, `giao_dich_sach`, `dm_sku` |
+| Mặt hàng | Nhãn mã hàng (nhóm, ABC · XYZ, nhà cung cấp, lead time, trong kho, đang về); tồn kho 12 tháng + ROP + ngày đặt hàng, dải trạng thái từng ngày của mã (bấm để đổi ngày); dự báo so với thực tế (tuần / ngày, WMAPE, Bias); **"Thử nếu…"**: kéo mức phục vụ 90–99,5% và "hàng về chậm thêm" 0–7 ngày → SS, ROP, EOQ, lượng đặt hôm nay tính lại ngay; kết quả cả năm của mã theo 4 chính sách | như trên + `ket_qua_ton_kho` |
+| Kịch bản & kết quả | Mức phục vụ 90/95/99%; bảng trước – sau; 4 chỉ số chính (bấm để chọn chính sách); theo nhóm XYZ: tồn kho đổi lấy mức đáp ứng; thử độ nhạy 7 kịch bản | `ket_qua_ton_kho`, `ket_qua_do_nhay`, `kich_ban_do_nhay` |
+| Dữ liệu & phương pháp | Dữ liệu là gì, cái gì thật / giả định; hệ thống chạy thế nào (5 bước); 6 biểu đồ phân tích (như khu ① cũ); xếp hạng mô hình; công thức SS / ROP / EOQ | như khu ① cũ |
+
+**"Thử nếu…" dùng đúng công thức mô phỏng:** hàm `csdl.de_xuat_ngay` (SS, ROP, EOQ, lượng đặt của 1 mã tại 1 ngày, cùng công thức `ton_kho.simulate`). Kiểm tra: ở 95% và không chậm, tái lập đúng **127.776 / 127.776** dòng (ROP và lượng đặt của 3 chính sách × 121 mã × 352 ngày mở cửa). Khi hàng về chậm k ngày: lead time L + k, sai số dự báo trong thời gian chờ giả định tăng theo √((L + k) / L) (giả định, không đo lại trên validation). "Thử nếu" chỉ tính lại cho ngày đang xem, không chạy lại mô phỏng cả năm.
+
+**Bản 24/10 (5 khu, đã thay bằng bản 31/10):** người dùng duyệt tăng từ 4 lên 5. bản đầu chỉ có 1 biểu đồ mỗi khu, còn lại là bảng số và mã kỹ thuật, nên người xem không thấy "dữ liệu nói gì" và thấy số liệu "không thực". Đã thêm khu ① Tổng quan, mỗi biểu đồ kèm **Cách đọc** và **Phát hiện** (phát hiện tính trực tiếp từ dữ liệu, không ghi tay số); thêm ví dụ bằng lời cho bảng cảnh báo và bảng tham số; cột kỹ thuật giấu sau nút "Hiện thêm cột kỹ thuật"; đổi tên cột sang lời dễ hiểu.
 
 | Khu | Nội dung | Đọc từ |
 |---|---|---|
@@ -497,11 +510,11 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 
 **Hàng đang về** (khu ③) không lưu trong CSDL nên tính theo bảo toàn: hàng đang về đầu kỳ + tổng đã đặt − tổng đã nhận. Đã kiểm tra trên cả 3 chính sách theo công thức: không ngày nào âm; mọi SKU "tồn dưới ROP mà không đặt" đều có tồn + hàng đang về > ROP, đúng quy tắc đặt hàng của `ton_kho.py`.
 
-**Kiểm tra:** chạy tự động bằng `streamlit.testing` (đổi SKU, nhóm, ngày, chính sách, mức phục vụ, bộ lọc: không lỗi); số ở khu ④ khớp `reports/ton_kho_so_sanh.md` (mô hình v3: Fill Rate 95,91%, 752 ngày-SKU thiếu, chi phí liên quan 6,67 tỷ đ, −28,3% so với dự báo mốc); chụp màn hình cả 5 khu trên Edge.
+**Kiểm tra (bản 31/10):** bấm chuột thật trong Edge (13 bước: lọc trạng thái, duyệt, bấm dải cả năm, chuyển thẻ giữ ngày + bộ lọc, đi sâu, bấm dải trạng thái của mã, bấm chính sách, đổi mức phục vụ + kịch bản; chạy 3 lần liên tiếp, không lỗi JavaScript); `streamlit.testing` 32 thao tác trên 4 màn (lọc trạng thái, duyệt / sửa / bỏ qua / hoàn tác, ngày kho nghỉ, đổi chính sách, lọc nhóm, đi sâu sang Mặt hàng, "Thử nếu", mức phục vụ, 3 kịch bản, lọc nhóm ở Kết quả): không lỗi; chụp Edge 4 màn ở 1440 px và 390 px: không lỗi, font nạp đúng, không tràn ngang. **Kiểm tra (bản 24/10):** số ở khu ④ khớp `reports/ton_kho_so_sanh.md` (mô hình v3: Fill Rate 95,91%, 752 ngày-SKU thiếu, chi phí liên quan 6,67 tỷ đ, −28,3% so với dự báo mốc); chụp màn hình cả 5 khu trên Edge.
 
 **Ví dụ để demo:** ngày 09/02/2026 (8 ngày trước Tết), chính sách đề xuất: 0 SKU hết hàng, 6 SKU cần đặt hôm nay, 38 SKU tồn dưới ROP nhưng hàng đang về, 77 SKU đủ hàng (mô hình v3, 31/10; trước đó 0 / 11 / 43 / 67 với v2, 1 / 5 / 44 / 71 với giá mô phỏng cũ).
 
-**Giới hạn:** khu ③ là **phát lại** kết quả mô phỏng, không phải hệ thống chạy hằng ngày; chưa có nút duyệt đơn; dữ liệu theo ngày chỉ lưu cho mức phục vụ 95%.
+**Giới hạn:** màn Hôm nay là **phát lại** kết quả mô phỏng, không phải hệ thống chạy hằng ngày; quyết định duyệt đơn chỉ giữ trong phiên (không ghi CSDL, đúng lựa chọn (a) của người dùng); chưa ước tính số chuyến xe vì dữ liệu chưa có thể tích / trọng lượng từng mã; dữ liệu theo ngày chỉ lưu cho mức phục vụ 95%.
 
 ## 13. Hạn chế và việc còn treo
 
@@ -556,6 +569,7 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 | 24/10 | Dashboard thêm khu Tổng quan + dễ đọc hơn | `app/dashboard.py` | 5 khu; 6 biểu đồ phân tích dữ liệu, mỗi biểu đồ có "cách đọc" + "phát hiện" tự tính (Chủ nhật bán 0,53; khuyến mãi trung vị +58%; 22 mã A-X = 65,5% giá trị; đồ chơi tháng 9 ×10,5); ví dụ bằng lời ở bảng cảnh báo và bảng tham số; nói rõ cái gì thật / giả định | Người dùng thấy dashboard chỉ có 1 biểu đồ, nhiều bảng số khó hiểu, "không thực"; đồng ý tăng từ 4 lên 5 khu |
 | 24/10 | Loại kho + giá theo thị trường, chạy lại từ đặc trưng | `src/cap_nhat_gia.py`, `data/reference/gia_thi_truong.csv`, `src/cham_lai.py` | 37/121 mã đổi giá (trung vị ×1,20), 11 mã đổi nhóm ABC; mô hình chọn không đổi (test WMAPE 0,375); AI + hiệu chỉnh Fill Rate 95,34%, chi phí liên quan 6,54 tỷ, −29,8% so với dự báo mốc; tồn so với hiện trạng +28%; tắc cảng vẫn rẻ nhất 39/39 | Dữ liệu là kho tổng chuỗi bán lẻ (khớp nhất); giá bán = giá bán lẻ tra công khai, giá vốn giữ biên lãi cũ (giả định); không sinh lại dữ liệu gốc; **từ dòng này trở đi số liệu theo giá thị trường**, các dòng trước theo giá mô phỏng cũ |
 | 31/10 | Nâng cấp dự báo vòng 3 + đưa vào tồn kho | `src/nang_cap_du_bao.py`, `reports/nang_cap_du_bao.md` | Luật ghi trước; A (theo tầm) và B (lịch sự kiện, âm lịch) giữ, F (tham số) bỏ; test WMAPE 0,368, Bias +3,9% (đạt ±5%), Z 0,496. Tồn kho: Fill Rate 95,91%, ngày thiếu 752, nhưng tồn +6,8% và chi phí liên quan +2,0% so với v2 (6,67 tỷ, −28,3% so với dự báo mốc) | Chọn theo validation2, không quay lại v2 vì kết quả test; nút thắt chuyển sang quy tắc đặt hàng cho hàng thời vụ; `ton_kho.py` đọc mô hình chọn từ CSDL |
+| 31/10 | Làm lại giao diện: 4 màn, cơ chế kiểu Power BI | `app/dashboard.py`, `app/chung.py`, `app/trang/*.py`, `.streamlit/config.toml`, `DESIGN.md`, `csdl.de_xuat_ngay` | Bộ lọc chung, lọc chéo, đi sâu; duyệt / sửa / bỏ qua đơn + tải phiếu đặt hàng; "Thử nếu…" tái lập đúng 127.776/127.776 dòng mô phỏng ở 95%; 30 thao tác AppTest không lỗi | Người dùng chính là người lập kế hoạch (phải thao tác mới ra kết quả); giao diện "phiếu vận đơn" do người dùng chọn; duyệt đơn chỉ giữ trong phiên; không ước tính số xe khi chưa có dữ liệu thể tích |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 
@@ -569,7 +583,7 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 | `reports/ket_qua_mo_hinh.csv` | Bảng điểm mọi mô hình (1 dòng / mô hình / tập) |
 | `reports/du_bao/` | Dự báo chi tiết từng ngày (không lưu git, tạo lại được) |
 | `docs/09_lo_trinh.md` | Lộ trình và lịch theo tuần |
-| `app/dashboard.py` | Dashboard Streamlit 5 khu, chỉ đọc CSDL (`streamlit run app/dashboard.py`) |
+| `app/dashboard.py`, `app/chung.py`, `app/trang/` | Công cụ kế hoạch đặt hàng Streamlit 4 màn (Hôm nay, Mặt hàng, Kịch bản & kết quả, Dữ liệu & phương pháp), chỉ đọc CSDL (`streamlit run app/dashboard.py`); hệ thiết kế `DESIGN.md`; font `app/static/fonts/` |
 | `src/nang_cap_du_bao.py`, `reports/nang_cap_du_bao.md` | Nâng cấp dự báo vòng 3 (mục 9.4): dự báo theo tầm, lịch sự kiện / âm lịch, ghép với Prophet → `ket_hop_v3`; trạng thái từng bước ở `reports/nang_cap_du_bao_trang_thai.json` |
 | `reports/do_nhay.md`, `reports/ket_qua/k07_do_nhay_lead_time.png` | Thử độ nhạy: tắc cảng, lead time dài thêm, chi phí tăng (mục 11.1); tạo bằng `python src/do_nhay.py` |
 | `data/reference/gia_thi_truong.csv`, `reports/cap_nhat_gia.md` | Giá bán lẻ tra cứu từng mã (nguồn, ngày) và bảng giá cũ – mới; bản giá mô phỏng gốc: `data/reference/sku_master_mo_phong.csv` |

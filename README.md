@@ -23,7 +23,7 @@ mức độ tác động và các đột biến khác là giả định.
     python src/ton_kho.py            # 13. GĐ F: chọn quy tắc trên validation, mô phỏng tồn kho 12 tháng test, ghi CSDL -> reports/ton_kho_so_sanh.md
     python src/do_nhay.py            # 13b. thử độ nhạy: tắc cảng, lead time dài thêm, chi phí tăng -> CSDL, reports/do_nhay.md (~2 phút)
     python src/bieu_do_ket_qua.py    # 14. 7 biểu đồ kết quả cho Chương 4 (đọc CSDL) -> reports/ket_qua/
-    streamlit run app/dashboard.py   # 15. GĐ G: dashboard 5 khu (chỉ đọc CSDL), tự mở trình duyệt http://localhost:8501
+    streamlit run app/dashboard.py   # 15. GĐ G: công cụ kế hoạch đặt hàng 4 màn (chỉ đọc CSDL), tự mở http://localhost:8501
     python src/xuat_power_bi.py      # 16. xuất CSV cho Power BI -> reports/power_bi/ (hướng dẫn: docs/12_power_bi.md)
     python src/xem_database.py       # chạy các truy vấn mẫu trong database/truy_van_mau.sql
 
@@ -41,7 +41,7 @@ Lệnh phụ (ít dùng):
 - data/clean: kết quả sau làm sạch
 - src: sinh_du_lieu.py (sinh lại dữ liệu), lam_sach.py
 - reports: báo cáo làm sạch và 2 file Excel tổng hợp
-- app: dashboard.py (GĐ G, Streamlit, chỉ đọc CSDL `data/kho_hang.db`); giao diện: `.streamlit/config.toml`
+- app: dashboard.py (GĐ G, Streamlit, chỉ đọc CSDL `data/kho_hang.db`), chung.py (đọc CSDL, bộ lọc chung, CSS), trang/ (4 màn); giao diện: `.streamlit/config.toml`, font `app/static/fonts/`, hệ thiết kế `DESIGN.md`
 
 ## Tài liệu ngữ cảnh cho AI
 - `CLAUDE.md`: điểm vào, quy tắc bắt buộc, thứ tự đọc.

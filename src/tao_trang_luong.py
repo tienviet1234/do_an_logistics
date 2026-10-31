@@ -123,7 +123,7 @@ def table_card(t):
     rows, cols, fks = info[t]
     lines = []
     for c in cols:
-        name, typ, notnull, pk = c[1], c[2], c[3], c[5]
+        name, typ, pk = c[1], c[2], c[5]
         tag = '<b class="pk">PK</b>' if pk else ""
         if name in fks:
             tag += f'<b class="fk" title="→ {html.escape(fks[name])}">FK → {html.escape(fks[name].split(".")[0])}</b>'
