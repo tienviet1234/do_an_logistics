@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Sơ đồ luồng hệ thống</title>
+<!-- Hai so do luong he thong de chen vao bao cao / slide. Chup anh: Edge headless (xem cuoi file). ?so_do=1 hoac ?so_do=2 -->
+<style>
+  :root { --muc: #1f2a37; --phu: #5b6675; --vien: #c9d2dc; --nen: #ffffff;
+          --nguon: #eef2f6; --chuan_bi: #e8f1fb; --du_bao: #fdf3dc; --csdl: #ece8f7; --ton_kho: #e6f4ea; --dau_ra: #fbe9e7;
+          --nhan: #b4511f; --ai: #1d5fbf; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--nen); color: var(--muc); font-family: "Segoe UI", Arial, sans-serif; }
+  .so-do { width: 1180px; padding: 28px 32px 24px; display: none; }
+  .so-do.hien { display: block; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .phu-de { color: var(--phu); font-size: 13.5px; margin: 0 0 18px; }
+  .tang { display: grid; grid-template-columns: 132px 1fr; gap: 14px; align-items: stretch; }
+  .ten-tang { border-radius: 8px; padding: 10px 10px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center;
+              line-height: 1.3; border: 1px solid var(--vien); }
+  .hop-hang { display: flex; gap: 10px; align-items: stretch; }
+  .hop { flex: 1; border: 1px solid var(--vien); border-radius: 8px; padding: 9px 11px; background: #fff; font-size: 13px; line-height: 1.38; }
+  .hop > b:first-child { display: block; font-size: 14px; margin-bottom: 2px; }
+  .hop .so { white-space: nowrap; }
+  .hop code { font-family: Consolas, monospace; font-size: 11.5px; color: var(--phu); }
+  .hop .so { color: var(--nhan); font-weight: 700; }
+  .hop.chinh { border: 2px solid var(--ai); }
+  .mui-ngang { flex: 0 0 18px; display: flex; align-items: center; justify-content: center; }
+  .mui-doc { display: grid; grid-template-columns: 132px 1fr; gap: 14px; height: 22px; }
+  .mui-doc div:last-child { display: flex; justify-content: center; }
+  .nguon .ten-tang { background: var(--nguon); } .chuan-bi .ten-tang { background: var(--chuan_bi); }
+  .du-bao .ten-tang { background: var(--du_bao); } .csdl .ten-tang { background: var(--csdl); }
+  .ton-kho .ten-tang { background: var(--ton_kho); } .dau-ra .ten-tang { background: var(--dau_ra); }
+  .ghi-chu { margin-top: 14px; font-size: 12px; color: var(--phu); display: flex; justify-content: space-between; }
+  .chia { display: flex; height: 26px; border-radius: 6px; overflow: hidden; font-size: 12px; margin-top: 6px; }
+  .chia span { display: flex; align-items: center; justify-content: center; color: #fff; }
+  /* so do 2 */
+  .vong { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .khung { border: 1px solid var(--vien); border-radius: 10px; padding: 12px 14px 14px; }
+  .khung h2 { font-size: 15px; margin: 0 0 10px; }
+  .buoc { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; }
+  .so-buoc { width: 30px; height: 30px; border-radius: 50%; background: var(--muc); color: #fff; font-weight: 700; font-size: 14px;
+             display: flex; align-items: center; justify-content: center; }
+  .noi-dung { border: 1px solid var(--vien); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.4; background: #fff; }
+  .noi-dung b { font-size: 14px; }
+  .noi-dung.quyet { border: 2px solid var(--nhan); background: #fff8f3; }
+  .noi-dung.nguoi { border: 2px solid var(--ai); background: #f3f7fd; }
+  .xuong { height: 16px; margin-left: 14px; border-left: 2px solid var(--phu); }
+  .nhanh { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .nhanh .noi-dung { font-size: 12.5px; }
+  .tuan { background: var(--du_bao); } .ngay { background: var(--ton_kho); }
+  .noi { margin-top: 14px; border: 1px dashed var(--phu); border-radius: 8px; padding: 9px 12px; font-size: 13px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="xuong" viewBox="0 0 20 22"><path d="M10 0v16" stroke="#5b6675" stroke-width="2.2"/><path d="M3 12l7 9 7-9z" fill="#5b6675"/></symbol>
+    <symbol id="phai" viewBox="0 0 18 20"><path d="M0 10h12" stroke="#5b6675" stroke-width="2.2"/><path d="M9 3l9 7-9 7z" fill="#5b6675"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================ SO DO 1: LUONG DU LIEU ============================ -->
+<section class="so-do" id="so_do_1">
+  <h1>Luồng dữ liệu của hệ thống</h1>
+  <p class="phu-de">Từ dữ liệu nhập – xuất – tồn đến quyết định đặt hàng. Mỗi khối là một chương trình chạy lại được, kết quả ghi vào cơ sở dữ liệu. Dữ liệu mô phỏng: 121 mã hàng × 1.096 ngày.</p>
+
+  <div class="tang nguon">
+    <div class="ten-tang">① Nguồn dữ liệu</div>
+    <div class="hop-hang">
+      <div class="hop"><b>Nhập – xuất – tồn hằng ngày</b>xuất từ phần mềm kho (WMS/ERP), còn lỗi, trùng<br><span class="so">132.814 dòng thô</span> (mô phỏng)</div>
+      <div class="hop"><b>Danh mục</b>121 mã hàng, 17 nhóm, 14 nhà cung cấp; giá vốn, giá bán (37 mã theo giá thị trường), lead time, MOQ</div>
+      <div class="hop"><b>Lịch biết trước</b>Tết, Trung thu, lễ, sale 11.11 / 12.12, lịch khuyến mãi, ngày kho nghỉ</div>
+      <div class="hop"><b>Sự kiện không biết trước</b>bão (ngày thật), nắng nóng, rét đậm, dịch, đơn sỉ đột biến, nhà cung cấp chậm</div>
+    </div>
+  </div>
+  <div class="mui-doc"><div></div><div><svg width="20" height="22"><use href="#xuong"/></svg></div></div>
+
+  <div class="tang chuan-bi">
+    <div class="ten-tang">② Chuẩn bị dữ liệu</div>
+    <div class="hop-hang">
+      <div class="hop"><b>Làm sạch</b>bỏ trùng, sửa <span class="so">687</span> dòng lỗi (ghi nhật ký); đánh dấu ngày hết hàng, ngày kho nghỉ<br><code>lam_sach.py</code></div>
+      <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+      <div class="hop"><b>Đặc trưng &amp; phân nhóm</b>thứ, mùa, số ngày đến lễ, cùng ngày âm lịch năm trước; phân nhóm ABC × XYZ<br><code>dac_trung.py</code></div>
+      <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+      <div class="hop"><b>Khám phá dữ liệu</b>mùa vụ, thứ trong tuần, tác động khuyến mãi; bảng rủi ro định lượng<br><code>eda.py</code></div>
+    </div>
+  </div>
+  <div class="mui-doc"><div></div><div><svg width="20" height="22"><use href="#xuong"/></svg></div></div>
+
+  <div class="tang du-bao">
+    <div class="ten-tang">③ Dự báo nhu cầu<br>(28 ngày tới)</div>
+    <div>
+      <div class="hop-hang">
+        <div class="hop"><b>Mô hình mốc</b>lặp tuần trước, trung bình trượt 28 ngày, ETS, Croston, TSB, ARIMA<br><code>mo_hinh_baseline.py</code></div>
+        <div class="hop"><b>Prophet</b>mỗi mã một mô hình: xu hướng + mùa + lễ + khuyến mãi<br><code>mo_hinh_prophet.py</code></div>
+        <div class="hop"><b>LightGBM</b>một mô hình chung 121 mã, 3 tầm (ngày 1–7, 8–14, 15–28)<br><code>nang_cap_du_bao.py</code></div>
+        <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+        <div class="hop chinh"><b>Kết hợp AI (được chọn)</b>ghép theo nhóm X/Y/Z, <b>cập nhật mỗi tuần</b>, kèm khoảng 80% / 95%<br><span class="so">WMAPE 0,356 · Bias +3,0%</span><br><code>nang_cap_du_bao_v4.py</code></div>
+      </div>
+      <div class="chia">
+        <span style="flex:1;background:#7b8794">Huấn luyện 10/2023 – 09/2024: AI học</span>
+        <span style="flex:1;background:#c08a2b">Validation 10/2024 – 09/2025: chọn mô hình, luật ghi trước</span>
+        <span style="flex:1;background:#1d5fbf">Kiểm tra 10/2025 – 09/2026: chấm điểm, chạy 1 lần</span>
+      </div>
+    </div>
+  </div>
+  <div class="mui-doc"><div></div><div><svg width="20" height="22"><use href="#xuong"/></svg></div></div>
+
+  <div class="tang csdl">
+    <div class="ten-tang">④ Cơ sở dữ liệu</div>
+    <div class="hop-hang">
+      <div class="hop"><b>SQLite <code>data/kho_hang.db</code></b>21 bảng, 5 khung nhìn: danh mục, giao dịch thô / sạch, lịch, dự báo (có khoảng 80 / 95%), tham số tồn kho, mô phỏng theo ngày, thử độ nhạy, nhật ký chạy &nbsp; <code>nap_database.py</code></div>
+    </div>
+  </div>
+  <div class="mui-doc"><div></div><div><svg width="20" height="22"><use href="#xuong"/></svg></div></div>
+
+  <div class="tang ton-kho">
+    <div class="ten-tang">⑤ Tối ưu tồn kho</div>
+    <div class="hop-hang">
+      <div class="hop"><b>Tham số từng mã</b>SS = z·√(σ²<sub>LTD</sub> + d²·σ²<sub>LT</sub>)<br>ROP = nhu cầu trong lead time + SS<br>EOQ = √(2DS/H)</div>
+      <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+      <div class="hop"><b>Quy tắc đặt hàng "lai"</b>trong kho + đang về ≤ ROP thì đặt; X, Y: bội số EOQ; Z: đặt đến mức (lead time + 7 ngày + SS)</div>
+      <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+      <div class="hop"><b>Mô phỏng 12 tháng</b>4 chính sách × 3 mức phục vụ, từng ngày, lead time ngẫu nhiên<br><span class="so">Fill Rate 95,82% · chi phí −35,3%</span><br><code>ton_kho.py</code></div>
+      <div class="mui-ngang"><svg width="18" height="20"><use href="#phai"/></svg></div>
+      <div class="hop"><b>Thử độ nhạy</b>tắc cảng +3/5/7 ngày (13 thời điểm), lead time +2, chi phí +15–20%<br><code>do_nhay.py</code></div>
+    </div>
+  </div>
+  <div class="mui-doc"><div></div><div><svg width="20" height="22"><use href="#xuong"/></svg></div></div>
+
+  <div class="tang dau-ra">
+    <div class="ten-tang">⑥ Hỗ trợ quyết định</div>
+    <div class="hop-hang">
+      <div class="hop chinh"><b>Dashboard 4 màn</b>Hôm nay (duyệt đơn, tải phiếu) · Mặt hàng (dự báo, "Thử nếu…") · Kịch bản &amp; kết quả · Dữ liệu &amp; phương pháp<br><code>app/dashboard.py</code></div>
+      <div class="hop"><b>Power BI</b>6 tệp CSV mô hình hình sao + sổ đối chiếu số liệu<br><code>xuat_power_bi.py</code></div>
+      <div class="hop"><b>Báo cáo</b>biểu đồ kết quả k01–k07, báo cáo Word, báo cáo kỹ thuật<br><code>bieu_do_ket_qua.py</code></div>
+    </div>
+  </div>
+  <div class="ghi-chu"><span>Dữ liệu mô phỏng, không phải số liệu kho thật. Số liệu: tập kiểm tra, mức phục vụ 95%, chính sách AI + hiệu chỉnh lệch.</span><span>Đồ án: Ứng dụng AI trong dự báo nhu cầu và tối ưu tồn kho</span></div>
+</section>
+
+<!-- ============================ SO DO 2: VONG VAN HANH ============================ -->
+<section class="so-do" id="so_do_2">
+  <h1>Vòng vận hành của người lập kế hoạch kho</h1>
+  <p class="phu-de">Hệ thống chạy theo hai nhịp: mỗi tuần cập nhật dự báo, mỗi ngày quyết định đặt hàng. Người lập kế hoạch chỉ cần duyệt các dòng hệ thống đề xuất.</p>
+  <div class="vong">
+    <div class="khung tuan">
+      <h2>Mỗi tuần: cập nhật dự báo</h2>
+      <div class="buoc"><div class="so-buoc">1</div><div class="noi-dung"><b>Nạp dữ liệu mới</b><br>nhập – xuất – tồn tuần qua, lịch khuyến mãi bộ phận bán hàng gửi</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">2</div><div class="noi-dung"><b>Làm sạch</b><br>bỏ ngày hết hàng, ngày kho nghỉ, đơn sỉ đột biến khỏi phần “nhu cầu”</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">3</div><div class="noi-dung"><b>Học lại và dự báo 28 ngày tới</b><br>LightGBM + Prophet, ghép theo nhóm X 0,9 · Y 1,0 · Z 0,7</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">4</div><div class="noi-dung"><b>Kèm khoảng dao động</b><br>khoảng 80% / 95% học từ sai số các tuần trước<br>VD sữa tươi 12/01: <b>238 thùng</b> (126 – 379)</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">5</div><div class="noi-dung"><b>Cập nhật tham số</b><br>tồn kho an toàn SS, điểm đặt hàng ROP, lượng đặt EOQ cho từng mã; cập nhật lead time nếu nhà cung cấp giao chậm hơn</div></div>
+    </div>
+    <div class="khung ngay">
+      <h2>Mỗi ngày: quyết định đặt hàng</h2>
+      <div class="buoc"><div class="so-buoc">6</div><div class="noi-dung"><b>Xem tình trạng kho cuối ngày</b><br>Hết hàng · Cần đặt hôm nay · Dưới ROP nhưng hàng đang về · Đủ hàng</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">7</div><div class="noi-dung quyet"><b>Trong kho + đang về ≤ ROP?</b>
+        <div class="nhanh">
+          <div class="noi-dung"><b>Không</b> → chưa đặt, theo dõi tiếp</div>
+          <div class="noi-dung"><b>Có</b> → đề xuất lượng đặt: X, Y theo lô EOQ; Z đặt đến mức</div>
+        </div></div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">8</div><div class="noi-dung nguoi"><b>Người lập kế hoạch duyệt</b><br>Duyệt / Sửa số lượng / Bỏ qua; mỗi dòng có lý do bằng số. Thử trước bằng “Thử nếu…” khi hàng có thể về chậm</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">9</div><div class="noi-dung"><b>Tải phiếu đặt hàng</b><br>chia theo từng nhà cung cấp, gửi đi</div></div>
+      <div class="xuong"></div>
+      <div class="buoc"><div class="so-buoc">10</div><div class="noi-dung"><b>Hàng về sau lead time</b><br>nhập kho, cập nhật tồn → quay lại bước 6 ngày hôm sau; cuối tuần quay lại bước 1</div></div>
+    </div>
+  </div>
+  <div class="noi">VD ngày 09/02/2026 (trước Tết): nhu cầu gấp khoảng 2,6 lần ngày thường; 0 mã hết hàng, 44 mã dưới ROP nhưng hàng đang về, chỉ <b>8 mã cần duyệt</b>. Coca-Cola: trong kho 318 thùng &lt; ROP 1.265 → đề xuất đặt 791 thùng. Dữ liệu mô phỏng.</div>
+</section>
+
+<script>
+  const so = new URLSearchParams(location.search).get("so_do");
+  document.querySelectorAll(".so-do").forEach((s) => { if (!so || s.id === "so_do_" + so) s.classList.add("hien"); });
+</script>
+<!-- Chup anh (PowerShell):
+  & "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --disable-gpu --force-device-scale-factor=2 `
+    --window-size=1180,1300 --screenshot="reports\so_do\luong_du_lieu.png" "file:///.../trinh_bay/so_do_luong.html?so_do=1"
+-->
+</body>
+</html>

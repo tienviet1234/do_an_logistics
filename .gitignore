@@ -28,3 +28,9 @@ reports/power_bi/*.csv
 
 # Impeccable: anh chup DOM tam dung cho bo do thiet ke (tao lai khi ra soat)
 .impeccable/review/*.html
+
+# Du lieu cong khai M5 (tai lai tu Zenodo, xem docs/10)
+data/m5/
+
+# Du lieu Dominick's (Kilts Center, chi dung cho nghien cuu hoc thuat; tai lai tu trang chinh thuc)
+data/dominicks/

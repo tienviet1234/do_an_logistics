@@ -78,11 +78,11 @@ Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `d
 |---|---|---|---|
 | **1. Được chấp nhận** | Giảng viên đồng ý dùng dữ liệu mô phỏng cho Chương 4 | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
 | | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
-| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ Kết hợp v3 −52% (WMAPE 0,368; 31/10) |
+| **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ v4 cập nhật mỗi tuần, WMAPE 0,356 (01/11; v3 0,368) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
-| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ✅ Mô hình v3 +3,9% (31/10; v2 là +6,3%) |
-| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ⚠️ Fill Rate 95,91% đạt; tồn kho +37% so với hiện trạng (biết trước nhu cầu) không đạt; nhóm X thấp hơn 28% (mô hình v3, 31/10) |
-| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −52%; chi phí liên quan +3,3% so với hiện trạng, −28% so với dự báo mốc (mô hình v3, 31/10) |
+| | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ✅ Mô hình v4 +3,0% (01/11; v3 +3,9%, v2 +6,3%) |
+| **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ✅ Fill Rate 95,82%; tồn kho −0,7% so với hiện trạng (biết trước nhu cầu); nhóm X −29% (dự báo cập nhật mỗi tuần, 01/11; v3: +37%) |
+| | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −53%; chi phí liên quan −9,8% so với hiện trạng, −35% so với dự báo mốc (01/11) |
 | **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
 | | Không rò rỉ dữ liệu: chia theo thời gian, chỉ dùng thông tin biết trước | Kiểm tra trong `danh_gia.py` | ✅ |
 | | Tự giải thích được từng bước và trả lời câu hỏi phản biện | `docs/11` câu hỏi tự kiểm tra | 🔄 Bài 1–4 |
@@ -161,6 +161,8 @@ Kết quả và quy ước đã chốt trong code:
 - [ ] Quy tắc chọn: sai số thấp nhất; nếu chênh dưới ~2 điểm WMAPE thì chọn mô hình đơn giản hơn.
 
 **Vòng 3 (30–31/10, `src/nang_cap_du_bao.py`, luật `docs/10` mục 9.4):** dự báo theo tầm + lịch sự kiện / âm lịch → test WMAPE 0,368, Bias +3,9%; mô hình dùng tiếp `ket_hop_v3`.
+
+**Vòng 4 (31/10, `src/nang_cap_du_bao_v4.py`, luật `docs/10` mục 9.5, test giữ kín):** bảng rủi ro định lượng; cập nhật dự báo mỗi tuần (validation2 WMAPE 0,358, tồn kho −27%); khoảng dự báo 80 / 95% đạt; tự hiệu chỉnh và cảnh báo bão bị bỏ.
 
 ### GĐ F. Chính sách tồn kho + mô phỏng (12–22/11)
 **Đây là phần "tối ưu tồn kho" trong tên đề tài; giám khảo nhìn vào đây đầu tiên.**

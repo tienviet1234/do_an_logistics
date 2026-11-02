@@ -55,7 +55,7 @@ Mỗi buổi khoảng 2–3 tiếng. Cuối mỗi buổi so số trên trang c�
    Chọn measure `Fill Rate` → **Measure tools → Format → Percentage**, 2 chữ số thập phân.
 4. **Sắp xếp chính sách đúng thứ tự:** Table view → bảng `dim_chinh_sach` → chọn cột `ten_chinh_sach` → **Column tools → Sort by column → thu_tu**.
 5. Thêm 4 biểu đồ **Clustered bar chart**: trục Y = `dim_chinh_sach[ten_chinh_sach]`, trục X = từng measure (mỗi measure một biểu đồ, không gộp chung vì khác đơn vị).
-6. Thêm **Table**: `ten_chinh_sach` + 4 measure. So với mục 2 của `so_doi_chieu.md` (AI + hiệu chỉnh: 95,91%, 752, 16.377,3, 6.672,7).
+6. Thêm **Table**: `ten_chinh_sach` + 4 measure. So với mục 2 của `so_doi_chieu.md` (AI + hiệu chỉnh: 95,82%, 735, 11.906,0, 5.828,1).
 7. Thêm **Slicer** `dim_sku[xyz]`: chọn X, Y, Z để xem nhóm nào AI thắng (so `reports/ton_kho_so_sanh.md`, bảng theo nhóm XYZ).
 
 **Học được:** measure khác cột thường; Fill Rate phải là **tổng đáp ứng / tổng nhu cầu**, không phải trung bình Fill Rate từng SKU (SKU bán ít sẽ kéo lệch).
@@ -73,7 +73,7 @@ Mỗi buổi khoảng 2–3 tiếng. Cuối mỗi buổi so số trên trang c�
    RETURN DIVIDE ( SUMX ( cham, ABS ( fact_du_bao[thuc_te] - fact_du_bao[du_bao_ai] ) ), SUMX ( cham, fact_du_bao[thuc_te] ) )
    ```
 3. **Line chart**: trục X = `dim_ngay[ngay]` (bấm mũi tên cạnh tên trường, chọn `ngay` thay vì *Date Hierarchy*), trục Y = 3 measure đầu.
-4. **Card** = `WMAPE AI`, định dạng 3 chữ số thập phân. Chọn SKU001 → 0,332; bỏ chọn (cả kho) → 0,368 (mục 3 `so_doi_chieu.md`).
+4. **Card** = `WMAPE AI`, định dạng 3 chữ số thập phân. Chọn SKU001 → 0,332; bỏ chọn (cả kho) → 0,356 (mục 3 `so_doi_chieu.md`).
 5. **Thử thách:** đổi trục X sang `dim_ngay[dau_tuan]` (theo tuần). Đường thực tế trông thấp hơn dự báo, vì tuần có ngày hết hàng/kho nghỉ thì thực tế trống mà dự báo vẫn cộng. Sửa bằng measure chỉ cộng dự báo ở ngày được chấm:
    ```
    Dự báo AI (ngày chấm) = SUMX ( FILTER ( fact_du_bao, NOT ISBLANK ( fact_du_bao[thuc_te] ) ), fact_du_bao[du_bao_ai] )
@@ -93,7 +93,7 @@ Mỗi buổi khoảng 2–3 tiếng. Cuối mỗi buổi so số trên trang c�
    ```
 3. **Line chart**: trục X = `dim_ngay[ngay]`, trục Y = `Tồn cuối ngày`, `ROP`. Thấy hình **răng cưa**: tồn giảm theo bán, chạm ROP thì đặt, hàng về thì vọt lên. Răng chạm 0 là ngày hết hàng.
 4. **Line chart** thứ hai: trục X = `dim_ngay[thang_nam]`, trục Y = `Fill Rate ngày`, Legend = `ten_chinh_sach`; bỏ chọn slicer chính sách và SKU. Tháng nào chính sách mốc tụt mạnh? Đáp án: 02/2026 (Tết) mốc chỉ 69,9% so với 95,7% của AI + hiệu chỉnh; 12/2025 (Noel) 81,1% và 09/2026 (Trung thu) 80,9% cũng tụt. Tháng 10/2025 mọi chính sách đều thấp (80–84%) vì đầu kỳ bắt đầu từ tồn kho có sẵn trong dữ liệu.
-5. Kiểm tra: bỏ chọn SKU, chọn 1 chính sách → `Fill Rate ngày` cả năm phải bằng Fill Rate ở buổi 2 (95,91% với AI + hiệu chỉnh).
+5. Kiểm tra: bỏ chọn SKU, chọn 1 chính sách → `Fill Rate ngày` cả năm phải bằng Fill Rate ở buổi 2 (95,82% với AI + hiệu chỉnh).
 
 **Học được:** điểm đặt hàng (ROP) và chu kỳ tồn kho; tháng cao điểm là lúc dự báo kém bị lộ ra.
 

@@ -298,9 +298,9 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 - **Chi phí liên quan** = đặt hàng + lưu kho + **lợi nhuận mất do thiếu hàng**. Chỉ nhìn chi phí lưu kho thì luôn thấy "giữ ít hàng là tốt", nhưng thiếu hàng cũng là chi phí.
 
 **Kết quả (12 tháng mô phỏng, mức phục vụ 95%)**
-- Cùng công thức, chỉ đổi dự báo: AI (có hiệu chỉnh lệch) đáp ứng **95,9%** so với 88,8% của dự báo mốc; lợi nhuận mất giảm gần một nửa (−47%); tồn kho tăng nhẹ (+4%). **Chi phí liên quan giảm 28%.**
-- Với hàng ổn định (nhóm X), AI thắng cả "hiện trạng" (người lập kế hoạch biết trước nhu cầu): đáp ứng cao hơn mà tồn **ít hơn 28%**.
-- Với 5 mặt hàng **chỉ bán dịp lễ** (cây thông Noel, đồ Halloween...), EOQ thất bại: hàng về sau mùa, vừa thiếu trong mùa vừa tồn đến cuối năm. Thử hai cách đặt khác trên validation nhưng không tốt hơn, nên đây là **hạn chế** và **hướng phát triển** (hàng thời vụ nên đặt một lần trước mùa).
+- Cùng công thức, chỉ đổi dự báo (cả hai cập nhật mỗi tuần): AI (có hiệu chỉnh lệch) đáp ứng **95,8%** so với 91,7% của dự báo mốc; lợi nhuận mất −35%; tồn kho −39,5%. **Chi phí liên quan giảm 35%.**
+- So với "hiện trạng" (người lập kế hoạch biết trước nhu cầu): đáp ứng cao hơn 2,3 điểm, số ngày thiếu ít hơn một nửa, **tồn kho ngang (−0,7%) và tổng chi phí thấp hơn 9,8%**. Với hàng ổn định (nhóm X), tồn **ít hơn 29%**.
+- Với 5 mặt hàng **chỉ bán dịp lễ** (cây thông Noel, đồ Halloween...), EOQ thất bại khi dự báo chỉ cập nhật mỗi 28 ngày: hàng về sau mùa. Khi dự báo cập nhật mỗi tuần, quy tắc **đặt đến mức** cho hàng mùa vụ thắng trên validation và tồn nhóm Z giảm từ 12,1 xuống 7,7 tỷ (hiện trạng 6,3 tỷ).
 
 **Kỹ năng dữ liệu**
 - **Mô phỏng (simulation):** chạy lại 12 tháng, từng ngày, cho từng chính sách, với **cùng nhu cầu, cùng thời gian giao hàng**. Chỉ như vậy mới so sánh công bằng.
@@ -308,27 +308,27 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 - **Hiệu chỉnh lệch:** dự báo thiếu có hệ thống 8% thì nhân dự báo với hệ số ước lượng **trên validation**.
 - **Đối thủ quá mạnh:** "hiện trạng" trong dữ liệu biết trước nhu cầu. Thua nó ở tồn kho không có nghĩa là AI kém. Phải nói rõ điều này khi trình bày.
 
-**Liên hệ điều vận:** EOQ nhỏ nghĩa là **nhập hàng nhiều lần hơn** (3.035 lần so với 1.910 lần của hiện trạng). Với kho, đó là thêm chuyến xe nhập, thêm lượt nhận hàng, xếp dỡ. Chi phí đặt hàng S trong công thức phải phản ánh đúng chi phí một chuyến xe nhận hàng. Đây là chỗ người điều vận góp ý được cho người lập kế hoạch.
+**Liên hệ điều vận:** EOQ nhỏ nghĩa là **nhập hàng nhiều lần hơn** (3.192 lần so với 1.910 lần của hiện trạng). Với kho, đó là thêm chuyến xe nhập, thêm lượt nhận hàng, xếp dỡ. Chi phí đặt hàng S trong công thức phải phản ánh đúng chi phí một chuyến xe nhận hàng. Đây là chỗ người điều vận góp ý được cho người lập kế hoạch.
 
 **Câu hỏi tự kiểm tra**
 1. Vì sao dự báo chính xác hơn lại giúp giảm tồn kho an toàn?
 2. Vì sao EOQ không hợp với cây thông Noel?
-3. Hội đồng hỏi: "Chính sách AI tồn kho nhiều hơn hiện trạng 37%, vậy AI có tốt không?" Bạn trả lời thế nào?
+3. Hội đồng hỏi: "Hiện trạng biết trước nhu cầu, vậy so với nó AI có thật sự tốt hơn không?" Bạn trả lời thế nào?
 
 <details><summary>Gợi ý</summary>
 
 1. SS tỷ lệ với độ lệch chuẩn của sai số dự báo (σ). Sai ít thì cần ít hàng dự phòng hơn mà vẫn giữ được cùng mức phục vụ.
 2. EOQ giả định nhu cầu đều. Cây thông chỉ bán khoảng 3 tuần; đặt theo EOQ khi dự báo vọt lên thì hàng về sau Noel, tồn đến năm sau.
-3. "Hiện trạng" trong dữ liệu mô phỏng biết trước nhu cầu kỳ vọng, ngoài đời không có. So với cách làm thực tế (công thức + dự báo đơn giản), AI giảm 28% chi phí liên quan và đáp ứng thêm 7,1 điểm. Ngay cả với đối thủ biết trước, AI đáp ứng tốt hơn, số ngày thiếu hàng ít hơn một nửa, tổng chi phí chỉ cao hơn 3,3%; với hàng ổn định AI còn tồn ít hơn 28%. Phần tồn cao đến từ 5 mặt hàng chỉ bán dịp lễ, đã chỉ rõ nguyên nhân và hướng khắc phục.
+3. "Hiện trạng" trong dữ liệu mô phỏng biết trước nhu cầu kỳ vọng, ngoài đời không có. So với cách làm thực tế (công thức + dự báo đơn giản), AI giảm 35% chi phí liên quan và đáp ứng thêm 4,1 điểm. Ngay cả với đối thủ biết trước, AI đáp ứng tốt hơn, số ngày thiếu hàng ít hơn một nửa, tồn kho ngang và tổng chi phí thấp hơn 9,8%; với hàng ổn định AI còn tồn ít hơn 29%. Bản trước (cập nhật mỗi 28 ngày) tồn cao hơn hiện trạng 37%; cập nhật dự báo mỗi tuần và đặt đến mức cho hàng mùa vụ đã khắc phục.
 </details>
 
 
 ## Bài 11. Dashboard: người lập kế hoạch nhìn gì mỗi sáng
 
 **Kiến thức logistics**
-- **Quản lý theo ngoại lệ (management by exception):** kho 121 SKU không ai xem hết từng mã mỗi ngày. Màn hình cảnh báo chỉ đưa ra những mã **cần làm gì đó**: hết hàng, cần đặt hôm nay, tồn thấp nhưng hàng đang về. Ngày 09/02/2026 (trước Tết): 44 mã cần chú ý, 77 mã không cần nhìn.
-- **Tồn thực khác vị thế tồn kho.** Tồn thực = hàng đang nằm trong kho. **Vị thế tồn kho** (inventory position) = tồn thực + hàng đang về (đã đặt, chưa nhận). Quy tắc ROP so **vị thế** với ROP, không so tồn thực. Ví dụ: hạt điều SKU060 ngày 09/02 tồn 897, ROP 6.960, nhưng đang về 7.279 → 897 + 7.279 > 6.960 nên **không đặt thêm**. Nếu so tồn thực, người lập kế hoạch sẽ đặt trùng, tồn dư sau Tết.
-- **Số ngày đủ bán (days of cover)** = tồn / nhu cầu bình quân 1 ngày. Đem so với **lead time**: sữa tươi Vinamilk SKU009 ngày 09/02 chỉ đủ bán 1,3 ngày mà lead time 3 ngày; đủ bán ít hơn lead time thì gần như chắc chắn sẽ thiếu trước khi hàng về, phải gọi nhà cung cấp giao gấp.
+- **Quản lý theo ngoại lệ (management by exception):** kho 121 SKU không ai xem hết từng mã mỗi ngày. Màn hình cảnh báo chỉ đưa ra những mã **cần làm gì đó**: hết hàng, cần đặt hôm nay, tồn thấp nhưng hàng đang về. Ngày 09/02/2026 (trước Tết): 52 mã cần chú ý, 69 mã không cần nhìn.
+- **Tồn thực khác vị thế tồn kho.** Tồn thực = hàng đang nằm trong kho. **Vị thế tồn kho** (inventory position) = tồn thực + hàng đang về (đã đặt, chưa nhận). Quy tắc ROP so **vị thế** với ROP, không so tồn thực. Ví dụ: hạt điều SKU060 ngày 09/02 tồn 8.367, ROP 9.904, nhưng đang về 3.385 → 8.367 + 3.385 > 9.904 nên **không đặt thêm**. Nếu so tồn thực, người lập kế hoạch sẽ đặt trùng, tồn dư sau Tết.
+- **Số ngày đủ bán (days of cover)** = tồn / nhu cầu bình quân 1 ngày. Đem so với **lead time**: sữa tươi Vinamilk SKU009 ngày 09/02 chỉ đủ bán 2,6 ngày mà lead time 3 ngày; đủ bán ít hơn lead time mà không có hàng đang về thì gần như chắc chắn sẽ thiếu (SKU009 có 986 thùng đang về nên chỉ cần theo dõi).
 - **Biểu đồ "răng cưa"**: tồn giảm dần theo bán, chạm ROP thì đặt, hàng về thì vọt lên. Răng cưa chạm đáy (tồn = 0) là ngày hết hàng.
 
 **Kỹ năng dữ liệu**
@@ -355,18 +355,18 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 
 **Kiến thức logistics**
 - **Thử độ nhạy (sensitivity analysis / stress test):** giữ nguyên mọi thứ, chỉ đổi **một** yếu tố (lead time, chi phí) rồi xem kết quả thay đổi bao nhiêu. Mục đích: biết chính sách **gãy ở đâu** trước khi gặp ngoài đời.
-- **Cú sốc tạm thời khác thay đổi lâu dài.** Tắc cảng 3 tuần (hàng về trễ 7 ngày) chỉ làm Fill Rate giảm trung bình 1,5 điểm, vì tồn kho an toàn (SS) hấp thụ được một phần. Nhưng lead time dài thêm chỉ 2 ngày **cả năm** mà công thức vẫn dùng lead time cũ thì Fill Rate giảm 5,1 điểm, chi phí +52%: ví dụ SKU001 (lead time TB 5 ngày), ROP vẫn tính cho 5 ngày chờ trong khi thật ra phải chờ khoảng 7 ngày, nên lần nào cũng dễ thiếu.
-- **Tham số phải được cập nhật.** Cập nhật lead time mới vào công thức thì chỉ còn giảm 1,1 điểm. Đây là việc của người điều vận / mua hàng: theo dõi **lead time thực tế** từng nhà cung cấp (ngày đặt → ngày nhận), báo cho người lập kế hoạch khi nó thay đổi.
-- **Thời điểm nguy hiểm nhất là trước cao điểm.** Đợt tắc cảng trước Tết (hàng dự kiến về 21/01–10/02/2026) gây thiệt hại lớn nhất: Fill Rate −2,9 điểm, chi phí +24%.
-- **Chi phí lưu kho tăng phạt chính sách giữ nhiều hàng.** Khi H +15% (giá điện, kho lạnh), khoảng cách chi phí giữa chính sách AI và hiện trạng giãn từ 3,3% lên 6,7%, vì AI giữ tồn nhiều hơn 37%.
+- **Cú sốc tạm thời khác thay đổi lâu dài.** Tắc cảng 3 tuần (hàng về trễ 7 ngày) chỉ làm Fill Rate giảm trung bình 1,5 điểm, vì tồn kho an toàn (SS) hấp thụ được một phần. Nhưng lead time dài thêm chỉ 2 ngày **cả năm** mà công thức vẫn dùng lead time cũ thì Fill Rate giảm 5,1 điểm, chi phí +59%: ví dụ SKU001 (lead time TB 5 ngày), ROP vẫn tính cho 5 ngày chờ trong khi thật ra phải chờ khoảng 7 ngày, nên lần nào cũng dễ thiếu.
+- **Tham số phải được cập nhật.** Cập nhật lead time mới vào công thức thì chỉ còn giảm 0,4 điểm. Đây là việc của người điều vận / mua hàng: theo dõi **lead time thực tế** từng nhà cung cấp (ngày đặt → ngày nhận), báo cho người lập kế hoạch khi nó thay đổi.
+- **Thời điểm nguy hiểm nhất là trước cao điểm.** Đợt tắc cảng trước Tết (hàng dự kiến về 21/01–10/02/2026) gây thiệt hại lớn nhất: Fill Rate −2,5 điểm, chi phí +23%.
+- **Chi phí lưu kho tăng phạt chính sách giữ nhiều hàng.** Bản trước (tồn nhiều hơn hiện trạng 37%) khi H +15% thì đắt hơn hiện trạng 6,7%; bản cập nhật mỗi tuần tồn ngang hiện trạng nên khi H +15% vẫn rẻ hơn 11%.
 
 **Kỹ năng dữ liệu**
 - **Mỗi kịch bản chỉ đổi 1 yếu tố**, mọi thứ khác (nhu cầu, lead time ngẫu nhiên, dự báo) giống hệt; nếu không, không biết thay đổi do đâu.
 - **Không chọn đợt có lợi:** chạy tắc cảng ở **13 thời điểm** khác nhau trong năm, báo cả trung bình lẫn đợt xấu nhất. Chọn đúng 1 đợt là có thể (cố ý hoặc vô tình) chọn đợt làm kết quả đẹp.
 - **Kiểm tra kịch bản gốc trước:** chạy lại không đổi gì phải ra đúng kết quả cũ (script tự kiểm tra), để chắc chắn mọi chênh lệch là do cú sốc chứ không do lỗi code.
-- **So sánh bằng cả % và tiền:** chi phí của AI tăng nhiều hơn về % (+15% so với +9% của dự báo mốc) nhưng tính bằng tiền thì gần bằng (+1.022 so với +865 triệu đ) và AI vẫn rẻ hơn khoảng 2,5 tỷ. Chỉ nhìn % dễ kết luận sai.
+- **So sánh bằng cả % và tiền:** chi phí của AI tăng nhiều hơn về % (+18% so với +10% của dự báo mốc) nhưng tính bằng tiền thì gần bằng (+1.031 so với +869 triệu đ) và AI vẫn rẻ hơn khoảng 3,0 tỷ. Chỉ nhìn % dễ kết luận sai.
 
-**Liên hệ điều vận:** người điều vận là người **nhìn thấy cú sốc đầu tiên**: xe về trễ, cảng ùn, cước tăng. Kết quả này cho thấy giá trị của việc báo sớm: cùng một lần trễ, nếu người lập kế hoạch biết và cập nhật thì thiệt hại giảm từ −5,1 xuống −1,1 điểm Fill Rate.
+**Liên hệ điều vận:** người điều vận là người **nhìn thấy cú sốc đầu tiên**: xe về trễ, cảng ùn, cước tăng. Kết quả này cho thấy giá trị của việc báo sớm: cùng một lần trễ, nếu người lập kế hoạch biết và cập nhật thì thiệt hại giảm từ −5,1 xuống −0,4 điểm Fill Rate.
 
 **Câu hỏi tự kiểm tra**
 1. Vì sao lead time dài thêm 2 ngày cả năm lại nguy hiểm hơn tắc cảng 7 ngày trong 3 tuần?
@@ -377,7 +377,7 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 
 1. Tắc cảng chỉ ảnh hưởng một số lô trong 3 tuần, tồn an toàn đủ đỡ phần lớn. Lead time dài ra cả năm làm **mọi** lô đều về trễ hơn mức công thức tính, nên lần nào cũng thiếu; nhưng cập nhật tham số thì gần như hết vấn đề.
 2. Kết quả phụ thuộc thời điểm (trước Tết thiệt hại gấp đôi trung bình). Chạy nhiều đợt cho thấy bức tranh đầy đủ và tránh chọn đợt có lợi.
-3. "Em đã thử tắc cảng 3 tuần với hàng về trễ 3, 5, 7 ngày, ở 13 thời điểm khác nhau. Fill Rate giảm trung bình 0,5–1,5 điểm, đợt xấu nhất (trước Tết, trễ 7 ngày) giảm 2,9 điểm. Ở cả 13 đợt, chính sách AI + hiệu chỉnh vẫn có chi phí thấp nhất trong các chính sách theo công thức. Điểm cần lưu ý là nếu lead time thay đổi lâu dài thì phải cập nhật vào công thức, nếu không Fill Rate giảm 5 điểm."
+3. "Em đã thử tắc cảng 3 tuần với hàng về trễ 3, 5, 7 ngày, ở 13 thời điểm khác nhau. Fill Rate giảm trung bình 0,5–1,5 điểm, đợt xấu nhất (trước Tết, trễ 7 ngày) giảm 2,5 điểm. Ở cả 39 lần thử, chính sách dùng dự báo AI vẫn có chi phí thấp nhất. Điểm cần lưu ý là nếu lead time thay đổi lâu dài thì phải cập nhật vào công thức, nếu không Fill Rate giảm 5 điểm."
 </details>
 
 ## Bài 13. Trình bày dữ liệu: mỗi biểu đồ trả lời một câu hỏi
@@ -451,3 +451,30 @@ Mình đưa cho nó lịch lễ (ví dụ Tết bắt đầu tăng từ 28 ngày
 1. Người lập kế hoạch chịu trách nhiệm cho đơn hàng; thấy phép tính thì họ kiểm được (VD biết hàng đang về sắp tới nên có thể giảm số lượng), và hội đồng thấy hệ thống không phải "hộp đen".
 2. Nghĩa là giao diện tính theo công thức khác mô phỏng: con số người dùng thấy không khớp báo cáo, kết luận dựa trên "Thử nếu" không còn đáng tin. Vì vậy phải kiểm tái lập trước.
 </details>
+
+## Bài 16. Dự báo "gần đúng" nghĩa là gì: sàn sai số, khoảng dự báo và rủi ro
+
+**Kiến thức logistics**
+- **Có một mức sai số không thể giảm.** Lượng bán từng ngày luôn có phần ngẫu nhiên: dù biết đúng nhu cầu kỳ vọng, sai số theo ngày của từng mã vẫn khoảng 28–29%. Mô hình đạt 35,8% nghĩa là đã gần sàn; phần còn lại chủ yếu ở hàng mùa vụ (nhóm Z).
+- **"Gần đúng" = con số + khoảng.** Thay vì nói "ngày mai bán 433 thùng", nói "433 thùng, 80% khả năng trong 236–677". Khoảng này kiểm được: trên validation, đúng 79,7% số ngày rơi vào khoảng 80%.
+- **Gộp đúng mức ra quyết định thì chính xác hơn nhiều.** Với dự báo cập nhật mỗi tuần: theo ngày sai ~36%, theo tuần ~21%, theo tháng × nhóm XYZ ~8%. Đặt hàng dựa trên tổng nhu cầu trong thời gian chờ hàng (khoảng 80% chỉ rộng ±27%).
+- **Cập nhật dự báo mỗi tuần** (dùng số liệu mới nhất) giảm sai số từ 37,9% xuống 35,8%, giảm tồn kho 27% và chi phí 22% trên validation: quy trình quan trọng hơn mô hình phức tạp.
+- **Bảng rủi ro:** mỗi rủi ro có tần suất và mức tác động đo từ dữ liệu (nắng nóng: kem ×2,7; khuyến mãi ×1,5; đơn B2B ×6). Rủi ro biết trước (lễ, khuyến mãi) đưa vào mô hình; rủi ro không biết trước (bão, dịch, tin đồn) xử lý bằng khoảng dự báo và tồn kho an toàn.
+
+**Kỹ năng dữ liệu**
+- **Trung bình hay trung vị:** với nhu cầu lệch phải, con số làm sai số tuyệt đối (WMAPE) nhỏ nhất là trung vị, thấp hơn trung bình. Vì vậy "sửa lệch" ở khâu dự báo làm WMAPE tệ đi (B1 bị bỏ); lệch nên xử lý ở khâu tồn kho, nơi cần trung bình.
+- **Nhầm lẫn do trùng sự kiện:** bão Yagi rơi đúng mùa Trung thu nên đồ chơi "tăng ×6 khi có bão", thực ra do Trung thu. Khi hai sự kiện trùng nhau thì phải nói "không tách được", không được gán nhầm.
+- **Ít dữ liệu thì đừng học hệ số:** chỉ 1–2 trận bão thì hệ số học được dao động 0,7–3,0, áp vào trận sau còn tệ hơn không áp.
+- **Giữ test kín:** khi đã xem test nhiều lần, chọn và báo cáo trên validation, và mọi bước học từ sai số chỉ dùng quá khứ (mốc k chỉ học từ các mốc trước).
+
+**Câu hỏi tự kiểm tra**
+1. Vì sao không thể đòi dự báo theo ngày sai dưới 28% cho dữ liệu này?
+2. Khoảng 80% "đạt" nghĩa là gì, và vì sao có ngày thực tế nằm ngoài khoảng vẫn là bình thường?
+
+<details><summary>Gợi ý</summary>
+
+1. Vì nhu cầu mỗi ngày có phần ngẫu nhiên (như tung xúc xắc): ngay cả khi biết đúng mức trung bình, số bán thực tế vẫn dao động quanh mức đó, tạo ra sai số khoảng 28–29%.
+2. Nghĩa là khoảng 80% số lần thực tế rơi vào khoảng (đo được 79,7%). Khoảng 80% thì vẫn còn 20% số lần nằm ngoài — đó là đúng thiết kế, không phải lỗi.
+</details>
+
+**Cập nhật 01/11 (mở test, đưa vào hệ thống):** trên test, dự báo cập nhật mỗi tuần sai 35,6% theo ngày (bản 28 ngày 36,8%), khoảng 80% bao đúng 80,9% số ngày. Đưa vào tồn kho: chính sách AI + hiệu chỉnh tồn **ngang hiện trạng** (−0,7%) và chi phí **thấp hơn 9,8%**, trong khi bản 28 ngày tồn nhiều hơn 37%. Bài học: cách dùng dự báo (cập nhật thường xuyên, quy tắc đặt hàng hợp loại hàng) quan trọng không kém độ chính xác của mô hình.

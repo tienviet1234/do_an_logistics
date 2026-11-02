@@ -41,7 +41,7 @@ RULES = ["eoq", "dat_den_muc", "lai"]
 AI = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]   # chon o nap_database.MO_HINH_DUOC_CHON
 POLICIES = {   # ma -> (mo ta, mo hinh du bao, hieu chinh lech)
     "hien_trang": ("Hiện trạng trong dữ liệu (người lập kế hoạch biết trước nhu cầu kỳ vọng, lệch ±10%)", None, 0),
-    "cong_thuc_du_bao_moc": ("Công thức + dự báo mốc: trung bình trượt 28 ngày", "tb_truot_28", 0),
+    "cong_thuc_du_bao_moc": ("Công thức + dự báo mốc: trung bình trượt 28 ngày, cập nhật mỗi tuần", "tb_truot_28_tuan", 0),
     "cong_thuc_du_bao_ai": ("Công thức + dự báo AI: kết hợp LightGBM + Prophet theo nhóm", AI, 0),
     "cong_thuc_du_bao_ai_hc": ("Công thức + dự báo AI + hiệu chỉnh lệch theo nhóm XYZ (ước lượng trên validation)", AI, 1),
 }
@@ -94,7 +94,8 @@ def lead_time_matrix(sku, days, shocks):
 
 
 def forecasts(model, tap, sku, origin0):
-    """F[i, k, h]: du bao SKU i tai moc k cho ngay thu h+1 (moc k = origin0 + 28k)."""
+    """F[i, k, h]: du bao SKU i tai moc k cho ngay thu h+1; buoc = khoang cach giua 2 moc (28 ngay, hoac 7 ngay voi du bao
+    cap nhat moi tuan - docs/10 muc 9.6), lay tu du lieu."""
     d = doc("SELECT moc, ma_sku, ngay_thu, du_bao FROM du_bao WHERE ma_mo_hinh = ? AND tap = ?", (model, tap))
     origins = sorted(d.moc.unique())
     assert origins[0] == origin0.strftime("%Y-%m-%d"), f"moc dau {model}/{tap} khong khop"
@@ -102,7 +103,9 @@ def forecasts(model, tap, sku, origin0):
     oi = {o: k for k, o in enumerate(origins)}
     F = np.zeros((len(sku), len(origins), HORIZON))
     F[d.ma_sku.map(idx).values, d.moc.map(oi).values, d.ngay_thu.values - 1] = d.du_bao.values
-    return F
+    buoc = (pd.Timestamp(origins[1]) - pd.Timestamp(origins[0])).days if len(origins) > 1 else HORIZON
+    assert all((pd.Timestamp(b) - pd.Timestamp(a)).days == buoc for a, b in zip(origins, origins[1:])), "moc khong deu"
+    return F, buoc
 
 
 def validation_stats(model, sku, hieu_chinh):
@@ -126,7 +129,8 @@ def validation_stats(model, sku, hieu_chinh):
 
 
 # ------------------------------------------------------------------ mo phong 1 SKU
-def simulate(F, sigma, z, D, LTr, closed, onhand0, pipe0, S, H, moq, lt_tb, lt_std, rule):
+def simulate(F, sigma, z, D, LTr, closed, onhand0, pipe0, S, H, moq, lt_tb, lt_std, rule, buoc=HORIZON):
+    """buoc: khoang cach giua 2 moc du bao (mac dinh 28 = moi dot 28 ngay; GD E vong 4 thu 7 = cap nhat moi tuan)."""
     n = len(D)
     L = max(1, int(round(lt_tb)))
     onhand, pipe = float(onhand0), list(pipe0)
@@ -142,8 +146,8 @@ def simulate(F, sigma, z, D, LTr, closed, onhand0, pipe0, S, H, moq, lt_tb, lt_s
         onhand -= sold
         out["xuat"][t] = sold
         if not closed[t]:
-            k = min((t + 1) // HORIZON, F.shape[0] - 1)              # moc gan nhat da qua
-            f, st = F[k], t + 1 - HORIZON * k
+            k = min((t + 1) // buoc, F.shape[0] - 1)                 # moc gan nhat da qua
+            f, st = F[k], t + 1 - buoc * k
             fw = lambda m: (f[st:st + m] if st < HORIZON else f[-1:]).mean() * m   # du bao m ngay toi (trong pham vi moc)
             ltd = fw(L)
             ss = z * np.sqrt(sigma ** 2 + (ltd / L) ** 2 * lt_std ** 2)
@@ -178,7 +182,7 @@ def kpis(D, closed, r, nhap, xuat, ton):
 def run(inp, tap, pol, rule, levels, keep_daily=False):
     _, model, hc = POLICIES[pol]
     sku = inp["sku"]
-    F = forecasts(model, tap, sku, inp["origin0"])
+    F, buoc = forecasts(model, tap, sku, inp["origin0"])
     hs, sig = validation_stats(model, sku, hc)
     F = F * hs[:, None, None]
     res, params, daily = [], [], []
@@ -187,7 +191,8 @@ def run(inp, tap, pol, rule, levels, keep_daily=False):
         for i, r in enumerate(sku.itertuples()):
             ru = ("dat_den_muc" if r.xyz_train == "Z" else "eoq") if rule == "lai" else rule
             o = simulate(F[i], sig[i], z, inp["dem"][i], inp["LT"][i], inp["closed"], inp["init"][i], inp["pipe0"][i],
-                         r.chi_phi_dat_hang, r.ty_le_chi_phi_luu_kho * r.gia_von, r.moq, r.lead_time_tb, r.lead_time_std, ru)
+                         r.chi_phi_dat_hang, r.ty_le_chi_phi_luu_kho * r.gia_von, r.moq, r.lead_time_tb, r.lead_time_std, ru,
+                         buoc=buoc)
             res.append(dict(ma_chinh_sach=pol, muc_phuc_vu=lv, ma_sku=r.ma_sku,
                             **kpis(inp["dem"][i], inp["closed"], r, o["nhap"], o["xuat"], o["ton"])))
             params.append(dict(ma_chinh_sach=pol, muc_phuc_vu=lv, ma_sku=r.ma_sku, he_so_hieu_chinh=hs[i], sigma_ltd=sig[i],

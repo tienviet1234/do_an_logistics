@@ -1,0 +1,13 @@
+﻿rui_ro,nhan_dien,so_dot_moi_nam,so_ngay_tb_moi_dot,pt_ngay_trung_su_kien_lon,so_ma_bi_anh_huong,tac_dong_trung_vi,p10,p90,nhom_tang_manh,biet_truoc,he_thong_xu_ly
+Bão lũ,cửa sổ 3 ngày trước – 10 ngày sau ngày bão vào,2.0,14.0,45.0,117,1.08,0.74,1.84,"Thực phẩm khô ×1.45, Y tế & sức khỏe ×1.35",3–5 ngày (bản tin bão),B2: cảnh báo bão ngắn hạn; tồn kho an toàn
+Nắng nóng,cờ sự kiện của mã,1.5,9.7,0.0,118,1.09,0.79,1.98,"Kem & đông lạnh ×2.71, Đồ uống ×1.56",7–10 ngày (dự báo thời tiết),tồn kho an toàn; theo dõi
+Rét đậm,cờ sự kiện của mã,1.5,,100.0,0,,,,không tách được (trùng sự kiện lớn),7–10 ngày,tồn kho an toàn; theo dõi
+Dịch cúm,cờ sự kiện của mã,1.0,8.7,69.0,118,0.97,0.56,1.43,"Y tế & sức khỏe ×1.40, Phụ kiện ×1.14",vài ngày (tin y tế),tồn kho an toàn
+Sốt xuất huyết,cờ sự kiện của mã,1.0,27.0,37.0,118,0.94,0.55,1.3,"Văn phòng phẩm ×1.03, Hóa phẩm ×1.01",vài ngày,tồn kho an toàn
+Tin đồn tăng giá,cờ sự kiện của mã,1.0,7.0,0.0,118,0.97,0.6,1.56,"Phụ kiện ×1.27, Thực phẩm khô ×1.10",không biết trước,tồn kho an toàn; khoảng dự báo
+Giải thể thao lớn,cờ sự kiện của mã,1.0,30.0,,117,1.06,0.81,2.18,"Phụ kiện ×1.75, Mỹ phẩm ×1.39",hàng tháng (lịch thi đấu),đặc trưng biết trước của mô hình
+Tết Nguyên đán,cờ sự kiện của mã,1.0,36.0,,119,1.06,0.77,1.6,"Quà tặng ×1.53, Gia vị ×1.18",cả năm (âm lịch),đặc trưng biết trước + âm lịch (vòng 3)
+Khuyến mãi của mã,lịch khuyến mãi,3.8,7.9,,120,1.5,0.91,2.35,"Phụ kiện ×1.70, Sữa ×1.64",theo lịch bộ phận bán hàng gửi,đặc trưng biết trước
+Đơn B2B đột biến,đơn lớn 1–2 ngày,17.0,1.5,,23,6.23,2.63,10.61,"Sữa ×10.52, Thực phẩm khô ×9.19",không biết trước,không chấm vào dự báo; xử lý bằng đơn riêng
+Đứt gãy cung ứng (nhà cung cấp chậm),bảng sự kiện đột biến,1.0,15.0,,18,,,,lead time +9–10 ngày,vài ngày (nhà cung cấp báo),thử độ nhạy lead time; cập nhật lead time vào công thức
+Hết hàng (số bán thấp hơn nhu cầu thật),cột hết hàng,,,,114,,,,"3.0% ngày-mã; X 3.4%, Y 3.8%, Z 1.9%",—,bỏ khỏi huấn luyện và chấm điểm (không coi là nhu cầu)

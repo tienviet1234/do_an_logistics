@@ -38,11 +38,20 @@ def hang_dang_ve(m, lead_time_tb, gd):
     return m.ma_sku.map(gd.groupby("ma_sku").qty_in.sum()).fillna(0) + by.dat_hang.cumsum().fillna(0) - by.nhap.cumsum()
 
 
-def de_xuat_ngay(f, st, L, sigma, z, lt_std, S, H, moq, ip):
-    """SS, ROP, EOQ va luong dat cua 1 SKU tai 1 ngay, CUNG cong thuc ton_kho.simulate (quy tac eoq) - dung cho "Thu neu..."
-    o dashboard (doi muc phuc vu z, lead time L). Kiem tra tai lap: so voi mo_phong_ngay (rop, dat_hang).
-    f: du bao 28 ngay cua dot dang dung (da nhan he so hieu chinh); st: vi tri ngay mai trong dot (1..28);
-    sigma: do lech chuan sai so du bao trong L ngay; ip: trong kho + dang ve, chua tinh don hom nay."""
+def quy_tac_cua_ma(quy_tac_chinh_sach, xyz):
+    """Quy tac luong dat ap cho 1 ma (nhu ton_kho.run): 'lai' = dat_den_muc cho nhom Z, eoq cho X / Y."""
+    if quy_tac_chinh_sach == "lai":
+        return "dat_den_muc" if xyz == "Z" else "eoq"
+    return quy_tac_chinh_sach
+
+
+def de_xuat_ngay(f, st, L, sigma, z, lt_std, S, H, moq, ip, quy_tac="eoq", r_cover=7):
+    """SS, ROP, EOQ va luong dat cua 1 SKU tai 1 ngay, CUNG cong thuc ton_kho.simulate - dung cho "Thu neu..." o dashboard
+    (doi muc phuc vu z, lead time L). Kiem tra tai lap: so voi mo_phong_ngay (rop, dat_hang).
+    f: du bao 28 ngay cua dot dang dung (da nhan he so hieu chinh); st: vi tri ngay mai trong dot;
+    sigma: do lech chuan sai so du bao trong L ngay; ip: trong kho + dang ve, chua tinh don hom nay;
+    quy_tac: 'eoq' (boi so cua max(EOQ, MOQ)) hoac 'dat_den_muc' (dat du L + r_cover ngay + SS, toi thieu MOQ;
+    r_cover = ton_kho.R_COVER)."""
     fw = lambda m: (f[st:st + m] if st < len(f) else f[-1:]).mean() * m
     ltd = fw(L)
     ss = z * np.sqrt(sigma ** 2 + (ltd / L) ** 2 * lt_std ** 2)
@@ -51,9 +60,27 @@ def de_xuat_ngay(f, st, L, sigma, z, lt_std, S, H, moq, ip):
     eoq = np.sqrt(2 * dbar * 365 * S / H) if dbar > 0 else 0.0
     dat = 0.0
     if ip <= rop:
-        q = max(eoq, moq)
-        dat = float(np.ceil((np.floor((rop - ip) / q) + 1) * q))
+        if quy_tac == "eoq":
+            q = max(eoq, moq)
+            dat = float(np.ceil((np.floor((rop - ip) / q) + 1) * q))
+        else:                                                # dat_den_muc
+            dat = float(np.ceil(max(moq, fw(L + r_cover) + ss - ip)))
     return dict(ss=ss, rop=rop, eoq=eoq, dat=dat, ltd=ltd)
+
+
+def chia_lop_mau(so_dem):
+    """Chia cac so dem > 0 thanh toi da 4 lop mau theo phan vi (moi lop deu co ngay, ke ca khi loc con it ma).
+    Tra ve [(tu, den), ...] lien tiep, phu tu 1 den gia tri lon nhat; khong co so nao > 0 -> []."""
+    v = np.asarray(so_dem, dtype=float)
+    v = v[v > 0]
+    if not len(v):
+        return []
+    moc = sorted({int(np.ceil(np.quantile(v, q))) for q in (0.4, 0.75, 0.95)} | {int(v.max())})
+    lop, tu = [], 1
+    for den in moc:
+        lop.append((tu, den))
+        tu = den + 1
+    return lop
 
 
 TRANG_THAI = ["Hết hàng", "Đặt hàng hôm nay", "Dưới ROP, hàng đang về", "Đủ hàng"]   # thu tu uu tien

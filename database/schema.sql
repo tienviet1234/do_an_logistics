@@ -156,6 +156,7 @@ CREATE TABLE du_bao (
     ngay_thu            INTEGER NOT NULL CHECK (ngay_thu BETWEEN 1 AND 28),
     du_bao              REAL NOT NULL CHECK (du_bao >= 0),
     thuc_te             REAL,                   -- nhu cau tin duoc (NULL = ngay khong cham)
+    thap_80 REAL, cao_80 REAL, thap_95 REAL, cao_95 REAL,   -- khoang du bao 80% / 95% (chi mo hinh co, docs/10 muc 9.6)
     PRIMARY KEY (ma_mo_hinh, tap, moc, ngay, ma_sku),
     CHECK (ngay > moc)                          -- khong du bao qua khu
 );
@@ -186,16 +187,20 @@ SELECT g.ngay, g.ma_sku, s.ten_sku, s.nhom_hang, g.qty_in, g.qty_out, g.ton_cuoi
                WHERE k.ma_sku = g.ma_sku AND g.ngay BETWEEN k.tu_ngay AND k.den_ngay) AS khuyen_mai
 FROM giao_dich_sach g JOIN dm_sku s USING (ma_sku);
 
--- Du bao cua mo hinh duoc chon, so voi thuc te
+-- Du bao cua mo hinh duoc chon, so voi thuc te. Moi ngay chi lay BAN MOI NHAT (mo hinh cap nhat moi tuan co nhieu moc
+-- du bao cung 1 ngay; cong tat ca se dem trung).
 CREATE VIEW v_du_bao_chon AS
-SELECT d.moc, d.ngay, d.ma_sku, s.ten_sku, s.nhom_hang, p.xyz_train, d.ngay_thu,
-       ROUND(d.du_bao, 1) AS du_bao, d.thuc_te,
-       ROUND(d.thuc_te - d.du_bao, 1) AS sai_so
-FROM du_bao d
-JOIN mo_hinh m ON m.ma_mo_hinh = d.ma_mo_hinh AND m.duoc_chon = 1
-JOIN dm_sku s ON s.ma_sku = d.ma_sku
-JOIN phan_loai_sku p ON p.ma_sku = d.ma_sku
-WHERE d.tap = 'test';
+SELECT moc, ngay, ma_sku, ten_sku, nhom_hang, xyz_train, ngay_thu, du_bao, thuc_te, sai_so, thap_80, cao_80, thap_95, cao_95
+FROM (SELECT d.moc, d.ngay, d.ma_sku, s.ten_sku, s.nhom_hang, p.xyz_train, d.ngay_thu,
+             ROUND(d.du_bao, 1) AS du_bao, d.thuc_te, ROUND(d.thuc_te - d.du_bao, 1) AS sai_so,
+             ROUND(d.thap_80, 1) AS thap_80, ROUND(d.cao_80, 1) AS cao_80, ROUND(d.thap_95, 1) AS thap_95, ROUND(d.cao_95, 1) AS cao_95,
+             ROW_NUMBER() OVER (PARTITION BY d.ngay, d.ma_sku ORDER BY d.ngay_thu) AS thu_tu
+      FROM du_bao d
+      JOIN mo_hinh m ON m.ma_mo_hinh = d.ma_mo_hinh AND m.duoc_chon = 1
+      JOIN dm_sku s ON s.ma_sku = d.ma_sku
+      JOIN phan_loai_sku p ON p.ma_sku = d.ma_sku
+      WHERE d.tap = 'test')
+WHERE thu_tu = 1;
 
 -- Bang xep hang mo hinh tren tap test
 CREATE VIEW v_xep_hang_mo_hinh AS

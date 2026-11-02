@@ -48,12 +48,13 @@ def load(path=FEAT):
     return df
 
 
-def folds(kind="test"):
-    """Danh sach moc du bao (origin). Du bao cho origin+1 ... origin+HORIZON."""
+def folds(kind="test", step=STEP):
+    """Danh sach moc du bao (origin). Du bao cho origin+1 ... origin+HORIZON. step: khoang cach giua 2 moc
+    (mac dinh 28 ngay; GD E vong 4 thu cap nhat moi 7 ngay)."""
     start, end = {"test": (TRAIN_END, DATA_END), "validation2": (VAL2_START, TRAIN_END)}.get(kind, (VAL_START, TRAIN_END))
     out, o = [], start
     while o + pd.Timedelta(days=HORIZON) <= end:
-        out.append(o); o += pd.Timedelta(days=STEP)
+        out.append(o); o += pd.Timedelta(days=step)
     return out
 
 

@@ -14,9 +14,18 @@ from danh_gia import load, score, score_week  # noqa: E402
 kind = sys.argv[1] if len(sys.argv) > 1 else "test"
 df = load()
 preds = {}
+def ban_moi_nhat(p):
+    """Mo hinh cap nhat moi tuan co nhieu moc cung du bao 1 ngay -> cham tren ban moi nhat moi ngay (cach dung that,
+    docs/10 muc 9.6); mo hinh moc 28 ngay giu nguyen."""
+    moc = sorted(p.moc.unique())
+    if len(moc) > 1 and (pd.Timestamp(moc[1]) - pd.Timestamp(moc[0])).days < 28:
+        p = p.sort_values("ngay_thu").drop_duplicates(["date", "ma_sku"])
+    return p
+
+
 for f in sorted(glob.glob(f"reports/du_bao/*_{kind}.csv")):
     name = os.path.basename(f)[: -len(f"_{kind}.csv")]
-    preds[name] = pd.read_csv(f, parse_dates=["date", "moc"])
+    preds[name] = ban_moi_nhat(pd.read_csv(f, parse_dates=["date", "moc"]))
 if not preds:
     sys.exit(f"Chua co du bao nao cho tap {kind}")
 

@@ -55,12 +55,14 @@ ghi(ngay, "dim_ngay")
 
 # ------------------------------------------------------------------ bang su kien (fact)
 chon = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]
-d = doc("""SELECT ma_mo_hinh, moc, ngay, ma_sku, du_bao, thuc_te FROM du_bao
-           WHERE tap = 'test' AND ma_mo_hinh IN (?, 'tb_truot_28')""", (chon,))
-db = d.pivot_table(index=["ngay", "ma_sku", "moc"], columns="ma_mo_hinh", values="du_bao").reset_index()
-db = db.rename(columns={chon: "du_bao_ai", "tb_truot_28": "du_bao_moc"})
-db = db.merge(d[d.ma_mo_hinh == chon][["ngay", "ma_sku", "thuc_te"]], on=["ngay", "ma_sku"])
-ghi(db[["ngay", "ma_sku", "moc", "thuc_te", "du_bao_ai", "du_bao_moc"]], "fact_du_bao")
+MOC = "tb_truot_28_tuan"     # du bao moc cap nhat moi tuan nhu mo hinh chon (docs/10 muc 9.6)
+d = doc("""SELECT ma_mo_hinh, moc, ngay, ngay_thu, ma_sku, du_bao, thuc_te, thap_80, cao_80 FROM du_bao
+           WHERE tap = 'test' AND ma_mo_hinh IN (?, ?)""", (chon, MOC))
+d = d.sort_values("ngay_thu").drop_duplicates(["ma_mo_hinh", "ngay", "ma_sku"])     # moi ngay 1 dong: ban moi nhat
+db = d.pivot(index=["ngay", "ma_sku"], columns="ma_mo_hinh", values="du_bao").reset_index()
+db = db.rename(columns={chon: "du_bao_ai", MOC: "du_bao_moc"})
+db = db.merge(d[d.ma_mo_hinh == chon][["ngay", "ma_sku", "moc", "thuc_te", "thap_80", "cao_80"]], on=["ngay", "ma_sku"])
+ghi(db[["ngay", "ma_sku", "moc", "thuc_te", "du_bao_ai", "du_bao_moc", "thap_80", "cao_80"]], "fact_du_bao")
 
 mp[["dat_hang", "rop"]] = mp[["dat_hang", "rop"]].astype(float)
 gd = doc("SELECT ngay, ma_sku, qty_in FROM giao_dich_sach WHERE ngay >= ? AND ngay < date(?, '+60 day')",

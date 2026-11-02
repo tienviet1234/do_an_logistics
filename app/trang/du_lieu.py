@@ -73,7 +73,7 @@ b.markdown(
 
 C.muc("Hệ thống chạy thế nào", "mỗi bước là một script chạy lại được trong src/")
 buoc = [("Ghi nhận", "nhập – xuất – tồn hằng ngày", "lam_sach.py"), ("Đặc trưng", "lịch lễ, mùa, khuyến mãi, trễ", "dac_trung.py"),
-        ("Dự báo 28 ngày", f"{cm.ma_mo_hinh}", "nang_cap_du_bao.py"), ("SS · ROP · EOQ", "theo mức phục vụ", "ton_kho.py"),
+        ("Dự báo 28 ngày, cập nhật mỗi tuần", f"{cm.ma_mo_hinh}", "nang_cap_du_bao_v4.py"), ("SS · ROP · EOQ", "theo mức phục vụ", "ton_kho.py"),
         ("Cảnh báo, đề xuất", "người lập kế hoạch duyệt", "app/dashboard.py")]
 C.o_hang([(f"Bước {i + 1}", t_, f"{p_} · {f_}", False) for i, (t_, p_, f_) in enumerate(buoc)])
 
@@ -101,7 +101,7 @@ re_ = alt.Chart(tuan).mark_rule(color=C.MUC2).encode(
     x="ngay:T", opacity=alt.condition(gan, alt.value(0.7), alt.value(0)),
     tooltip=[alt.Tooltip("ngay:T", title="Tuần từ", format="%d/%m/%Y"), alt.Tooltip("trieu:Q", title="Triệu đồng", format=",.0f")]
 ).add_params(gan)
-st.altair_chart(alt.layer(nen, nen_txt, duong, moc, re_).properties(height=280), use_container_width=True)
+C.ve_bd(alt.layer(nen, nen_txt, duong, moc, re_).properties(height=280))
 dinh = tuan.loc[tuan.trieu.idxmax()]
 tet = sk[sk.su_kien == "Tết"].ngay
 cach_tet = (tet[tet >= dinh.ngay] - dinh.ngay).dt.days.min()
@@ -125,7 +125,7 @@ with c1:
                  alt.Tooltip("chi_so:Q", title="So với bình thường (lần)", format=".2f")])
     chu = base.mark_text(fontSize=10, fontWeight=600).encode(
         text="nhan:N", color=alt.condition(alt.datum.chi_so >= 3, alt.value("white"), alt.value(C.MUC)))
-    st.altair_chart((o + chu).properties(height=420), use_container_width=True)
+    C.ve_bd((o + chu).properties(height=420))
     top = hm.loc[hm.groupby("nhom_hang").chi_so.idxmax()].sort_values("chi_so", ascending=False).head(3)
     C.ghi("đỏ = bán nhiều hơn bình thường (ô ghi ×2 trở lên), xanh = ít hơn.",
           "mạnh nhất: " + "; ".join(f"{r.nhom_hang} tháng {r.thang} ×{vn(r.chi_so)}" for r in top.itertuples())
@@ -139,7 +139,7 @@ with c2:
                                                               alt.Tooltip("chi_so:Q", title="Lần", format=".2f")])
     nh = bb.mark_text(dy=-8, color=C.MUC, fontSize=11, fontWeight=600).encode(text=alt.Text("chi_so:Q", format=".2f"))
     mot = alt.Chart(pd.DataFrame({"y": [1]})).mark_rule(color=C.PHIEU, strokeDash=[4, 3]).encode(y="y:Q")
-    st.altair_chart((cot + nh + mot).properties(height=190), use_container_width=True)
+    C.ve_bd((cot + nh + mot).properties(height=190))
     cn, cao = thu.chi_so.iloc[6], thu.loc[thu.chi_so.idxmax()]
     C.ghi("cột cao = bán nhiều hơn ngày trung bình.",
           f"Chủ nhật chỉ {vn(cn, 2)}, {THU[int(cao.thu)]} cao nhất ({vn(cao.chi_so, 2)}): xếp ca, lịch nhận – giao nhiều hơn cuối tuần.")
@@ -149,7 +149,7 @@ with c2:
         x=alt.X("tang:Q", bin=alt.Bin(step=20, extent=[-60, 260]), title="Bán tăng so với ngày thường cùng tháng (%)"),
         y=alt.Y("count():Q", title="Số đợt"), tooltip=[alt.Tooltip("count():Q", title="Số đợt")])
     tv = alt.Chart(pd.DataFrame({"x": [tang.median()]})).mark_rule(color=C.MUC, strokeWidth=2).encode(x="x:Q")
-    st.altair_chart((hist + tv).properties(height=170), use_container_width=True)
+    C.ve_bd((hist + tv).properties(height=170))
     C.ghi("mỗi cột là số đợt theo mức bán tăng; vạch đen là trung vị.",
           f"một nửa số đợt tăng ít nhất {vn(tang.median(), 0)}%, 1/4 số đợt từ {vn(tang.quantile(0.75), 0)}% trở lên.")
 
@@ -165,15 +165,17 @@ with c1:
                  alt.Tooltip("pt:Q", title="% giá trị xuất", format=".1f")])
     chu = base.mark_text(lineBreak="\n", fontSize=12, fontWeight=600).encode(
         text="nhan:N", color=alt.condition(alt.datum.pt >= 30, alt.value("white"), alt.value(C.MUC)))
-    st.altair_chart((o + chu).properties(height=250), use_container_width=True)
+    C.ve_bd((o + chu).properties(height=250))
     ax = abcxyz[(abcxyz.abc == "A") & (abcxyz.xyz == "X")].iloc[0]
     C.ghi("màu càng đậm càng nhiều giá trị.",
           f"{ax.so_ma} mã A-X ({vn(100 * ax.so_ma / abcxyz.so_ma.sum(), 0)}% số mã) chiếm {vn(ax.pt)}% giá trị: bán nhiều và ổn định → "
           "nên tự động hóa đặt hàng nhóm này trước.")
 with c2:
     C.muc("Mô hình dự báo nào chính xác nhất", "WMAPE năm kiểm tra, thấp = tốt")
-    TEN_MH = {cm.ma_mo_hinh: "AI kết hợp (được chọn)", "lightgbm": "LightGBM (AI)", "prophet": "Prophet (AI)",
-              C.MOC: "Trung bình 28 ngày", "croston_sba": "Croston (bán thưa)", "tsb": "TSB (bán thưa)",
+    TEN_MH = {cm.ma_mo_hinh: "AI kết hợp, cập nhật tuần (được chọn)", "ket_hop_v3": "AI kết hợp, cập nhật 28 ngày",
+              "lightgbm": "LightGBM (AI)", "prophet": "Prophet (AI)", "lstm_tuan": "LSTM (học sâu, không được chọn)", "rnn_tuan": "RNN (học sâu, không được chọn)",
+              C.MOC: "Trung bình 28 ngày, cập nhật tuần",
+              "tb_truot_28": "Trung bình 28 ngày, cập nhật 28 ngày", "croston_sba": "Croston (bán thưa)", "tsb": "TSB (bán thưa)",
               "ets": "ETS / Holt-Winters", "naive": "Lấy ngày gần nhất", "seasonal_naive_7": "Lặp lại tuần trước"}
     xh = C.q("SELECT ma_mo_hinh, wmape FROM v_xep_hang_mo_hinh WHERE pham_vi = 'Toan bo 121 SKU'")
     xh = xh[xh.ma_mo_hinh.isin(TEN_MH)].assign(ten=lambda f: f.ma_mo_hinh.map(TEN_MH), pt=lambda f: f.wmape * 100)
@@ -184,9 +186,10 @@ with c2:
         color=alt.Color("loai:N", scale=alt.Scale(domain=["chon", "moc", "khac"], range=[C.C_AI, C.C_MOC, "#c3c9cd"]), legend=None),
         tooltip=[alt.Tooltip("ten:N", title="Mô hình"), alt.Tooltip("pt:Q", title="WMAPE (%)", format=".1f")])
     nh = base.mark_text(align="left", dx=4, color=C.MUC, fontSize=11, fontWeight=600).encode(text=alt.Text("pt:Q", format=".1f"))
-    st.altair_chart((cot + nh).properties(height=300), use_container_width=True)
+    C.ve_bd((cot + nh).properties(height=300))
     w_ai, w_moc = xh.set_index("ma_mo_hinh").pt[[cm.ma_mo_hinh, C.MOC]]
-    C.ghi("WMAPE = tổng |thực tế − dự báo| ÷ tổng thực tế, theo ngày, 12 tháng kiểm tra. Mô hình chọn trên validation, test chạy một lần.",
+    C.ghi("WMAPE = tổng |thực tế − dự báo| ÷ tổng thực tế, theo ngày, 12 tháng kiểm tra. Mô hình chọn trên validation, test chạy một lần. "
+          "Bản cập nhật tuần chấm trên bản dự báo mới nhất cho mỗi ngày (cách dùng thật).",
           f"AI sai {vn(w_ai)}%, trung bình 28 ngày sai {vn(w_moc)}%: AI giảm {vn((1 - w_ai / w_moc) * 100, 0)}% sai số.")
 
 C.muc("Công thức đặt hàng", "tính lại mỗi ngày theo dự báo")
@@ -196,6 +199,7 @@ st.markdown(
     "σ_LT = độ lệch chuẩn lead time.\n"
     "- **ROP** (điểm đặt hàng) = nhu cầu dự báo trong lead time + SS. Khi trong kho + hàng đang về ≤ ROP thì đặt hàng.\n"
     "- **EOQ** (lượng đặt kinh tế) = √(2 × D × S / H): D = nhu cầu năm, S = chi phí 1 lần đặt, H = chi phí lưu kho 1 đơn vị/năm. "
-    "Lượng đặt = bội số của max(EOQ, MOQ).\n"
+    "Hàng ổn định (X, Y): lượng đặt = bội số của max(EOQ, MOQ). Hàng mùa vụ (Z): đặt bù đến mức = dự báo (lead time + 7 ngày) "
+    "+ SS − (trong kho + đang về), tối thiểu MOQ (quy tắc \"lai\", chọn trên validation vì EOQ giả định nhu cầu đều).\n"
     f"- **Dự báo:** mô hình `{cm.ma_mo_hinh}`, kết hợp LightGBM (dự báo theo tầm, lịch sự kiện / âm lịch) với Prophet theo "
     "nhóm XYZ; trọng số chọn trên validation, test chạy một lần.")

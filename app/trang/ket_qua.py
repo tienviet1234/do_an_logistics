@@ -69,7 +69,6 @@ C.muc("Bốn chỉ số chính", "bấm một chính sách để tô đậm ở 
 KPI = [("fr", "Fill Rate (%)", ".2f"), ("thieu", "Ngày-mã thiếu hàng", ",.0f"), ("ton", "Tồn kho TB (triệu đ)", ",.0f"),
        ("cp", "Chi phí liên quan (triệu đ)", ",.0f")]
 mau_cs = alt.Scale(domain=CS, range=[C.CS_MAU[c] for c in CS])
-chon = None
 for col, (cot_, ten, _) in zip(st.columns(4, gap="medium"), KPI):
     # 1 bieu do 1 lop moi chi so (Streamlit 1.45 chi cho chon tren bieu do 1 lop); so lieu ghi ngay tren nhan truc
     dd = v[[cot_]].rename(columns={cot_: "so"}).reset_index()
@@ -83,14 +82,9 @@ for col, (cot_, ten, _) in zip(st.columns(4, gap="medium"), KPI):
         opacity=alt.condition(alt.datum.ma_chinh_sach == s.cs, alt.value(1), alt.value(0.3)),
         tooltip=[alt.Tooltip("nhan:N", title=ten)]).add_params(sel)
     col.markdown(f'<span class="nhan">{ten}</span>', unsafe_allow_html=True)
-    ev = col.altair_chart(C.theo_du_lieu(bd.properties(height=150), lv, s.abc, s.xyz, s.cs), use_container_width=True,
-                          on_select="rerun",
-                          selection_mode="chon_cs", key=f"cs_{cot_}_{lv}_{''.join(s.abc)}_{''.join(s.xyz)}_{s.cs}")   # du lieu doi -> khoa doi
-    chon = C.chon_tu_bieu_do(ev, "chon_cs", "ma_chinh_sach", f"_cs_cu_{cot_}") or chon
-if chon == "hien_trang":
-    st.toast("Hiện trạng* không dùng công thức nên không chọn được làm chính sách cho các màn khác.")
-elif chon:
-    C.doi_chinh_sach(chon)
+    khoa_cs = f"cs_{cot_}_{lv}_{''.join(s.abc)}_{''.join(s.xyz)}_{s.cs}"                  # du lieu doi -> khoa doi
+    with col:
+        C.ve_bd(bd.properties(height=150), selection_mode="chon_cs", key=khoa_cs, on_select=lambda k=khoa_cs: C.khi_chon_cs(k))
 C.ghi("mỗi khung một chỉ số, thanh dài hơn = giá trị lớn hơn (Fill Rate: lớn là tốt; ba chỉ số còn lại: nhỏ là tốt). "
       "Thanh đậm là chính sách đang chọn ở đầu phiếu.",
       f"chính sách rẻ nhất (chi phí liên quan) với nhóm đang lọc: {C.CS_NGAN[v.cp.idxmin()]}; "
@@ -114,14 +108,61 @@ diem = alt.Chart(x).mark_point(filled=True, size=150, opacity=1, stroke=C.MUC, s
              alt.Tooltip("fr:Q", title="Fill Rate (%)", format=".1f"), alt.Tooltip("ton:Q", title="Tồn TB (tr đ)", format=",.0f"),
              alt.Tooltip("ln:Q", title="Lợi nhuận mất (tr đ)", format=",.0f")])
 nhan = alt.Chart(x).mark_text(align="left", dx=10, dy=-9, fontSize=11, color=C.MUC2).encode(x="ton:Q", y="fr:Q", text="ten:N")
-st.altair_chart(C.theo_du_lieu((diem + nhan).properties(width=380, height=260).facet(
+C.ve_bd((diem + nhan).properties(width=380, height=260).facet(
     column=alt.Column("nhom:N", title=None, header=alt.Header(labelFontSize=13, labelAnchor="start"))
-).resolve_scale(x="independent", y="independent"), lv, s.abc, s.xyz))
+).resolve_scale(x="independent", y="independent"), use_container_width=False)
 if "Z" in set(x.xyz_train):
     z = x[x.xyz_train == "Z"].set_index("ma_chinh_sach")
     C.ghi("mỗi dấu là một chính sách; mỗi khung một nhóm, trục riêng.",
           f"nhóm Z: AI + hiệu chỉnh giữ tồn {vn(z.ton[C.CS_GOI_Y] / z.ton['hien_trang'], 1)} lần hiện trạng để đáp ứng "
-          f"{vn(z.fr[C.CS_GOI_Y])}%: hàng chỉ bán dịp lễ làm công thức EOQ đặt quá tay (hạn chế đã nêu ở báo cáo).")
+          f"{vn(z.fr[C.CS_GOI_Y])}% (hiện trạng {vn(z.fr['hien_trang'])}%). Với quy tắc chọn trên validation, nhóm Z đặt bù đến mức "
+          "(đủ bán đến lần đặt sau) thay vì EOQ, nên không còn đặt quá tay hàng chỉ bán dịp lễ như bản 28 ngày.")
+
+# ------------------------------------------------------------------ chi so kho: von dong trong hang ton
+C.muc("Chỉ số kho", f"mức phục vụ {lv:.0%} · vòng quay càng cao, số ngày tồn càng thấp thì vốn càng ít bị đọng")
+gia = C.ds_sku().set_index("ma_sku")
+k_kho = k.assign(gia_von=k.ma_sku.map(gia.gia_von), xyz=k.ma_sku.map(gia.xyz_train))
+n_ngay = C.so_ngay_mo_phong()
+kho = C.chi_so_theo_nhom(k_kho, ["ma_chinh_sach"], n_ngay).reindex(CS)
+du_ma = {c: C.ton_du(c).pipe(lambda f: f[f.ma_sku.isin(ids)]) for c in CS}
+du_cs = pd.DataFrame({c: {"du": du_ma[c].du_tb.sum() / 1e6, "tl": 100 * du_ma[c].du_tb.sum() / max(du_ma[c].ton_tb.sum(), 1)} for c in CS}).T
+dong = ""
+for c in CS:
+    r, d = kho.loc[c], du_cs.loc[c]
+    ten = C.CS_TEN[c].replace(" (đề xuất)", "") + (f"&nbsp; {C.dau('Đề xuất', 'la', 'duyet')}" if c == C.CS_GOI_Y else "")
+    dong += (f'<tr{" class=chon" if c == s.cs else ""}><td>{ten}</td><td>{vn(r.vong_quay)}</td><td>{vn(r.doh)}</td>'
+             f'<td>{vn(d.du)}</td><td>{vn(d.tl)}%</td></tr>')
+st.markdown(f'<div class="bang-cuon"><table class="phieu"><tr><th>Chính sách</th><th>Vòng quay (lần/năm)</th><th>Số ngày tồn kho</th>'
+            f'<th>Tồn dư TB, mức 95% (triệu đ)</th><th>Tồn dư / tồn kho</th></tr>{dong}</table></div>', unsafe_allow_html=True)
+st.write("")
+theo_xyz = C.chi_so_theo_nhom(k_kho, ["ma_chinh_sach", "xyz"], n_ngay).reset_index()
+nhom_co = [n for n in ["X", "Y", "Z"] if n in set(theo_xyz.xyz)]
+TEN_XYZ = {"X": "X, ổn định", "Y": "Y, dao động vừa", "Z": "Z, mùa vụ"}
+for col, n in zip(st.columns(len(nhom_co), gap="medium"), nhom_co):
+    with col:
+        st.markdown(f'<div class="nhan-bd"><b>Nhóm {TEN_XYZ[n]}</b><span>số ngày tồn kho</span></div>', unsafe_allow_html=True)
+        f = theo_xyz[theo_xyz.xyz == n].assign(ten=lambda t: t.ma_chinh_sach.map(C.CS_NGAN), nhan=lambda t: t.doh.map(vn))
+        goc = alt.Chart(f).encode(y=alt.Y("ten:N", title=None, sort=[C.CS_NGAN[c] for c in CS], axis=alt.Axis(ticks=False, domain=False, labelLimit=120)),
+                                  x=alt.X("doh:Q", title=None, axis=None, scale=alt.Scale(domain=[0, f.doh.replace(np.inf, 0).max() * 1.35 or 1])))
+        bd = (goc.mark_bar(size=16, cornerRadiusEnd=3).encode(color=alt.Color("ma_chinh_sach:N", scale=mau_cs, legend=None)) +
+              goc.mark_text(align="left", dx=5, color=C.MUC, fontWeight=600, fontSize=12).encode(text="nhan:N")).properties(height=140)
+        C.ve_bd(bd)
+top = du_ma[s.cs].sort_values("du_tb", ascending=False).head(10)
+top = top.assign(ten=top.ma_sku.map(gia.ten_sku), xyz=top.ma_sku.map(gia.xyz_train), du=top.du_tb / 1e6, ton=top.ton_tb / 1e6)
+tong_du = du_ma[s.cs].du_tb.sum()
+C.muc("Hàng tồn dư nhiều nhất", f"{C.CS_NGAN[s.cs]} · mức phục vụ 95%, trung bình cả năm kiểm tra")
+st.dataframe(top[["ma_sku", "ten", "xyz", "du", "ton"]], hide_index=True, use_container_width=True, height=38 + 35 * len(top), column_config={
+    "ma_sku": st.column_config.TextColumn("Mã", width="small"), "ten": st.column_config.TextColumn("Tên hàng", width="large"),
+    "xyz": st.column_config.TextColumn("XYZ", width="small"),
+    "du": st.column_config.NumberColumn("Tồn dư TB (triệu đ)", format="%.1f"), "ton": st.column_config.NumberColumn("Tồn kho TB (triệu đ)", format="%.1f")})
+if "Z" in nhom_co and "X" in nhom_co:
+    z, x_ = theo_xyz[(theo_xyz.ma_chinh_sach == s.cs) & (theo_xyz.xyz == "Z")].doh.iloc[0], theo_xyz[(theo_xyz.ma_chinh_sach == s.cs) & (theo_xyz.xyz == "X")].doh.iloc[0]
+    them = f"Chính sách đang chọn giữ hàng nhóm Z {vn(z)} ngày so với {vn(x_)} ngày của nhóm X. "
+else:
+    them = ""
+C.ghi("vòng quay = giá vốn hàng xuất quy ra 1 năm ÷ tồn kho bình quân; số ngày tồn kho = tồn kho bình quân ÷ giá vốn hàng xuất 1 ngày. "
+      "Tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày kế tiếp (nhìn lại để chấm, không dùng để ra quyết định), bỏ 28 ngày cuối kỳ.",
+      f"{them}10 mã trong bảng chiếm {vn(100 * top.du_tb.sum() / max(tong_du, 1), 0)}% tồn dư.")
 
 # ------------------------------------------------------------------ thu do nhay
 C.muc("Thử độ nhạy: nếu hàng về trễ hoặc chi phí tăng", "mức phục vụ 95% · so với kịch bản bình thường")
@@ -152,8 +193,9 @@ for col, cot_, ten, dv in [(c1, "d_fr", "Fill Rate thay đổi (điểm %)", "đ
                              x=alt.X(f"{cot_}:Q", title=ten, scale=alt.Scale(nice=True, padding=30)))
     ch = (bb.mark_bar(height=20).encode(color=alt.Color("ma_chinh_sach:N", scale=mau, legend=None))
           + bb.mark_text(align="left", dx=4, fontSize=12, fontWeight=600, color=C.MUC).encode(text="nhan:N")
-          + alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color=C.PHIEU).encode(x="x:Q"))
-    col.altair_chart(C.theo_du_lieu(ch.properties(height=170), kb, s.abc, s.xyz), use_container_width=True)
+          + bb.mark_rule(color=C.PHIEU).encode(x=alt.datum(0), y=alt.value(0), y2=alt.value(170)))   # vach 0: cung 1 bang voi cot
+    with col:
+        C.ve_bd(ch.properties(height=170))
 re_nhat = d.loc[d.cp.idxmin(), "ten"]
 C.ghi("so với kịch bản bình thường của chính sách đó; tắc cảng là trung bình 13 đợt trong năm, người lập kế hoạch không biết trước.",
       f"{KB[kb]}: chính sách rẻ nhất vẫn là {re_nhat}. Hiện trạng* chỉ so được khi đổi chi phí (đơn hàng của nó lấy từ dữ liệu).")

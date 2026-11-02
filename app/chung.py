@@ -17,13 +17,14 @@ from scipy.stats import norm
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from csdl import TRANG_THAI, de_xuat_ngay, hang_dang_ve, trang_thai_ton_kho  # noqa: E402,F401
+from chi_so_kho import chi_so_theo_nhom, ton_du_theo_ma  # noqa: E402,F401
+from csdl import TRANG_THAI, chia_lop_mau, de_xuat_ngay, hang_dang_ve, quy_tac_cua_ma, trang_thai_ton_kho  # noqa: E402,F401
 
 DB = ROOT / "data" / "kho_hang.db"
 MAIN = 0.95                                   # muc phuc vu cua mo phong (mo_phong_ngay chi luu muc nay)
 CS_GOI_Y = "cong_thuc_du_bao_ai_hc"           # chinh sach de xuat sau GD F
-MOC = "tb_truot_28"                           # du bao moc tot nhat (GD C)
-HORIZON = 28                                  # moi dot du bao 28 ngay (ton_kho.HORIZON)
+MOC = "tb_truot_28_tuan"                      # du bao moc tot nhat (GD C), cap nhat moi tuan nhu mo hinh chon (docs/10 9.6)
+HORIZON = 28                                  # moi dot du bao dai 28 ngay; khoang cach giua 2 dot lay tu du lieu (7 ngay)
 NGAY_MAC_DINH = date(2026, 2, 9)              # truoc Tet 2026: ngay co nhieu viec de trinh bay
 
 # ------------------------------------------------------------------ mau (dung chung cho CSS va bieu do)
@@ -31,6 +32,9 @@ MUC, MUC2, PHIEU, KE = "#15171a", "#4a4d52", "#1d4f73", "#9db0bf"
 DO, HO_PHACH, LA, QUANG = "#b3261e", "#93560a", "#2e6b3f", "#ffe45c"
 C_THUC_TE, C_AI, C_AI2, C_MOC, C_HT = MUC, "#1f6fb2", "#8db7de", "#c0661c", "#8a8a85"
 C_TT = ["#c8443b", "#e0a030", "#7fa6c4"]       # to mau dien tich: het hang / dat hom nay / dang ve
+C_LICH = ["#d3e2ec", "#9cbdd4", "#5a8fb3", "#1d4f73"]   # lich ca nam: 1 tong mau (muc phieu), nhat -> dam
+C_KHO_NGHI, C_KHONG = "#b9bab5", "#eef1f2"     # o ngay kho nghi / ngay khong co ma nao
+NGAY_KHOI_DONG = 14                           # so ngay dau ky: ton dau ky chua dat theo chinh sach
 LIEN = {"hom-nay": "#fdfdfb", "mat-hang": "#fbf5d6", "ket-qua": "#f9ebe8", "du-lieu": "#eaf1e7"}   # mau lien giay
 
 CS_TEN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Công thức + dự báo mốc",
@@ -227,6 +231,11 @@ html {{ font-variant-numeric: tabular-nums; }}
 .ghi b {{ color: var(--phieu); font-weight: 700; }}
 
 /* bang kieu phieu */
+.chu-giai {{ display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.85rem; color: var(--muc); }}
+.chu-giai span {{ display: inline-flex; align-items: center; gap: 0.3rem; }}
+.nhan-bd {{ min-height: 2.75rem; line-height: 1.3; margin-bottom: 0.2rem; }}
+.nhan-bd b {{ display: block; color: var(--phieu); font-size: 0.95rem; font-weight: 700; }}
+.nhan-bd span {{ color: var(--muc2); font-size: 0.82rem; }}
 table.phieu {{ width: 100%; border-collapse: collapse; border: 1px solid var(--phieu); font-size: 0.95rem; }}
 table.phieu th {{ text-align: right; font-size: 0.72rem; font-weight: 600; color: var(--phieu); letter-spacing: 0.04em;
                   text-transform: uppercase; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--phieu);
@@ -291,11 +300,17 @@ def _theme():
     }}
 
 
-def theo_du_lieu(bd, *tham_so):
-    """Gan tham so du lieu vao dac ta bieu do (usermeta). Streamlit 1.45: dac ta giu nguyen ma du lieu doi thi trinh duyet
-    cap nhat du lieu tai cho theo ten bo du lieu (ma bam noi dung) va loi Vega "Unrecognized data set"; `key` khong co tac
-    dung voi bieu do khong co chon. Dac ta doi theo du lieu -> Vega dung lai bieu do tu dau."""
-    return bd.properties(usermeta={"du_lieu": "|".join(map(str, tham_so))})
+def dac_ta_nhung(bd):
+    """Dac ta Vega-Lite co du lieu nhung san (khong co muc datasets)."""
+    with alt.data_transformers.enable("default", max_rows=None, consolidate_datasets=False):
+        return bd.to_dict()
+
+
+def ve_bd(bd, **kw):
+    """Moi bieu do cua app ve qua day. Streamlit 1.45 (useVegaEmbed): lan dung dang do (dac ta doi, hoac be rong doi do thanh cuon)
+    ma co lan dung khac chen vao thi lan cu nap ten bo du lieu cua lan moi -> loi Vega "Unrecognized data set" (doc tan ma nguon,
+    02/11: ve 1 lan bang callback hay boc khoi co khoa deu khong het). Du lieu nhung trong dac ta thi khong con buoc nap do."""
+    return st.vega_lite_chart(dac_ta_nhung(bd), **{"use_container_width": True, **kw})
 
 
 try:
@@ -355,6 +370,18 @@ def mo_phong(cs):
 
 
 @st.cache_data(show_spinner=False)
+def ton_du(cs):
+    """Ton kho binh quan va ton du binh quan tung ma (dong) cua 1 chinh sach, muc phuc vu 95% (chi_so_kho.py)."""
+    m = q("SELECT ma_sku, ngay, ton_cuoi, nhu_cau FROM mo_phong_ngay WHERE ma_chinh_sach = ?", (cs,))
+    return ton_du_theo_ma(m, ds_sku().set_index("ma_sku").gia_von)
+
+
+@st.cache_data(show_spinner=False)
+def so_ngay_mo_phong():
+    return int(q("SELECT COUNT(DISTINCT ngay) AS n FROM mo_phong_ngay").n.iloc[0])
+
+
+@st.cache_data(show_spinner=False)
 def ngay_mo_cua(cs):
     m = mo_phong(cs)
     return sorted(m.loc[m.rop.notna(), "ngay"].unique())
@@ -362,13 +389,15 @@ def ngay_mo_cua(cs):
 
 @st.cache_data(show_spinner=False)
 def du_bao_dot(cs):
-    """Du bao 28 ngay cua tung dot (da nhan he so hieu chinh) cho chinh sach cs: {ma_sku: mang (so dot, 28)}, ngay dau mo phong."""
+    """Du bao 28 ngay cua tung dot (da nhan he so hieu chinh) cho chinh sach cs: {ma_sku: mang (so dot, 28)}, ngay dau mo
+    phong, khoang cach giua 2 dot (ngay; 7 voi du bao cap nhat moi tuan)."""
     mh = MOC if cs == "cong_thuc_du_bao_moc" else mo_hinh_chon().ma_mo_hinh
     d = q("SELECT moc, ma_sku, ngay_thu, du_bao FROM du_bao WHERE ma_mo_hinh = ? AND tap = 'test'", (mh,))
     dots = sorted(d.moc.unique())
     hs = tham_so(cs).he_so_hieu_chinh
     F = {s: g.pivot(index="moc", columns="ngay_thu", values="du_bao").reindex(dots).values * hs[s] for s, g in d.groupby("ma_sku")}
-    return F, pd.Timestamp(dots[0]) + pd.Timedelta(days=1)
+    buoc = (pd.Timestamp(dots[1]) - pd.Timestamp(dots[0])).days if len(dots) > 1 else HORIZON
+    return F, pd.Timestamp(dots[0]) + pd.Timedelta(days=1), buoc
 
 
 @st.cache_data(show_spinner=False)
@@ -381,17 +410,25 @@ def thu_neu(cs, ma, t, lv=MAIN, them_ngay=0):
     """SS, ROP, EOQ va luong dat cua 1 ma tai ngay t khi doi muc phuc vu / lead time (csdl.de_xuat_ngay, cung cong thuc
     mo phong). Lead time dai them k ngay: L' = L + k; sai so du bao trong L' ngay gia dinh tang theo can bac 2 (sai so
     tung ngay doc lap) - gia dinh, khong do lai tren validation."""
-    F, t0 = du_bao_dot(cs)
+    F, t0, buoc = du_bao_dot(cs)
     r = ds_sku().set_index("ma_sku").loc[ma]
     m = mo_phong(cs)
     hom = m[(m.ma_sku == ma) & (m.ngay == t)].iloc[0]
     i = (pd.Timestamp(t) - t0).days
-    k = min((i + 1) // HORIZON, F[ma].shape[0] - 1)
+    k = min((i + 1) // buoc, F[ma].shape[0] - 1)
     L = max(1, int(round(r.lead_time_tb)))
     sig = tham_so(cs).sigma_ltd[ma] * np.sqrt((L + them_ngay) / L)
-    o = de_xuat_ngay(F[ma][k], i + 1 - HORIZON * k, L + them_ngay, sig, norm.ppf(lv), r.lead_time_std,
-                     r.chi_phi_dat_hang, r.ty_le_chi_phi_luu_kho * r.gia_von, r.moq, hom.ton_cuoi + hom.dang_ve - hom.dat_hang)
-    return o | dict(ip=hom.ton_cuoi + hom.dang_ve - hom.dat_hang, L=L + them_ngay)
+    qt = quy_tac_cua_ma(quy_tac(cs), r.xyz_train)
+    o = de_xuat_ngay(F[ma][k], i + 1 - buoc * k, L + them_ngay, sig, norm.ppf(lv), r.lead_time_std,
+                     r.chi_phi_dat_hang, r.ty_le_chi_phi_luu_kho * r.gia_von, r.moq, hom.ton_cuoi + hom.dang_ve - hom.dat_hang,
+                     quy_tac=qt)
+    return o | dict(ip=hom.ton_cuoi + hom.dang_ve - hom.dat_hang, L=L + them_ngay, quy_tac=qt)
+
+
+@st.cache_data(show_spinner=False)
+def quy_tac(cs):
+    """Quy tac luong dat cua chinh sach (chon tren validation2 o ton_kho.py): eoq | dat_den_muc | lai."""
+    return q("SELECT quy_tac_luong_dat FROM chinh_sach WHERE ma_chinh_sach = ?", (cs,)).iloc[0, 0]
 
 
 # ------------------------------------------------------------------ bo loc chung (slicer)
@@ -413,29 +450,32 @@ def _chep(k):
     st.session_state[k] = st.session_state[f"_w_{k}"]
 
 
-def doi_ngay(d):
-    """Dat ngay 'hom nay' tu thao tac tren bieu do (o ngay da ve trong lan chay nay -> hien ngay moi o lan chay sau)."""
-    d = pd.Timestamp(d).date()
-    if d != st.session_state.ngay:
-        st.session_state.ngay = d
-        st.rerun()
-
-
-def doi_chinh_sach(cs):
-    if cs != st.session_state.cs:
-        st.session_state.cs = cs
-        st.rerun()
-
-
-def chon_tu_bieu_do(su_kien, ten, cot, khoa):
-    """Gia tri vua bam tren bieu do (on_select). Chi tra ve khi lua chon MOI (bieu do giu lua chon qua cac lan chay)."""
+def gia_tri_chon(su_kien, ten, cot):
+    """Gia tri vua chon tren bieu do (trang thai on_select); chua chon -> None."""
     sel = (su_kien or {}).get("selection", {}).get(ten) or []
-    v = sel[0].get(cot) if sel else None
-    if v is None or st.session_state.get(khoa) == v:
-        st.session_state[khoa] = v
-        return None
-    st.session_state[khoa] = v
-    return v
+    return sel[0].get(cot) if sel else None
+
+
+# Cap nhat bo loc trong callback (chay TRUOC khi ve), khong goi st.rerun() giua luc ve: ve 2 lan lien tiep lam bieu do dang dung
+# do nhan du lieu moi va thinh thoang loi Vega "Unrecognized data set" (da gap khi bam chuot that, man Mat hang, ~2/3 lan chay).
+def dat_ngay(d):
+    st.session_state.ngay = pd.Timestamp(d).date()
+
+
+def khi_chon_ngay(khoa):
+    """on_select cua bieu do chon ngay (selection 'chon_ngay', cot 'ngay')."""
+    v = gia_tri_chon(st.session_state.get(khoa), "chon_ngay", "ngay")
+    if v:
+        dat_ngay(v)
+
+
+def khi_chon_cs(khoa):
+    """on_select cua bieu do chon chinh sach. Hien trang khong dung cong thuc nen chi bao, khong doi."""
+    v = gia_tri_chon(st.session_state.get(khoa), "chon_cs", "ma_chinh_sach")
+    if v == "hien_trang":
+        st.toast("Hiện trạng* không dùng công thức nên không chọn được làm chính sách cho các màn khác.")
+    elif v:
+        st.session_state.cs = v
 
 
 def sku_loc():

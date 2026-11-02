@@ -35,9 +35,11 @@ plt.rcParams.update({
 NOTE = "Dữ liệu mô phỏng, không phải số liệu kho thật."
 vn = lambda v, nd=1: f"{v:,.{nd}f}".replace(",", "_").replace(".", ",").replace("_", ".")
 CHON = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]
-TEN = {CHON: "AI (kết hợp, được chọn)", "lightgbm": "LightGBM", "prophet": "Prophet", "tb_truot_28": "TB trượt 28 ngày (mốc)",
+MOC = "tb_truot_28_tuan"     # du bao moc, cap nhat moi tuan nhu mo hinh duoc chon (docs/10 muc 9.6)
+TEN = {CHON: "AI (kết hợp, cập nhật mỗi tuần, được chọn)", "ket_hop_v3": "AI v3 (cập nhật mỗi 28 ngày)", "lightgbm": "LightGBM",
+       "lstm_tuan": "LSTM (không được chọn)", "rnn_tuan": "RNN (không được chọn)", "prophet": "Prophet", MOC: "TB trượt 28 ngày, cập nhật mỗi tuần (mốc)", "tb_truot_28": "TB trượt 28 ngày, mỗi 28 ngày",
        "seasonal_naive_7": "Seasonal Naive", "croston_sba": "Croston SBA", "tsb": "TSB", "ets": "ETS", "naive": "Naive"}
-MAU = {CHON: BLUE, "tb_truot_28": ORANGE, "prophet": AQUA, "lightgbm": YELLOW}
+MAU = {CHON: BLUE, "ket_hop_v3": "#86b6ef", MOC: ORANGE, "tb_truot_28": "#f2b48f", "prophet": AQUA, "lightgbm": YELLOW}
 CS_TEN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Công thức + dự báo mốc",
           "cong_thuc_du_bao_ai": "Công thức + dự báo AI", "cong_thuc_du_bao_ai_hc": "AI + hiệu chỉnh lệch"}
 CS_MAU = {"hien_trang": MUTED, "cong_thuc_du_bao_moc": ORANGE, "cong_thuc_du_bao_ai": "#86b6ef", "cong_thuc_du_bao_ai_hc": BLUE}
@@ -62,10 +64,13 @@ for b, v in zip(bars, r.wmape * 100):
     ax.text(v + 0.8, b.get_y() + b.get_height() / 2, f"{vn(v)}%", va="center", fontsize=9, color=INK2)
 ax.invert_yaxis(); ax.grid(axis="y", visible=False)
 ax.set_xlabel("WMAPE trên tập test (%, thấp hơn là tốt hơn)")
-ax.set_title("Sai số dự báo theo ngày của các mô hình (tập test, 13 mốc × 28 ngày)")
+ax.set_title("Sai số dự báo theo ngày của các mô hình (tập test)")
+w_ = lambda m: vn(r[r.ma_mo_hinh == m].wmape.iloc[0] * 100)
 save(fig, "k01_xep_hang_mo_hinh.png",
-     f"AI được chọn sai {vn(r[r.ma_mo_hinh == CHON].wmape.iloc[0] * 100)}%, mô hình mốc tốt nhất (TB trượt 28) "
-     f"{vn(r[r.ma_mo_hinh == 'tb_truot_28'].wmape.iloc[0] * 100)}%, Seasonal Naive {vn(r[r.ma_mo_hinh == 'seasonal_naive_7'].wmape.iloc[0] * 100)}%.")
+     f"AI được chọn (cập nhật mỗi tuần) sai {w_(CHON)}% (cùng mô hình cập nhật mỗi 28 ngày: {w_('ket_hop_v3')}%); "
+     f"mốc TB trượt 28 ngày cập nhật mỗi tuần {w_(MOC)}% (mỗi 28 ngày: {w_('tb_truot_28')}%); Seasonal Naive {w_('seasonal_naive_7')}%. "
+     "Hai mô hình cập nhật mỗi tuần chấm trên bản mới nhất cho mỗi ngày (cách dùng thật); các mô hình khác chấm trên mốc 28 ngày "
+     "× 28 ngày.")
 
 # ---------- k02: du bao vs thuc te quanh Tet 2026 va Trung thu 2026 (tong toan kho) ----------
 def tong_moc(moc, models):
@@ -76,7 +81,7 @@ def tong_moc(moc, models):
     return d
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), sharey=False)
 for ax, (moc, ten) in zip(axes, [("2026-01-20", "Mốc 20/01/2026 (trước Tết)"), ("2026-09-01", "Mốc 01/09/2026 (trước Trung thu)")]):
-    models = [CHON, "tb_truot_28"]
+    models = [CHON, MOC]
     d = tong_moc(moc, models)
     a = d[d.ma_mo_hinh == CHON].sort_values("ngay")
     act = a.thuc_te.where(a.n >= 100)               # chi ve ngay du SKU co nhu cau tin duoc
@@ -95,20 +100,22 @@ save(fig, "k02_du_bao_vs_thuc_te_tet.png", "TB trượt 28 ngày dự báo phẳ
 
 # ---------- k03: WMAPE theo nhom XYZ ----------
 g = doc(f"""SELECT ma_mo_hinh, wmape_x, wmape_y, wmape_z FROM ket_qua_mo_hinh
-            WHERE tap = 'test' AND ma_mo_hinh IN ('{CHON}', 'prophet', 'lightgbm', 'tb_truot_28')""").set_index("ma_mo_hinh")
-order = ["tb_truot_28", "prophet", "lightgbm", CHON]
+            WHERE tap = 'test' AND ma_mo_hinh IN ('{CHON}', 'prophet', 'lightgbm', '{MOC}')""").set_index("ma_mo_hinh")
+order = [MOC, "prophet", "lightgbm", CHON]
 fig, ax = plt.subplots(figsize=(8, 4))
 x = np.arange(3); w = 0.2
 for k, m in enumerate(order):
     vals = g.loc[m, ["wmape_x", "wmape_y", "wmape_z"]].values * 100
     bs = ax.bar(x + (k - 1.5) * w, vals, width=w - 0.02, color=MAU[m], label=TEN[m])
-    if m in (CHON, "tb_truot_28"):
+    if m in (CHON, MOC):
         for b, v in zip(bs, vals):
             ax.text(b.get_x() + b.get_width() / 2, v + 2, f"{vn(v, 0)}", ha="center", fontsize=8, color=INK2)
 ax.set_xticks(x, ["X (ổn định)", "Y", "Z (mùa vụ)"]); ax.grid(axis="x", visible=False)
 ax.set_ylabel("WMAPE (%)"); ax.legend(fontsize=9, loc="upper left")
 ax.set_title("Sai số dự báo theo nhóm hàng (tập test)")
-save(fig, "k03_sai_so_theo_nhom.png", "Lợi ích lớn nhất của AI ở nhóm mùa vụ Z (TB trượt 127% → AI 55%); nhóm ổn định X chênh ít hơn.")
+save(fig, "k03_sai_so_theo_nhom.png", f"Lợi ích lớn nhất của AI ở nhóm mùa vụ Z (TB trượt {vn(g.loc[MOC, 'wmape_z'] * 100, 0)}% → "
+     f"AI {vn(g.loc[CHON, 'wmape_z'] * 100, 0)}%); nhóm ổn định X chênh ít hơn ({vn(g.loc[MOC, 'wmape_x'] * 100, 0)}% → "
+     f"{vn(g.loc[CHON, 'wmape_x'] * 100, 0)}%).")
 
 # ---------- k04: tong gia tri ton kho theo ngay, 4 chinh sach ----------
 t = doc("""SELECT m.ma_chinh_sach, m.ngay, SUM(m.ton_cuoi * s.gia_von) / 1e9 AS ty

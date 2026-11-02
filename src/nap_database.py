@@ -11,6 +11,7 @@ import sys
 from contextlib import closing
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -18,7 +19,7 @@ from csdl import DB_PATH, SCHEMA, ket_noi  # noqa: E402
 from danh_gia import UNFORESEEABLE, PRED_DIR, RESULT  # noqa: E402
 
 REF = "data/reference"
-MO_HINH_DUOC_CHON = "ket_hop_v3"                 # GD E vong 3 (docs/10 muc 9.4); truoc do: ket_hop_theo_nhom_v2
+MO_HINH_DUOC_CHON = "ket_hop_v4"                 # GD E vong 4: cap nhat moi tuan (docs/10 muc 9.6); truoc do: ket_hop_v3
 TAPS = ("validation2", "validation", "test")     # thu tu quan trong: "validation2" truoc "validation"
 
 
@@ -111,9 +112,11 @@ def mo_hinh_va_du_bao(bo_du_bao=False):
     if not bo_du_bao:
         for m, tap, f in parsed:
             d = csv(f)
-            du_bao.append(pd.DataFrame({"ma_mo_hinh": m, "tap": tap, "moc": ngay(d.moc), "ngay": ngay(d.date),
-                                        "ma_sku": d.ma_sku, "ngay_thu": d.ngay_thu, "du_bao": d.du_bao,
-                                        "thuc_te": d.y_cham}))
+            x = pd.DataFrame({"ma_mo_hinh": m, "tap": tap, "moc": ngay(d.moc), "ngay": ngay(d.date),
+                              "ma_sku": d.ma_sku, "ngay_thu": d.ngay_thu, "du_bao": d.du_bao, "thuc_te": d.y_cham})
+            for c in ["thap_80", "cao_80", "thap_95", "cao_95"]:                  # khoang du bao (neu mo hinh co)
+                x[c] = d[c] if c in d else np.nan
+            du_bao.append(x)
     return mh, kq, (pd.concat(du_bao, ignore_index=True) if du_bao else None)
 
 

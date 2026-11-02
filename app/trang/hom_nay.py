@@ -1,6 +1,7 @@
 """Man Hom nay: viec can lam trong ngay lap phieu. 4 o trang thai (bam de loc cheo dai ca nam va danh sach theo doi),
-cac dong don can duyet (Duyet / Sua / Bo qua, chi giu trong phien), tai phieu dat hang theo nha cung cap,
-dai ca nam (bam 1 ngay de doi ngay lap phieu), danh sach theo doi (bam 1 dong de mo man Mat hang)."""
+cac dong don can duyet (Duyet / Sua / Bo qua, chi giu trong phien), tai phieu dat hang theo nha cung cap, bang so sanh ngay
+nay voi trung binh ca nam, lich 12 thang (bam 1 ngay de doi ngay lap phieu) + so trung binh theo thang,
+danh sach theo doi (bam 1 dong de mo man Mat hang)."""
 import altair as alt
 import pandas as pd
 import streamlit as st
@@ -13,10 +14,10 @@ cs = s.cs
 t, nghi = C.ngay_lam_viec()
 p = C.sku_loc()
 m = C.mo_phong(cs)
-F, t0 = C.du_bao_dot(cs)
+F, t0, buoc = C.du_bao_dot(cs)
 i_ngay = (pd.Timestamp(t) - t0).days
 x = m[(m.ngay == t) & m.ma_sku.isin(p.ma_sku)].merge(p, on="ma_sku")
-x["d_tb"] = x.ma_sku.map(lambda ma: F[ma][min((i_ngay + 1) // C.HORIZON, F[ma].shape[0] - 1)].mean())   # du bao 1 ngay
+x["d_tb"] = x.ma_sku.map(lambda ma: F[ma][min((i_ngay + 1) // buoc, F[ma].shape[0] - 1)].mean())   # du bao 1 ngay (dot dang dung)
 x["du_ban"] = x.ton_cuoi / x.d_tb.where(x.d_tb > 0)
 dem = x.tt.value_counts()
 NHAN = ["Hết hàng, mất bán", "Đặt hàng hôm nay", "Dưới ROP, hàng đang về", "Đủ hàng"]
@@ -28,15 +29,14 @@ if p.empty:
     st.stop()
 
 # ------------------------------------------------------------------ 4 o trang thai (loc cheo)
-C.muc(f"Tình trạng cuối ngày {ngay_vn(t)}", f"{C.mo_ta_loc()} · bấm một ô để lọc dải cả năm và danh sách theo dõi",
+C.muc(f"Tình trạng cuối ngày {ngay_vn(t)}", f"{C.mo_ta_loc()} · bấm một ô để lọc lịch cả năm và danh sách theo dõi",
       dau_tien=True)
 for i, col in enumerate(st.columns(4)):
     dang_loc = s.loc_tt == i
     with col.container(key=f"tt_{i}{'_on' if dang_loc else ''}"):
-        if st.button(f"**{int(dem.get(i, 0))}** {NHAN[i]}{' · đang lọc' if dang_loc else ''}", key=f"b_tt_{i}",
-                     use_container_width=True, help="Bấm để lọc theo trạng thái này; bấm lại để bỏ lọc."):
-            s.loc_tt = None if dang_loc else i
-            st.rerun()
+        st.button(f"**{int(dem.get(i, 0))}** {NHAN[i]}{' · đang lọc' if dang_loc else ''}", key=f"b_tt_{i}",
+                  use_container_width=True, help="Bấm để lọc theo trạng thái này; bấm lại để bỏ lọc.",
+                  on_click=lambda v=(None if dang_loc else i): s.update(loc_tt=v))
 
 
 # ------------------------------------------------------------------ don can duyet
@@ -125,48 +125,104 @@ with trai:
         st.caption("Quyết định chỉ giữ trong phiên làm việc (không ghi vào CSDL). Chưa ước tính số chuyến xe: dữ liệu chưa có "
                    "thể tích / trọng lượng từng mã.")
 
-# ------------------------------------------------------------------ dai ca nam (bam de doi ngay)
+# ------------------------------------------------------------------ so lieu tung ngay trong nam (theo bo loc nhom)
+mo_cua = set(C.ngay_mo_cua(cs))
+lich = (m[m.ma_sku.isin(p.ma_sku)].groupby(["ngay", "tt"]).size().unstack(fill_value=0).reindex(columns=range(4), fill_value=0)
+        .rename(columns={0: "het", 1: "dat", 2: "ve", 3: "du"}).rename_axis(columns=None))
+ca_ky = pd.date_range(min(mo_cua), max(mo_cua)).strftime("%Y-%m-%d")      # ca ngay kho nghi (mo phong khong co dong): van hien o tren lich
+lich = lich.reindex(ca_ky, fill_value=0).rename_axis("ngay").reset_index()
+lich["xl"] = lich.het + lich.dat
+lam = lich[lich.ngay.isin(mo_cua)]
+hom = lich[lich.ngay == t].iloc[0]
+sau_kd = lam[lam.ngay >= (pd.Timestamp(lam.ngay.min()) + pd.Timedelta(days=C.NGAY_KHOI_DONG)).strftime("%Y-%m-%d")]   # bo giai doan khoi dong
+
+# ------------------------------------------------------------------ ngay nay so voi binh thuong
 with phai:
-    C.muc("Cả năm kiểm tra", "bấm một ngày để lập phiếu ngày đó")
-    # 1 bieu do 1 lop (Streamlit 1.45 chi cho chon tren bieu do 1 lop): moi ngay 1 cot phu kin chieu cao de bam o dau cung
-    # duoc; phan tren cot trong suot, rieng ngay dang xem to dam -> vach "hom nay"
-    a = m[m.ma_sku.isin(p.ma_sku) & (m.tt < 3)].groupby(["ngay", "tt"]).size().rename("so").reset_index()
-    mo = pd.DataFrame({"ngay": C.ngay_mo_cua(cs)})
-    a = mo.merge(a, on="ngay", how="left").fillna({"tt": 0, "so": 0})
-    tran = max(1, a.groupby("ngay").so.sum().max()) * 1.04
-    a = a.sort_values(["ngay", "tt"])
-    a["y1"] = a.groupby("ngay").so.cumsum()
-    a["y0"] = a.y1 - a.so
-    tong = a.groupby("ngay").so.sum()
-    phu = pd.DataFrame({"ngay": tong.index, "tt": 9, "so": 0, "y0": tong.values, "y1": tran})
-    a = pd.concat([a[a.so > 0], phu])
-    a["nhom"] = a.tt.map(dict(enumerate(C.TRANG_THAI[:3])))
-    a.loc[a.tt == 9, "nhom"] = "_"
-    a.loc[(a.tt == 9) & (a.ngay == t), "nhom"] = "Ngày đang xem"
-    a["tong"] = a.ngay.map(tong)
-    a["d"] = pd.to_datetime(a.ngay)
-    a["d2"] = a.d + pd.Timedelta(days=1)
+    C.muc("So với bình thường", f"ngày {ngay_vn(t)} và trung bình cả năm")
+    dong = "".join(
+        f'<tr><td>{C.icon(ic)} {ten}</td><td><b>{int(hom[c])}</b></td><td>{vn(lam[c].mean())}</td></tr>'
+        for ten, c, ic in [("Hết hàng", "het", "het"), ("Phải đặt hôm nay", "dat", "dat"), ("Dưới ROP, hàng đang về", "ve", "ve"), ("Đủ hàng", "du", "du")])
+    st.markdown(f'<table class="phieu"><tr><th>Số mã hàng</th><th>Ngày này</th><th>TB năm</th></tr>{dong}'
+                f'<tr class="chon"><td>Phải xử lý (hết + đặt)</td><td>{int(hom.xl)}</td><td>{vn(lam.xl.mean())}</td></tr></table>',
+                unsafe_allow_html=True)
+    C.ghi("trung bình tính trên các ngày kho mở cửa, theo bộ lọc nhóm hàng đang chọn.",
+          f"ngày này nhiều việc hơn {vn(100 * (lam.xl < hom.xl).mean(), 0)}% số ngày làm việc trong năm.")
+    st.write("")
+    for k, (ten, c) in enumerate([("nhiều việc nhất", "xl"), ("nhiều mã hết hàng nhất", "het")]):
+        r = sau_kd.loc[sau_kd[c].idxmax()]
+        st.button(f"Xem ngày {ten}: {ngay_vn(r.ngay)} ({int(r[c])} mã)", key=f"nhay_{k}", use_container_width=True, disabled=r.ngay == t,
+                  on_click=C.dat_ngay, args=(r.ngay,))
+
+# ------------------------------------------------------------------ ca nam: lich chon ngay + so trung binh theo thang
+TEN_DO = ["số mã hết hàng", "số mã phải đặt", "số mã dưới ROP, hàng đang về", "số mã đủ hàng"]
+do = "xl" if s.loc_tt is None else ["het", "dat", "ve", "du"][s.loc_tt]
+ten_do = "số mã phải xử lý (hết hàng + phải đặt)" if s.loc_tt is None else TEN_DO[s.loc_tt]
+lop = C.chia_lop_mau(lam[do])
+mau_lop = C.C_LICH[-len(lop):] if lop else []
+nhan_lop = [f"{a}" if a == b else f"{a}–{b}" for a, b in lop]
+
+
+def nhom_o(r):
+    if r.ngay == t:
+        return "Ngày đang xem"
+    if r.ngay not in mo_cua:
+        return "Kho nghỉ"
+    return next((n for n, (a, b) in zip(nhan_lop, lop) if a <= r[do] <= b), "0")
+
+
+su_kien = C.q("SELECT ngay, ghi_chu FROM lich_su_kien")
+su_kien = su_kien.assign(ghi_chu=su_kien.ghi_chu.str.split(" (", regex=False).str[0]).groupby("ngay").ghi_chu.agg("; ".join)
+THU = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ nhật"]
+d = pd.to_datetime(lich.ngay)
+lich = lich.assign(ngay_so=d.dt.day, thang=d.dt.strftime("%m/%Y"), nhom=lich.apply(nhom_o, axis=1), su_kien=lich.ngay.map(su_kien).fillna("Không có"),
+                   ngay_chu=[f"{THU[v.weekday()]}, {v.strftime('%d/%m/%Y')}" for v in d],
+                   tinh_trang=[("Kho mở cửa" if v in mo_cua else "Kho nghỉ") for v in lich.ngay])
+cac_thang = list(dict.fromkeys(lich.thang))
+# lich va 2 bieu do cot cung chieu cao + cung truc duoi (cot: chu trong suot) -> hang cua tung thang thang nhau
+CAO_BD = 28 * len(cac_thang) + 50
+truc_thang = alt.Y("thang:O", title=None, sort=cac_thang, scale=alt.Scale(paddingInner=0.1),
+                   axis=alt.Axis(ticks=False, domain=False, labelPadding=6, labelOverlap=False))
+C.muc("Cả năm kiểm tra", "bấm một ô trên lịch để lập phiếu ngày đó · rê chuột để xem số của ngày")
+c_lich, c_het, c_dat = st.columns([3.3, 1, 1], gap="medium")
+with c_lich:
+    st.markdown(f'<div class="nhan-bd"><b>Lịch 12 tháng</b><span>càng đậm càng nhiều {ten_do}</span></div>', unsafe_allow_html=True)
+    mien = ["Kho nghỉ", "0"] + nhan_lop + ["Ngày đang xem"]
+    mau_mien = [C.C_KHO_NGHI, C.C_KHONG] + mau_lop + [C.QUANG]
     sel = alt.selection_point(name="chon_ngay", fields=["ngay"], on="click", empty=False)
-    mien = C.TRANG_THAI[:3] + ["Ngày đang xem", "_"]
-    sang = (alt.datum.tt == s.loc_tt) | (alt.datum.tt == 9) if s.loc_tt in (0, 1, 2) else alt.datum.tt >= 0
-    cot = alt.Chart(a).mark_rect().encode(
-        x=alt.X("d:T", title=None, axis=alt.Axis(format="%m/%y", labelAngle=0, tickCount=6, grid=False)), x2="d2:T",
-        y=alt.Y("y0:Q", title="Số mã cần chú ý", scale=alt.Scale(domain=[0, tran], nice=False)), y2="y1:Q",
-        color=alt.Color("nhom:N", title=None, scale=alt.Scale(domain=mien, range=C.C_TT + [C.MUC, "transparent"]),
-                        legend=alt.Legend(orient="top", direction="vertical", values=mien[:4])),
-        opacity=alt.condition(sang, alt.value(1), alt.value(0.18)),
-        tooltip=[alt.Tooltip("d:T", title="Ngày", format="%d/%m/%Y"), alt.Tooltip("tong:Q", title="Mã cần chú ý")]
-    ).add_params(sel)
-    ev = st.altair_chart(C.theo_du_lieu(cot.properties(height=360), cs, t, s.abc, s.xyz), use_container_width=True,
-                         on_select="rerun", selection_mode="chon_ngay",
-                         key=f"dai_nam_{cs}_{t}_{''.join(s.abc)}_{''.join(s.xyz)}")   # du lieu doi -> khoa doi (tranh loi Vega "Unrecognized data set")
-    v = C.chon_tu_bieu_do(ev, "chon_ngay", "ngay", "_dai_nam_cu")
-    if v:
-        C.doi_ngay(v)
-    tb_dat = a[a.tt == 1].groupby("ngay").so.sum().reindex(C.ngay_mo_cua(cs)).fillna(0)
-    nhieu = tb_dat.idxmax()
-    C.ghi("mỗi cột là một ngày làm việc, cao = số mã cần chú ý; cột đen là ngày đang lập phiếu.",
-          f"trung bình mỗi ngày {vn(tb_dat.mean())} mã phải đặt; nhiều nhất {ngay_vn(nhieu)} ({int(tb_dat.max())} mã).")
+    dang_xem = alt.datum.nhom == "Ngày đang xem"
+    o = alt.Chart(lich).mark_rect(cornerRadius=2).encode(
+        x=alt.X("ngay_so:O", title="Ngày trong tháng", scale=alt.Scale(domain=list(range(1, 32)), paddingInner=0.1),
+                axis=alt.Axis(values=[1, 5, 10, 15, 20, 25, 31], labelAngle=0, ticks=False, domain=False)),
+        y=truc_thang,
+        color=alt.Color("nhom:N", scale=alt.Scale(domain=mien, range=mau_mien), legend=None),
+        stroke=alt.condition(dang_xem, alt.value(C.MUC), alt.value("transparent")),
+        strokeWidth=alt.condition(dang_xem, alt.value(2), alt.value(0)),
+        tooltip=[alt.Tooltip("ngay_chu:N", title="Ngày"), alt.Tooltip("tinh_trang:N", title="Tình trạng"),
+                 alt.Tooltip("het:Q", title="Hết hàng"), alt.Tooltip("dat:Q", title="Phải đặt"), alt.Tooltip("ve:Q", title="Dưới ROP, hàng đang về"),
+                 alt.Tooltip("du:Q", title="Đủ hàng"), alt.Tooltip("su_kien:N", title="Sự kiện")]
+    ).add_params(sel).properties(height=CAO_BD)
+    khoa_lich = f"dai_nam_{cs}_{t}_{''.join(s.abc)}_{''.join(s.xyz)}_{s.loc_tt}"          # du lieu doi -> khoa doi
+    C.ve_bd(o, selection_mode="chon_ngay", key=khoa_lich,
+            on_select=lambda: C.khi_chon_ngay(khoa_lich))
+    st.markdown('<div class="chu-giai">' + "".join(
+        f'<span><svg width="13" height="13" aria-hidden="true"><rect x="1" y="1" width="11" height="11" rx="2" fill="{mau}"'
+        f'{f" stroke={chr(34)}{C.MUC}{chr(34)}" if ten_mau == "Ngày đang xem" else ""}/></svg> {ten_mau}</span>'
+        for ten_mau, mau in zip(mien, mau_mien)) + "</div>", unsafe_allow_html=True)
+
+theo_thang = lam.assign(thang=pd.to_datetime(lam.ngay).dt.strftime("%m/%Y")).groupby("thang")[["het", "dat"]].mean().reindex(cac_thang).reset_index()
+for cot_st, cot, ten, mau in [(c_het, "het", "Mã hết hàng", C.C_TT[0]), (c_dat, "dat", "Mã phải đặt", C.C_TT[1])]:
+    with cot_st:
+        st.markdown(f'<div class="nhan-bd"><b>{ten}</b><span>trung bình mỗi ngày</span></div>', unsafe_allow_html=True)
+        f = theo_thang.assign(nhan=theo_thang[cot].map(vn))
+        goc = alt.Chart(f).encode(y=truc_thang, x=alt.X(f"{cot}:Q", title="Ngày trong tháng", scale=alt.Scale(domain=[0, max(f[cot].max(), 0.1) * 1.45]),
+                                                     axis=alt.Axis(values=[0], ticks=False, domain=False, grid=False, labelColor="transparent", titleColor="transparent")))
+        cot_bd = (goc.mark_bar(size=15, color=mau, cornerRadiusEnd=3) +
+                  goc.mark_text(align="left", dx=5, color=C.MUC, fontWeight=600, fontSize=12).encode(text="nhan:N")).properties(height=CAO_BD)
+        C.ve_bd(cot_bd)
+dinh = theo_thang.loc[theo_thang.het.idxmax()]
+C.ghi("mỗi ô là một ngày, ô vàng là ngày đang lập phiếu, ô xám là ngày kho nghỉ. Bấm ô trạng thái ở đầu màn để lịch chỉ tô theo trạng thái đó.",
+      f"cả năm trung bình {vn(lam.dat.mean())} mã phải đặt và {vn(lam.het.mean())} mã hết hàng mỗi ngày; hết hàng cao nhất tháng {dinh.thang} "
+      f"({vn(dinh.het)} mã/ngày). {C.NGAY_KHOI_DONG} ngày đầu kỳ là giai đoạn khởi động: tồn đầu kỳ chưa được đặt theo chính sách nên hết hàng cao hơn hẳn.")
 
 # ------------------------------------------------------------------ danh sach theo doi (bam dong -> man Mat hang)
 loc = s.loc_tt
@@ -202,6 +258,7 @@ with st.expander("Giải thích các cột"):
         "- **Đang về:** hàng đã đặt nhà cung cấp nhưng chưa nhận (tính cả đơn đặt hôm nay).\n"
         "- **ROP (điểm đặt hàng)** = nhu cầu dự báo trong thời gian chờ hàng + tồn kho an toàn (SS). "
         "Nếu *trong kho + đang về* (chưa tính đơn hôm nay) ≤ ROP thì đặt thêm.\n"
-        "- **Đề xuất đặt:** bội số của lượng đặt kinh tế (EOQ), tối thiểu MOQ.\n"
+        "- **Đề xuất đặt:** theo quy tắc của chính sách (chọn trên validation): hàng ổn định (X, Y) đặt bội số của lượng đặt "
+        "kinh tế (EOQ); hàng mùa vụ (Z) đặt bù đến mức đủ bán thời gian chờ hàng + 7 ngày + dự phòng; tối thiểu MOQ.\n"
         "- **Đủ bán (ngày):** trong kho ÷ nhu cầu dự báo 1 ngày. Nhỏ hơn *Chờ hàng* mà không có hàng đang về thì có nguy cơ hết.\n"
         "- **Chờ hàng (ngày):** thời gian giao hàng trung bình của nhà cung cấp (lead time).")
