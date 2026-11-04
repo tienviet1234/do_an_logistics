@@ -7,7 +7,7 @@ import pandas as pd
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from so_lieu_do_an import CHUA_CO, bang, doc_tep, pt, so, tao  # noqa: E402
+from so_lieu_do_an import CHUA_CO, RA, bang, doc_tep, ghi, pt, so, tao  # noqa: E402
 
 
 def test_dinh_dang_so_kieu_viet_nam():
@@ -24,6 +24,16 @@ def test_tep_chua_co_khong_loi(tmp_path):
     f = tmp_path / "a.md"
     f.write_text("# Tieu de\n\nNoi dung", encoding="utf-8")
     assert doc_tep(f) == ["", "Noi dung"]
+
+
+def test_tao_khong_ghi_de_bao_cao(tmp_path):
+    """Chay test khong duoc doi reports/so_lieu_do_an.md."""
+    truoc = open(RA, "rb").read() if os.path.exists(RA) else None
+    L = tao()
+    assert (open(RA, "rb").read() if os.path.exists(RA) else None) == truoc
+    f = tmp_path / "con" / "so.md"
+    assert ghi(["a", "b"], str(f)) == str(f) and f.read_text(encoding="utf-8") == "a\nb"
+    assert L
 
 
 def test_so_trong_so_khop_nguon():

@@ -120,11 +120,17 @@ def tao():
           "- Dominick's Dataset: Kilts Center for Marketing, University of Chicago Booth School of Business. Chỉ dùng cho nghiên cứu học thuật, phải ghi nguồn.", "",
           "## 12. Hình cho đồ án", "", "- Kết quả: `reports/ket_qua/k01`–`k07`. Khám phá dữ liệu: `reports/eda/h01`–`h08`. Sơ đồ: `reports/so_do/`.", "",
           "## 13. Luật và quyết định", "", "Toàn bộ luật ghi trước, kết quả từng vòng và nhật ký: `docs/10_bao_cao_giai_doan_2.md` (mục 9.4–9.9, 10.2–10.7, mục 14).", ""]
-    os.makedirs("reports", exist_ok=True)
-    open(RA, "w", encoding="utf-8").write("\n".join(L))
     return L
+
+
+def ghi(L, ra=RA):
+    """Ghi so so lieu ra tep. Tach khoi tao(): test goi tao() khong duoc doi bao cao (da gap: chay test tren ban thieu du lieu M5 lam mat bang M5)."""
+    os.makedirs(os.path.dirname(ra) or ".", exist_ok=True)
+    open(ra, "w", encoding="utf-8").write("\n".join(L))
+    return ra
 
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    print(f"Da ghi {RA}: {len(tao())} dong")
+    noi_dung = tao()
+    print(f"Da ghi {ghi(noi_dung)}: {len(noi_dung)} dong")
