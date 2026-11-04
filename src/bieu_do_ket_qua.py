@@ -15,7 +15,8 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(__file__))
-from csdl import doc  # noqa: E402
+from kiem_tra_du_lieu import cac_moc_o_giua, nguon_du_lieu  # noqa: E402
+from csdl import doc, ma_vi_du, ngay_su_kien  # noqa: E402
 
 OUT = "reports/ket_qua"
 REPORT = "reports/bao_cao_bieu_do_ket_qua.md"
@@ -32,7 +33,9 @@ plt.rcParams.update({
     "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6, "axes.axisbelow": True,
     "lines.linewidth": 1.8, "savefig.dpi": 200, "savefig.bbox": "tight", "legend.frameon": False,
 })
-NOTE = "Dữ liệu mô phỏng, không phải số liệu kho thật."
+NOTE = nguon_du_lieu()["ghi_chu"]
+SO_MA = doc("SELECT COUNT(*) AS n FROM dm_sku").n.iloc[0]
+TET_KY = [x for x in ngay_su_kien("tet") if doc("SELECT MIN(ngay) a, MAX(ngay) b FROM mo_phong_ngay").a.iloc[0] <= x <= doc("SELECT MAX(ngay) b FROM mo_phong_ngay").b.iloc[0]]
 vn = lambda v, nd=1: f"{v:,.{nd}f}".replace(",", "_").replace(".", ",").replace("_", ".")
 CHON = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]
 MOC = "tb_truot_28_tuan"     # du bao moc, cap nhat moi tuan nhu mo hinh duoc chon (docs/10 muc 9.6)
@@ -54,7 +57,7 @@ def save(fig, name, caption, note=NOTE):
 
 # ---------- k01: xep hang mo hinh (WMAPE tap test) ----------
 r = doc("""SELECT k.ma_mo_hinh, k.wmape, k.bias_pct FROM ket_qua_mo_hinh k JOIN mo_hinh m USING (ma_mo_hinh)
-           WHERE k.tap = 'test' AND m.pham_vi = 'Toan bo 121 SKU' AND k.ma_mo_hinh IN ({})""".format(
+           WHERE k.tap = 'test' AND m.pham_vi LIKE 'Toan bo%' AND k.ma_mo_hinh IN ({})""".format(
         ",".join(f"'{m}'" for m in TEN)))
 r = r.sort_values("wmape", ascending=True)
 fig, ax = plt.subplots(figsize=(8, 4.2))
@@ -80,23 +83,27 @@ def tong_moc(moc, models):
     d["ngay"] = pd.to_datetime(d.ngay)
     return d
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), sharey=False)
-for ax, (moc, ten) in zip(axes, [("2026-01-20", "Mốc 20/01/2026 (trước Tết)"), ("2026-09-01", "Mốc 01/09/2026 (trước Trung thu)")]):
+cac_moc = doc("SELECT DISTINCT moc FROM du_bao WHERE tap = 'test' AND ma_mo_hinh = ? ORDER BY moc", (CHON,)).moc.tolist()
+dinh_k02 = []
+for ax, (moc_ts, loai) in zip(axes, cac_moc_o_giua(cac_moc, {"Tết": ngay_su_kien("tet"), "Trung thu": ngay_su_kien("trung_thu")})):
+    moc = moc_ts.strftime("%Y-%m-%d")
+    ten = f"Mốc {moc_ts:%d/%m/%Y}" + (f" (trước {loai})" if loai else "")
     models = [CHON, MOC]
     d = tong_moc(moc, models)
     a = d[d.ma_mo_hinh == CHON].sort_values("ngay")
-    act = a.thuc_te.where(a.n >= 100)               # chi ve ngay du SKU co nhu cau tin duoc
+    act = a.thuc_te.where(a.n >= np.ceil(SO_MA * 100 / 121))   # chi ve ngay du ma co nhu cau tin duoc
     ax.plot(a.ngay, act, color=INK, linewidth=2.2, label="Thực tế (nhu cầu tin được)")
     for m in models:
         x = d[d.ma_mo_hinh == m].sort_values("ngay")
         ax.plot(x.ngay, x.du_bao, color=MAU[m], label=TEN[m], linestyle="-" if m == CHON else "--")
     ax.set_title(ten, fontsize=11)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m")); ax.set_ylim(bottom=0)
-    ax.set_ylabel("Tổng 121 SKU (đơn vị/ngày)")
+    ax.set_ylabel(f"Tổng {SO_MA} SKU (đơn vị/ngày)")
+    dinh_k02.append(f"{ten}: đỉnh thực tế {vn(act.max(), 0)}, đỉnh dự báo AI {vn(a.du_bao.max(), 0)}, đỉnh mốc {vn(d[d.ma_mo_hinh == MOC].du_bao.max(), 0)}")
 axes[0].legend(loc="upper left", fontsize=9)
 fig.suptitle("Dự báo 28 ngày tới so với thực tế, tổng toàn kho", x=0.0, ha="left", fontweight="bold")
 fig.tight_layout()
-save(fig, "k02_du_bao_vs_thuc_te_tet.png", "TB trượt 28 ngày dự báo phẳng, không thấy đỉnh trước Tết/Trung thu; AI bám được đỉnh. "
-     "Ngày thiếu dữ liệu tin được (kho đóng cửa dịp Tết) để trống.")
+save(fig, "k02_du_bao_vs_thuc_te_tet.png", "; ".join(dinh_k02) + ". Ngày thiếu dữ liệu tin được (kho đóng cửa) để trống.")
 
 # ---------- k03: WMAPE theo nhom XYZ ----------
 g = doc(f"""SELECT ma_mo_hinh, wmape_x, wmape_y, wmape_z FROM ket_qua_mo_hinh
@@ -128,7 +135,7 @@ for cs in ["hien_trang", "cong_thuc_du_bao_moc", "cong_thuc_du_bao_ai", "cong_th
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%Y"))
 ax.set_ylabel("Giá trị tồn kho (tỷ đ)"); ax.set_ylim(bottom=0); ax.legend(fontsize=9, ncol=2, loc="upper left")
 ax.set_title("Giá trị tồn kho cuối ngày theo chính sách (mô phỏng 12 tháng test, mức phục vụ 95%)")
-save(fig, "k04_ton_kho_theo_thoi_gian.png", "Tồn kho theo thời gian của 4 chính sách; các đỉnh trước Tết là hàng chuẩn bị cho mùa cao điểm.",
+save(fig, "k04_ton_kho_theo_thoi_gian.png", "Tồn kho theo thời gian của 4 chính sách" + ("; các đỉnh trước Tết là hàng chuẩn bị cho mùa cao điểm." if TET_KY else "."),
      NOTE + " *Hiện trạng: người lập kế hoạch trong dữ liệu biết trước nhu cầu kỳ vọng (lệch ±10%).")
 
 # ---------- k05: bang truoc - sau (2 o: fill rate, chi phi lien quan) ----------
@@ -153,10 +160,14 @@ save(fig, "k05_truoc_sau.png", f"Chi phí liên quan = đặt hàng + lưu kho +
      NOTE + " *Hiện trạng: người lập kế hoạch trong dữ liệu biết trước nhu cầu kỳ vọng (lệch ±10%), mạnh hơn thực tế.")
 
 # ---------- k06: "rang cua" ton kho 1 SKU (mi goi) duoi chinh sach AI ----------
+MA_VD = ma_vi_du()
+ky = doc("SELECT MIN(ngay) a, MAX(ngay) b FROM mo_phong_ngay").iloc[0]
+tam = pd.Timestamp(TET_KY[0]) if TET_KY else pd.Timestamp(ky.a) + (pd.Timestamp(ky.b) - pd.Timestamp(ky.a)) / 2
 s = doc("""SELECT ngay, ton_cuoi, rop, dat_hang, nhap, nhu_cau FROM mo_phong_ngay
-           WHERE ma_chinh_sach = 'cong_thuc_du_bao_ai_hc' AND ma_sku = 'SKU001' AND ngay BETWEEN '2025-12-01' AND '2026-03-31'""")
+           WHERE ma_chinh_sach = 'cong_thuc_du_bao_ai_hc' AND ma_sku = ? AND ngay BETWEEN ? AND ?""",
+        (MA_VD, (tam - pd.Timedelta(days=78)).strftime("%Y-%m-%d"), (tam + pd.Timedelta(days=42)).strftime("%Y-%m-%d")))
 s["ngay"] = pd.to_datetime(s.ngay)
-ten_sku = doc("SELECT ten_sku FROM dm_sku WHERE ma_sku = 'SKU001'").ten_sku.iloc[0]
+ten_sku, don_vi = doc("SELECT ten_sku, don_vi FROM dm_sku WHERE ma_sku = ?", (MA_VD,)).iloc[0]
 fig, ax = plt.subplots(figsize=(11, 4.2))
 ax.plot(s.ngay, s.ton_cuoi, color=BLUE, linewidth=1.8, label="Tồn cuối ngày", drawstyle="steps-post")
 ax.plot(s.ngay, s.rop, color=ORANGE, linewidth=1.4, linestyle="--", label="Điểm đặt hàng (ROP)")
@@ -165,9 +176,9 @@ ax.scatter(od.ngay, od.ton_cuoi, s=36, color=INK, zorder=3, label="Ngày đặt 
 rc = s[s.nhap > 0]
 ax.scatter(rc.ngay, rc.ton_cuoi, s=36, marker="^", color=AQUA, edgecolor=SURFACE, zorder=3, label="Hàng về")
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m")); ax.set_ylim(bottom=0)
-ax.set_ylabel("Đơn vị (thùng)"); ax.legend(fontsize=9, ncol=4, loc="upper left")
-ax.set_title(f"Mô hình răng cưa: tồn kho, điểm đặt hàng và các lần đặt – SKU001 {ten_sku} (AI + hiệu chỉnh)")
-save(fig, "k06_rang_cua_sku001.png", "Mỗi khi tồn + hàng đang về chạm ROP thì đặt hàng; ROP tăng trước Tết theo dự báo. Minh họa thực tế cho lý thuyết EOQ/ROP ở Chương 2.")
+ax.set_ylabel(f"Đơn vị ({don_vi})"); ax.legend(fontsize=9, ncol=4, loc="upper left")
+ax.set_title(f"Mô hình răng cưa: tồn kho, điểm đặt hàng và các lần đặt – {MA_VD} {ten_sku} (AI + hiệu chỉnh)")
+save(fig, "k06_rang_cua_sku001.png", "Mỗi khi tồn + hàng đang về chạm ROP thì đặt hàng" + ("; ROP tăng trước Tết theo dự báo." if TET_KY else ".") + " Minh họa thực tế cho lý thuyết EOQ/ROP ở Chương 2.")
 
 # ---------- k07: thu do nhay - tac cang va lead time dai them (can chay src/do_nhay.py truoc) ----------
 try:
@@ -202,8 +213,15 @@ if len(dn):
     ax.set_ylabel("Fill Rate (%)")
     fig.suptitle("Thử độ nhạy: chính sách tồn kho khi hàng về trễ (mức phục vụ 95%)", x=0.0, ha="left", fontweight="bold")
     fig.tight_layout()
-    save(fig, "k07_do_nhay_lead_time.png", "Tắc cảng tạm thời chỉ làm Fill Rate giảm 0,5–1,5 điểm và AI + hiệu chỉnh vẫn rẻ nhất ở mọi đợt; "
-         "lead time dài ra lâu dài mà không cập nhật công thức thì giảm 5 điểm, cập nhật thì gần như hồi phục.",
+    ai_ = dn[dn.ma_chinh_sach == "cong_thuc_du_bao_ai_hc"]
+    goc_ = ai_[ai_.ma_kich_ban == "goc"].fill_rate_pt.iloc[0]
+    giam_ = goc_ - ai_[ai_.nhom == "tac_cang"].groupby("tham_so").fill_rate_pt.mean()
+    tc_ = dn[dn.nhom == "tac_cang"]
+    re_ = tc_.loc[tc_.groupby("ma_kich_ban").chi_phi_lien_quan_trieu.idxmin()]
+    so_re, so_dot = re_.ma_chinh_sach.isin(["cong_thuc_du_bao_ai", "cong_thuc_du_bao_ai_hc"]).sum(), len(re_)
+    lt_ = lambda m: vn(goc_ - ai_[ai_.ma_kich_ban == m].fill_rate_pt.iloc[0])
+    save(fig, "k07_do_nhay_lead_time.png", f"Tắc cảng tạm thời làm Fill Rate giảm {vn(giam_.min())}–{vn(giam_.max())} điểm; chính sách dùng dự báo AI rẻ nhất ở {so_re}/{so_dot} lần thử; "
+         f"lead time dài ra lâu dài không cập nhật công thức thì giảm {lt_('lead_time_2')} điểm, có cập nhật thì giảm {lt_('lead_time_2_cap_nhat')} điểm.",
          NOTE + " Kịch bản theo docs/07; người lập kế hoạch không biết trước đợt tắc cảng.")
 else:
     print("Bo qua k07: chua co ket qua do nhay (chay python src/do_nhay.py)")

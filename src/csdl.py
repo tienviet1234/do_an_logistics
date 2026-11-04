@@ -23,6 +23,17 @@ def doc(sql, params=None, path=DB_PATH):
         return pd.read_sql_query(sql, con, params=params)
 
 
+def ma_vi_du(path=DB_PATH):
+    """Ma dung lam vi du tren bieu do / so doi chieu: ma dau tien nhom A-X (ban deu, gia tri cao), khong co thi ma dau tien."""
+    d = doc("""SELECT ma_sku FROM phan_loai_sku ORDER BY (abc_train = 'A' AND xyz_train = 'X') DESC, ma_sku LIMIT 1""", path=path)
+    return d.ma_sku.iloc[0]
+
+
+def ngay_su_kien(ten, path=DB_PATH):
+    """Cac ngay cua 1 su kien trong lich (rong neu du lieu khong co su kien do, VD Tet o du lieu nuoc ngoai)."""
+    return doc("SELECT ngay FROM lich_su_kien WHERE ten_su_kien = ? ORDER BY ngay", (ten,), path=path).ngay.tolist()
+
+
 def hang_dang_ve(m, lead_time_tb, gd):
     """Hang dang ve cuoi ngay (da dat, chua nhan) cho bang mo_phong_ngay cua 1 chinh sach - khong luu trong CSDL.
     Bao toan: = hang dang ve dau ky + tong da dat - tong da nhan.

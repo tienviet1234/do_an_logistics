@@ -9,11 +9,12 @@ import os
 import numpy as np
 import pandas as pd
 
+from kiem_tra_du_lieu import dam_bao_hop_le, moc_thoi_gian
+
 CLEAN = "data/clean/giao_dich_sach.csv"
 REF = "data/reference"
 OUT_DIR = "data/features"
 REPORT = "reports/bao_cao_dac_trung.md"
-TRAIN_END = pd.Timestamp("2025-09-30")   # het tap train (xem docs/09, GD B)
 SALE_WINDOW = (-3, 3)                    # cua so sale lon, theo Tham_so_sale (muc 1)
 LAGS = [1, 7, 14, 28, 35, 364]
 
@@ -27,6 +28,8 @@ def read(name):
 # ---------------- 1. Doc du lieu ----------------
 df = pd.read_csv(CLEAN, encoding="utf-8-sig", parse_dates=["date"])
 sku = read("sku_master.csv")
+dam_bao_hop_le(df, sku.ma_sku, "data/clean/giao_dich_sach.csv")       # sai cau truc thi dung ngay, khong chay ra so sai
+TRAIN_END = moc_thoi_gian(df.date.max())["TRAIN_END"]                 # het tap train (xem docs/09, GD B)
 lich = read("lich_su_kien_prophet.csv"); lich["ds"] = pd.to_datetime(lich.ds)
 nghi = read("lich_ngay_nghi_kho.csv"); nghi["date"] = pd.to_datetime(nghi.date)
 shock = read("su_kien_dot_bien.csv")
@@ -68,8 +71,11 @@ tet = np.array(sorted(lich.loc[lich.holiday == "tet", "ds"]), dtype="datetime64[
 d = cal.date.values
 nxt = np.searchsorted(tet, d, side="left")
 prv = np.searchsorted(tet, d, side="right") - 1
-den = np.where(nxt < len(tet), (tet[np.minimum(nxt, len(tet) - 1)] - d) / np.timedelta64(1, "D"), np.nan)
-qua = np.where(prv >= 0, (d - tet[np.maximum(prv, 0)]) / np.timedelta64(1, "D"), np.nan)
+if len(tet):
+    den = np.where(nxt < len(tet), (tet[np.minimum(nxt, len(tet) - 1)] - d) / np.timedelta64(1, "D"), np.nan)
+    qua = np.where(prv >= 0, (d - tet[np.maximum(prv, 0)]) / np.timedelta64(1, "D"), np.nan)
+else:                                                       # du lieu khong co Tet (VD nuoc ngoai)
+    den = qua = np.full(len(d), np.nan)
 cal["so_ngay_den_tet"] = np.clip(den, 0, 60)               # > 60 ngay coi nhu xa Tet
 cal["so_ngay_sau_tet"] = np.clip(qua, 0, 60)
 
@@ -107,14 +113,14 @@ df = df.merge(cal, on="date", how="left")
 # ---------------- 6. Dac trung theo SKU x ngay ----------------
 # khuyen mai (lich bo phan ban hang gui truoc)
 km_rows = [(dd, r.ma_sku) for r in km.itertuples() for dd in pd.date_range(r.tu_ngay, r.den_ngay)]
-km_set = pd.DataFrame(km_rows, columns=["date", "ma_sku"]).drop_duplicates().assign(khuyen_mai=1)
+km_set = pd.DataFrame(km_rows, columns=["date", "ma_sku"]).astype({"date": "datetime64[ns]"}).drop_duplicates().assign(khuyen_mai=1)
 df = df.merge(km_set, on=["date", "ma_sku"], how="left")
 df["khuyen_mai"] = df.khuyen_mai.fillna(0).astype(int)
 
 # don B2B dot bien: KHONG biet truoc -> chi dung de loai khoi huan luyen / danh gia, khong dua vao mo hinh
 b2b = shock[shock.nhom_ly_do == "Đơn B2B đột biến"]
 b2b_rows = [(dd, r.ghi_chu_hoac_sku) for r in b2b.itertuples() for dd in pd.date_range(r.tu_ngay, r.den_ngay)]
-b2b_set = pd.DataFrame(b2b_rows, columns=["date", "ma_sku"]).drop_duplicates().assign(don_b2b=1)
+b2b_set = pd.DataFrame(b2b_rows, columns=["date", "ma_sku"]).astype({"date": "datetime64[ns]"}).drop_duplicates().assign(don_b2b=1)
 df = df.merge(b2b_set, on=["date", "ma_sku"], how="left")
 df["don_b2b"] = df.don_b2b.fillna(0).astype(int)
 
@@ -135,7 +141,10 @@ past28 = g.shift(28)                                        # dung cho du bao 28
 df["tb_truot_28_tre28"] = past28.groupby(df.ma_sku).transform(lambda s: s.rolling(28, min_periods=14).mean())
 
 # ---------------- 8. Phan loai SKU tren TAP TRAIN (tranh nhin thay tuong lai) ----------------
-tr = df[(df.date <= TRAIN_END) & (df.la_ngay_nghi == 0)].merge(sku[["ma_sku", "gia_von"]], on="ma_sku")
+tr = df[(df.date <= TRAIN_END) & (df.la_ngay_nghi == 0)]
+if "truoc_len_ke" in tr.columns:                            # thang chua ban khong phai ban 0: se thoi CV, xep nham vao nhom Z
+    tr = tr[tr.truoc_len_ke == 0]
+tr = tr.merge(sku[["ma_sku", "gia_von"]], on="ma_sku")
 val = (tr.qty_out * tr.gia_von).groupby(tr.ma_sku).sum().sort_values(ascending=False)
 cum = val.cumsum() / val.sum()
 abc = pd.Series(np.where(cum <= 0.75, "A", np.where(cum <= 0.92, "B", "C")), index=val.index)
@@ -155,6 +164,10 @@ sb["loai_nhu_cau"] = np.select(
     ["smooth (đều)", "erratic (thất thường)", "intermittent (rời rạc)"], "lumpy (rời rạc + thất thường)")
 pl = pd.DataFrame({"abc_train": abc, "cv_thang_train": cv_m.round(3), "xyz_train": xyz}).join(sb.round(3))
 pl.index.name = "ma_sku"
+moi = [m for m in sku.ma_sku if m not in pl.index]          # ma len ke sau tap train: chua co lich su, xep vao nhom can than trong nhat
+if moi:
+    pl = pd.concat([pl, pd.DataFrame({"abc_train": "C", "xyz_train": "Z", "loai_nhu_cau": "lumpy (rời rạc + thất thường)"}, index=pd.Index(moi, name="ma_sku"))])
+    say(f"- Ma moi chua co lich su trong tap train: {len(moi)} ma, xep C-Z")
 pl = pl.reset_index().merge(sku[["ma_sku", "ten_sku", "phan_loai_ABC", "phan_loai_XYZ"]], on="ma_sku")
 
 static = sku[["ma_sku", "nhom_hang", "loai_mua_vu", "gia_ban", "lead_time_tb", "nha_cung_cap"]]

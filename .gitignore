@@ -34,3 +34,9 @@ data/m5/
 
 # Du lieu Dominick's (Kilts Center, chi dung cho nghien cuu hoc thuat; tai lai tu trang chinh thuc)
 data/dominicks/
+
+# Thu muc lam viec cua tung nguon du lieu (tao lai bang src/nguon/*.py)
+du_lieu_nguon/
+
+# Moi truong rieng cho NeuralForecast (TiDE, N-HiTS, TFT)
+.venv_nf/

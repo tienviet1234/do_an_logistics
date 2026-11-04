@@ -133,7 +133,7 @@ CREATE TABLE nhat_ky_sua_loi (
 CREATE TABLE mo_hinh (
     ma_mo_hinh          TEXT PRIMARY KEY,
     mo_ta               TEXT,
-    pham_vi             TEXT NOT NULL DEFAULT 'Toan bo 121 SKU',   -- ARIMA chi chay nhom A: khong so truc tiep
+    pham_vi             TEXT NOT NULL DEFAULT 'Toan bo SKU',   -- ARIMA chi chay nhom A: khong so truc tiep
     duoc_chon           INTEGER NOT NULL DEFAULT 0 CHECK (duoc_chon IN (0,1))  -- mo hinh dung cho ton kho
 );
 
@@ -209,7 +209,7 @@ SELECT k.ma_mo_hinh, m.pham_vi, ROUND(k.wmape, 3) AS wmape, ROUND(k.wmape_tuan, 
        CASE m.duoc_chon WHEN 1 THEN 'DUOC CHON' ELSE '' END AS ghi_chu
 FROM ket_qua_mo_hinh k JOIN mo_hinh m USING (ma_mo_hinh)
 WHERE k.tap = 'test' AND k.wmape IS NOT NULL
-ORDER BY (m.pham_vi <> 'Toan bo 121 SKU'), k.wmape;
+ORDER BY (m.pham_vi NOT LIKE 'Toan bo%'), k.wmape;
 
 -- ---------------------------------------------------------------------
 -- NHOM 5. TON KHO (GD F) - bang do src/ton_kho.py ghi (chay sau nap_database.py)

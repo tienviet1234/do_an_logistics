@@ -409,6 +409,46 @@ Yêu cầu: thêm mô hình học sâu vào so sánh. **Lưu ý trung thực:** 
 - **Ghi nhận trung thực:** trên test cả 3 ứng viên có WMAPE **thấp hơn** `ket_hop_v4`, đổi lại Bias cao hơn (dự báo thiếu nhiều hơn). Theo luật không đổi quyết định vì test đã mở và chênh lệch nhỏ. Validation2 bắt đầu khi mới có 1 năm dữ liệu, test có từ 2 năm trở lên; có thể học sâu cần nhiều dữ liệu hơn, nhưng **chưa kiểm chứng** nguyên nhân này. Khi có dữ liệu mới phải chạy lại vòng so sánh, không mặc định mô hình nào thắng.
 - **Kiểm tra:** đổi toàn bộ nhu cầu sau mốc thành số rác, mọi đầu vào của mô hình không đổi (không nhìn trước). Báo cáo: `reports/mo_hinh_dl.md`.
 
+### 9.8. Kiểm chứng trên dữ liệu thật M5 (luật ghi ngày 03/11, TRƯỚC khi chạy)
+
+Mục đích: xem **quy trình** hoạt động thế nào trên nhu cầu thật và hệ thống có chịu được dữ liệu khác không. Không dùng để đổi mô hình của bộ dữ liệu mô phỏng; kết quả báo cáo riêng.
+
+**Dữ liệu và làm sạch (cố định trước khi xem kết quả, `src/nguon/m5.py`, có test):** số bán giữ nguyên, cộng 10 cửa hàng thành kho tổng. Mẫu 121 mã, ngẫu nhiên phân tầng theo phòng ban, hạt giống 20261103, không xem số bán. Ngày trước khi mã lên kệ không chấm điểm. Ngày tổng toàn chuỗi dưới 20% trung vị là ngày đóng cửa. Sự kiện lấy từ lịch M5, cửa sổ −3…+1 ngày; ngày tem phiếu SNAP là thông tin biết trước. Giá bán lấy trung bình theo mã. Không có khuyến mãi, tồn kho, cờ hết hàng: ngày hết hàng thật **không tách được**, nên sai số và nhu cầu ở các ngày đó bị hiểu thấp.
+
+**Mô hình (giữ nguyên cấu hình đã có, không dò thêm):** trung bình trượt 28 ngày, lặp tuần trước, Prophet additive, LightGBM theo tầm (`lgb_v3_AB`), LSTM, RNN (cấu hình mục 9.7, hàm L1). Tất cả cập nhật mỗi 7 ngày, chấm trên bản mới nhất mỗi ngày. Chia tập theo thời gian, tự suy từ ngày cuối dữ liệu: validation2 và test mỗi tập 1 năm.
+
+**Luật:**
+1. Trọng số ghép LightGBM – Prophet (`ket_hop`) và ghép thêm học sâu (`ket_hop_dl`) dò trên **validation2 của M5**, như mục 9.2 và 9.7.
+2. Mô hình tốt nhất của M5 chọn trên validation2: WMAPE thấp nhất, chênh dưới 0,005 thì lấy phương án đơn giản hơn. Test chạy một lần, chỉ báo cáo.
+3. **Câu hỏi kiểm chứng ghi trước:** (a) mô hình chọn có thấp hơn trung bình trượt trên test không; (b) thứ hạng các mô hình có giống dữ liệu mô phỏng không; (c) mức giảm sai số so với trung bình trượt lớn đến đâu so với mức 39% trên dữ liệu mô phỏng. Báo cáo cả khi kết quả bất lợi.
+4. Hệ thống gãy ở đâu thì ghi lại và sửa có test, kiểm tra kết quả trên dữ liệu mô phỏng không đổi.
+5. Phần tồn kho trên M5 là bán thực nghiệm vì lead time, giá vốn, chi phí đều giả định; làm sau, luật ghi riêng.
+
+**Kết quả (chạy xong 04/11, xem `du_lieu_nguon/m5/reports/kiem_chung.md`):** mô hình chọn trên validation2 là `ket_hop_dl` (LightGBM + Prophet + RNN). Trên test: WMAPE 0,307, Bias +3,1%; trung bình trượt 0,356; LightGBM 0,314; RNN 0,311; LSTM 0,317; Prophet 0,389; lặp tuần 0,420.
+
+**Trả lời 3 câu hỏi ghi trước:**
+- **(a) Có thấp hơn trung bình trượt không: có**, giảm 13,8%.
+- **(b) Thứ hạng có giống mô phỏng không: giống một phần.** Trên cả 2 bộ, mô hình ghép và học sâu đứng đầu, sát nhau, Prophet kém LightGBM. **Khác:** trên M5 trung bình trượt (0,356) **tốt hơn Prophet** (0,389), trong khi trên mô phỏng trung bình trượt (0,584) kém xa Prophet (0,454). Mức 0,89 của Prophet lúc thử 2 mốc không lặp lại khi chạy đủ.
+- **(c) Mức giảm so với trung bình trượt: 13,8% trên số thật, so với 39% trên mô phỏng**, chỉ bằng khoảng một phần ba. **Đây là số quan trọng nhất:** dữ liệu mô phỏng có quy luật rõ, sinh từ chính các yếu tố mô hình được biết trước, nên làm AI trông tốt hơn nhiều so với trên số bán thật. Con số 39% không được trình bày như hiệu quả dự kiến khi dùng thật.
+
+**Lưu ý:** nhóm Z trên M5 có WMAPE quanh 1 ở mọi mô hình (không dự báo được), nhưng chỉ chiếm khoảng 2% số mã. M5 không có tên hàng, khuyến mãi, cờ hết hàng, nên chưa dùng được đặc trưng khuyến mãi và số bán không phân biệt được nhu cầu với hết hàng. Phần TiDE, N-HiTS, TFT ở mục 9.9.
+
+### 9.9. TiDE, N-HiTS, TFT (luật ghi ngày 03/11, TRƯỚC khi xem sai số)
+
+Tra cứu nghiên cứu: trên dữ liệu bán lẻ cửa hàng, mô hình cây thường thắng mạng nơ-ron (M5; so sánh 2025), nên không kỳ vọng vượt trội; TiDE và N-HiTS nhanh, dùng được thông tin biết trước; TFT dễ giải thích. Chạy bằng NeuralForecast 1.7.5, môi trường riêng `.venv_nf`, `src/mo_hinh_nf.py`, trên **cả dữ liệu mô phỏng và M5**.
+
+**Cấu hình (cố định, chỉ đo thời gian trước khi chốt, không xem sai số):** đọc 56 ngày, dự báo 28 ngày, hàm MAE, nhu cầu chia theo trung bình từng mã, 1 hạt giống, batch 32, cùng thông tin như LSTM (không nhìn trước, có test). **Học lại từ đầu mỗi 28 ngày, cập nhật đầu vào mỗi 7 ngày**, chấm trên bản mới nhất mỗi ngày.
+- TiDE: 128 ẩn, 2 lớp mã hóa, 2 lớp giải mã, 1.000 bước. N-HiTS: 3 khối 256 × 256, 1.000 bước.
+- **TFT cấu hình gọn:** 32 ẩn, cửa sổ 64, 500 bước, chỉ 8 cờ lịch và 6 giá trị trễ năm trước. Cấu hình 64 ẩn với đủ 69 biến không xong 100 bước trong 7 phút trên RTX 3050 4 GB, nên **TFT bị giới hạn bởi máy và không phản ánh hết năng lực của nó**.
+
+**Khác biệt phải nêu:** LightGBM học lại mỗi mốc, LSTM học tiếp 4 lượt, 3 hạt giống; ba mô hình này học lại mỗi 28 ngày, 1 hạt giống.
+
+**Luật (ghi trước):**
+1. So với mô hình đang dùng của từng bộ dữ liệu (mô phỏng: `ket_hop_v4`; M5: mô hình chọn ở mục 9.8).
+2. Mô hình tốt nhất trong ba ghép với mô hình đang dùng, w theo nhóm XYZ, dò trên validation2 → `ket_hop_nf`.
+3. **Chỉ thay mô hình khi** WMAPE validation2 giảm ≥ 0,005 **và** |Bias| không tăng quá 1 điểm. Không đạt thì giữ nguyên.
+4. Test chạy một lần, chỉ báo cáo, không đổi quyết định.
+
 ### 9.3. Biểu đồ kết quả ✅ (24/10)
 `src/bieu_do_ket_qua.py` (đọc từ CSDL) → `reports/ket_qua/`, chú thích ở `reports/bao_cao_bieu_do_ket_qua.md`. Màu cố định theo đối tượng ở mọi hình (thực tế đen, AI xanh dương, dự báo mốc cam, Prophet xanh ngọc, LightGBM vàng, hiện trạng xám).
 - `k01` xếp hạng sai số các mô hình (tập test); `k02` dự báo so với thực tế, tổng toàn kho, mốc trước Tết và trước Trung thu 2026 (TB trượt dự báo phẳng, AI bám đỉnh nhưng vẫn thấp hơn đỉnh, khớp Bias dương); `k03` sai số theo nhóm XYZ; `k04` giá trị tồn kho theo ngày của 4 chính sách; `k05` trước–sau (Fill Rate, chi phí liên quan); `k06` mô hình răng cưa tồn kho – ROP – đặt hàng của SKU001 (minh họa lý thuyết Chương 2).
@@ -510,6 +550,269 @@ Cùng luật mục 10.2 (mô phỏng validation2, 95%, chi phí liên quan thấ
 `src/chi_so_kho.py` (hàm thuần, test `tests/test_chi_so_kho.py`), báo cáo `reports/chi_so_kho.md`, hiển thị ở màn Kịch bản & kết quả. Vòng quay = giá vốn hàng xuất quy ra 1 năm ÷ tồn kho bình quân; số ngày tồn kho = tồn kho bình quân ÷ giá vốn xuất 1 ngày; tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày kế tiếp (nhìn lại để chấm, không dùng ra quyết định; bỏ 28 ngày cuối kỳ).
 
 **Ghi nhận trung thực:** chính sách đề xuất có vòng quay và số ngày tồn tương đương hiện trạng, nhưng tồn dư cao hơn (xem báo cáo); phần lớn tồn dư nằm ở hàng theo dịp thuộc nhóm Z, vì mô phỏng không có giảm giá thanh lý hay trả hàng. Dữ liệu mô phỏng.
+
+### 10.6. Gom đơn theo nhà cung cấp (luật ghi ngày 03/11, TRƯỚC khi chạy)
+
+Hiện mô phỏng coi mỗi mã đặt riêng, chi phí đặt S tính riêng từng dòng. Thực tế các mã cùng nhà cung cấp đi chung một phiếu nên phần chi phí chung (lập phiếu, xử lý, giao nhận) được chia sẻ. `src/gom_don.py`, có test, chỉ đọc CSDL, **mô phỏng đang dùng và các số đã báo cáo không đổi**.
+
+**Giả định (dữ liệu không có):** chi phí 1 phiếu = t × S lớn nhất trong phiếu + (1 − t) × tổng S các dòng, nên phiếu 1 dòng đúng bằng S cũ. **t = 0,5 là giả định**, báo cáo cả t = 0,3 và 0,7. Mỗi mã vẫn về theo lead time riêng. Không xét gom đủ xe, không xét chiết khấu số lượng.
+
+- **Mức 1, gom cùng ngày:** quyết định đặt hàng giữ nguyên; tồn kho, Fill Rate không đổi, chỉ giảm chi phí đặt.
+- **Mức 2, đặt kèm:** khi 1 mã của nhà cung cấp phải đặt, mã khác cùng nhà cung cấp đặt kèm nếu trong kho + đang về ≤ ROP + k ngày nhu cầu dự báo; k thử 1, 2, 3, 5. Khi k = 0 mô phỏng phải **trùng từng dòng** với `mo_phong_ngay` (có test).
+
+**Luật:**
+1. Chính sách AI + hiệu chỉnh lệch, mức phục vụ 95%, quy tắc lai. Chọn k trên validation2 với t = 0,5.
+2. **Chỉ dùng đặt kèm** nếu so với mức 1, chi phí liên quan giảm ≥ 0,5% **và** Fill Rate không giảm quá 0,2 điểm; nhiều k đạt thì lấy chi phí thấp nhất. Không đạt thì chỉ gom cùng ngày.
+3. Test chạy một lần, chỉ báo cáo.
+
+**Kết quả (chạy 03/11):** xem `reports/gom_don.md`. Theo luật, chọn **đặt kèm k = 1** (validation2: chi phí liên quan giảm 3,1% so với chỉ gom cùng ngày, Fill Rate tăng). Trên test, t = 0,5: gom cùng ngày giảm số phiếu 3.285 → 2.404 dòng/phiếu, chi phí liên quan 5.842,8 → 5.778,3 triệu đ (−1,1%), tồn kho và Fill Rate không đổi; đặt kèm k = 1 còn 1.783 phiếu, chi phí liên quan 5.566,0 triệu đ (−4,7%), Fill Rate 96,16%, tồn kho 12.204,8 triệu đ (+2,5%).
+
+**Ghi nhận trung thực:** phần lớn lợi ích của đặt kèm đến từ giảm lợi nhuận mất (hàng được đặt sớm hơn, có tác dụng như tăng dự phòng), không phải từ chia sẻ chi phí phiếu; mức tiết kiệm chi phí đặt phụ thuộc giả định t. Chưa xét gom đủ xe; mỗi mã vẫn về theo lead time riêng dù cùng nhà cung cấp (lead time trong dữ liệu mô phỏng khác nhau tới 3–15 ngày trong cùng một nhà cung cấp, chưa sát thực tế). **Chính sách trong hệ thống chưa đổi**; dashboard chỉ hiện mức 1.
+
+### 10.7. Chấm điểm nhà cung cấp và cảnh báo giao chậm (luật ghi ngày 03/11, TRƯỚC khi chạy)
+
+`src/cham_diem_ncc.py`, có test, chỉ đọc CSDL, không đổi mô phỏng. Dữ liệu lead time là **mô phỏng** nên chỉ minh họa phương pháp, không đánh giá nhà cung cấp thật. Mô phỏng luôn giao đủ hàng nên chỉ đo đúng hạn, **chưa đo đủ hàng (OTIF)**.
+
+- **Đơn:** các đơn của chính sách AI + hiệu chỉnh, mức phục vụ 95%. Trễ = lead time thực tế − lead time hẹn (trung bình làm tròn). Đúng hạn: trễ ≤ 1 ngày.
+- **Điểm (0–100):** 60% tỉ lệ đúng hạn + 40% độ ổn định (lệch chuẩn của trễ từ 5 ngày trở lên: 0 điểm). Trọng số là **giả định**; báo cáo tương quan hạng khi đổi sang 80/20. Xếp loại: Tốt ≥ 85, Trung bình ≥ 70, còn lại Cần theo dõi.
+- **Cảnh báo:** trung bình trễ của 8 đơn **đã về** gần nhất của nhà cung cấp ≥ 2 ngày. Không nhìn trước vì chỉ dùng đơn đã về.
+- **Chấm cảnh báo bằng sự kiện đã cài trong dữ liệu:** đợt nhà cung cấp giao chậm (`su_kien_dot_bien`). Phát hiện đúng nếu có cảnh báo từ đầu đợt đến 20 ngày sau đợt. Báo nhầm: cảnh báo ngoài mọi đợt giao chậm và đợt bão (bão cũng làm hàng về chậm thật).
+
+**Luật:** ngưỡng trên cố định, không dò. Báo cáo cả validation2 và test, kể cả khi bất lợi. Chỉ có 1 đợt trong mỗi tập, nên **không đủ để kết luận về độ nhạy của cảnh báo**, chỉ để minh họa.
+
+**Kết quả (chạy 03/11):** xem `reports/cham_diem_ncc.md`. Trên test: 3.285 đơn, đúng hạn 77,6%; điểm từ 76,6 (NCC09) đến 64,1 (NCC04); không nhà cung cấp nào đạt loại Tốt; đổi trọng số sang 80/20 thứ hạng gần như không đổi (tương quan hạng 0,99).
+
+**Cảnh báo:** phát hiện đúng đợt giao chậm cài trong dữ liệu ở cả 2 tập, nhưng **chậm**: 18 ngày sau khi đợt NCC11 bắt đầu (test), 21 ngày với NCC07 (validation2), trong khi mỗi đợt chỉ kéo dài khoảng 15 ngày; lý do là cảnh báo chỉ dùng đơn đã về. Trên test có 121 ngày có cảnh báo, không báo nhầm theo định nghĩa, nhưng cửa sổ xét rộng và năm test có nhiều bão nên số 0 không nói lên nhiều; validation2 có 6 báo nhầm. **Kết luận:** dùng để nhận ra nhà cung cấp đang xấu đi, không đủ để phản ứng sớm với một đợt ngắn. Chênh lệch điểm giữa các nhà cung cấp còn do lead time sinh ngẫu nhiên và độ dao động khác nhau của từng mã; chỉ minh họa phương pháp.
+
+### 10.8. Trữ hàng cho phiên livestream: newsvendor hai bước (luật ghi ngày 03/11, TRƯỚC khi chạy)
+
+`src/tru_hang_live.py`, có test, chỉ đọc CSDL, không đổi mô phỏng tồn kho. **Dữ liệu không có phiên livestream nào**, nên phần lớn tham số dưới đây là **giả định** và kết quả chỉ cho thấy phương pháp và độ lớn tương đối, không phải lợi nhuận thật. Giả định bối cảnh: chuỗi có bán online và giao từ chính kho này; Q là hàng đặt thêm và để riêng cho phiên, không lấy vào tồn của siêu thị.
+
+**Nhu cầu một phiên** (đơn đã trừ hủy) = mức nền × quy mô × hệ số deal × (1 − tỉ lệ hủy) × (hệ số bùng nổ nếu lên xu hướng).
+
+| Tham số | Giá trị mặc định | Nguồn |
+|---|---|---|
+| Mức nền | trung vị nhu cầu ngày thường trong 28 ngày trước đó (bỏ ngày khuyến mãi, ngày nghỉ) | Đo. **Không** dùng dự báo AI vì dự báo ngày có khuyến mãi đã chứa phần tăng, nhân hệ số deal sẽ tính trùng. Mã có mức nền 0 không tính được |
+| Hệ số deal | rút ngẫu nhiên từ tỉ số nhu cầu ngày khuyến mãi / mức nền, trước khi vào tập test, ngoài cửa sổ sự kiện | Đo, nhưng trên dữ liệu mô phỏng; khuyến mãi siêu thị không phải deal livestream |
+| Quy mô phiên | 1 ngày bán thường | Giả định |
+| Thời lượng phiên | 24 giờ | Giả định |
+| Xác suất lên xu hướng p | 20% | Giả định |
+| Hệ số bùng nổ | phân phối log-đều trong [3; 10] lần | Giả định; cỡ tham chiếu đơn đột biến trong dữ liệu (×4,1–×9,8) |
+| Giờ bắt đầu lên xu hướng | đều từ giờ 2 đến 75% thời lượng | Giả định; đúng mô tả "đầu phiên ít người xem" |
+| Mức giảm giá / nhãn hàng tài trợ | 15% / 70% phần giảm | Giả định |
+| Phí sàn | 8% giá bán sau giảm | Giả định |
+| Tỉ lệ hủy đơn | 15% | Giả định |
+| Bổ sung nhanh | về sau 6 giờ, phụ phí 5% giá vốn, tối đa 3 ngày bán thường | Giả định |
+
+**Tiền:** lãi 1 đơn vị bán được `m` = giá sau giảm + phần nhãn hàng tài trợ − giá vốn − phí sàn. Thiếu 1 đơn vị: `Cu = m`. Thừa 1 đơn vị, 3 trường hợp: **về kho thường** `Co` = giá vốn × tỉ lệ lưu kho × 30/365; **trả nhà cung cấp** `Co` = 10% giá vốn; **phải xả** `Co` = 40% giá vốn. `m ≤ 0` thì không trữ. Chưa tính uy tín mất khi hết hàng giữa phiên nên `Cu` có thể thấp hơn thực tế.
+
+**Phương án so sánh, cùng một mẫu nhu cầu:**
+1. Theo ngày thường, bỏ qua phiên live: Q = mức nền × quy mô.
+2. Theo trung bình: Q = trung bình nhu cầu phiên.
+3. Newsvendor: Q = phân vị `Cu / (Cu + Co)` của nhu cầu phiên.
+4. Hai bước, giữ nguyên Q của phương án 3, bổ sung theo tín hiệu từng giờ.
+5. Hai bước, Q đầu chọn lại trên lưới phân vị để lãi kỳ vọng cao nhất.
+
+**Quy tắc bổ sung, không nhìn trước:** từ giờ thứ 3, ước lượng tốc độ = trung bình 3 giờ gần nhất; giờ nào hết hàng thì số bán bị chặn nên giữ tốc độ cao nhất đã thấy. Đặt phần thiếu = tốc độ × số giờ còn lại sau khi hàng về − hàng còn lại lúc hàng về, nếu thiếu ≥ 5% trung bình nhu cầu phiên và hàng về trước khi hết phiên. Ngưỡng cố định, không dò.
+
+**Cách đánh giá:** Q tính trên một mẫu 10.000 phiên, chấm trên mẫu 10.000 phiên độc lập, cho mọi mã có mức nền > 0, mỗi mã 1 phiên. Mức nền lấy theo trung vị 365 ngày cuối.
+
+**Luật kết luận, ghi trước:**
+- **Không dùng** việc newsvendor thắng trên chính phân phối giả định làm bằng chứng: lời giải tối ưu theo phân phối đó nên thắng là tất yếu. Bảng này chỉ cho thấy độ lớn.
+- **Bằng chứng 1, sai giả định:** Q tính với p = 20% và bùng nổ [3; 10], chấm khi thực tế p là 5%, 10%, 40%, hoặc bùng nổ [2; 5], [5; 20]. Newsvendor được gọi là **bền** ở một trường hợp hàng thừa nếu lãi không thấp hơn phương án 1 và 2 ở **mọi** kịch bản; có kịch bản thua thì báo đúng kịch bản đó.
+- **Bằng chứng 2, phần đo được:** dùng hệ số deal đo trước test, nhân mức nền trượt, xem phân vị 50%, 75%, 90% có phủ đúng nhu cầu thật các ngày khuyến mãi trong test không. **Đạt** nếu lệch không quá 5 điểm phần trăm ở cả 3 mức. Phần này không kiểm chứng được bùng nổ.
+- **Giá trị theo dõi theo giờ** = lãi phương án 5 − lãi phương án 3, báo theo thời gian hàng về 2, 6, 12, 24 giờ. Đây là **mức chi tối đa** đáng bỏ cho việc theo dõi mỗi phiên, chưa trừ chi phí cài đặt.
+- Giả định không sửa sau khi xem kết quả. Muốn đổi thì ghi lý do và báo cả kết quả cũ.
+
+**Kết quả lần 1 (chạy 03/11, giữ nguyên, không xóa):**
+- **Hệ số deal (bằng chứng 2): đạt.** Trên 1.008 ngày khuyến mãi của test, phân vị 50%, 75%, 90% phủ 47,5%, 76,2%, 92,0%. Dữ liệu mô phỏng nên cùng một quy luật sinh ra cả hai giai đoạn; phép kiểm này yếu.
+- **Sai giả định (bằng chứng 1):** hàng thừa trả nhà cung cấp và phải xả: **bền**. Hàng thừa về kho thường: **không bền**, thua 0,9 triệu đ (khoảng 2,5%) khi p thật là 5%.
+- **Giá trị theo dõi theo giờ: ÂM ở gần như mọi ô** (−6,2 đến +0,3 triệu đ toàn kho). Quy tắc bổ sung ghi trước **thua cả việc không làm gì**. Không thể kết luận "theo dõi không có giá trị" từ đây, vì có thêm thông tin thì ít nhất cũng bằng được không làm gì: số âm cho thấy **quy tắc yếu**, không phải thông tin vô ích. Hai lỗi của quy tắc: (1) không xét tiền, đặt cả khi lãi sau phụ phí gần bằng 0 hoặc âm; (2) tin thẳng tốc độ 3 giờ, nên phiên chỉ dao động ngẫu nhiên cũng đặt thêm.
+
+**Luật lần 2 (ghi ngày 03/11, SAU khi đã thấy kết quả lần 1, TRƯỚC khi chạy lần 2). Vì đã thấy kết quả nên đây không còn là kiểm định ghi trước hoàn toàn; báo cả 2 lần.** Mọi giả định giữ nguyên, chỉ đổi quy tắc bổ sung:
+- **Xét tiền:** lãi sau phụ phí `m' = m − phụ phí`. `m' ≤ 0` thì không bao giờ bổ sung.
+- **Lượng cần:** dùng lại đúng logic newsvendor cho phần còn lại của phiên. Mức đặt đến = phân vị `m' / (m' + Co)` của nhu cầu sau khi hàng về, **với điều kiện** tốc độ 3 giờ gần nhất. Điều kiện này tra từ bảng dựng trên **mẫu thiết kế** (mỗi giờ chia 20 nhóm theo tốc độ), không nhìn vào phiên đang chấm. Nhờ đó tự biết phiên chỉ dao động thì phần lớn trở lại bình thường. Không thêm tham số dò: số nhóm cố định 20.
+- Ngưỡng 5%, trần nguồn nhanh, thời gian hàng về: như lần 1.
+- **Thêm trần tham chiếu:** lãi nếu biết trước nhu cầu từng phiên (trữ đúng bằng nhu cầu). Khoảng cách từ newsvendor đến trần là giá trị tối đa của mọi thông tin, không riêng theo dõi theo giờ.
+- **Thêm độ nhạy phụ phí:** 0%, 2%, 5% giá vốn (hàng về sau 6 giờ).
+- **Kết luận:** giá trị theo dõi = lãi hai bước lần 2 (chọn lại Q) − lãi newsvendor. Số dương mới được gọi là có giá trị. **Không sửa quy tắc lần thứ 3 để số đẹp hơn**: kết quả lần 2 thế nào báo thế ấy.
+
+**Kết quả lần 2 (chạy 03/11, xem `reports/tru_hang_live.md`). Các hàng của lần 1 chạy lại khớp đến từng đồng.**
+
+| Giá trị theo dõi, triệu đ toàn kho, hàng về sau 6 giờ | Về kho thường | Trả nhà cung cấp | Phải xả |
+|---|---:|---:|---:|
+| Quy tắc lần 1 (ghi trước) | −1,6 | −1,3 | −6,1 |
+| Quy tắc lần 2 (sửa sau khi thấy lần 1) | −0,9 | +3,5 | +3,4 |
+
+- **Theo dõi theo giờ chỉ có giá trị khi hàng thừa tốn kém.** Hàng thừa về kho thường gần như không mất gì, nên trữ thêm từ đầu là đủ; bổ sung phải trả phụ phí nên không thêm được gì, ở mọi thời gian hàng về. Trả nhà cung cấp và phải xả: có giá trị khi hàng về trong 12 giờ, gần bằng 0 khi về sau 24 giờ. Phụ phí là yếu tố lớn: về kho thường, phụ phí 0% thì giá trị +7,2 triệu đ, 2% còn +0,4, 5% thành −0,9.
+- Với hàng thừa về kho thường, quy tắc lần 2 vẫn **âm nhẹ** dù về lý thuyết không làm gì cũng được bằng 0: quy tắc vẫn còn đặt thừa một ít. Theo luật không sửa lần 3.
+- **Các số đáng nói nhất không đến từ thuật toán mà từ điều kiện kinh doanh:**
+  - Cùng giảm 15%, lãi toàn kho theo mức nhãn hàng tài trợ: 0% → 0,1 triệu đ; 70% → 52,1; 100% → 111,0. Biên gộp chỉ 10–23% nên 9/118 mã bán lỗ ngay ở mặc định.
+  - Cách xử lý hàng thừa đổi vốn nên trữ gấp 6 lần: về kho 1.890,6 triệu đ, trả nhà cung cấp 644,9, phải xả 306,4.
+  - Trữ theo trung bình là phương án **nguy hiểm** khi hàng thừa tốn kém: lỗ 241,7 triệu đ khi phải xả, vì vài phiên bùng nổ kéo trung bình lên cao hơn hẳn đa số phiên.
+- Khoảng cách đến trần: biết trước nhu cầu từng phiên thì lãi 104,6 triệu đ, newsvendor đạt 52,1 ở trường hợp tốt nhất. Phần lớn khoảng này là bất định không thể mua lại bằng theo dõi với giả định hiện tại.
+
+**Giới hạn phải nói rõ:** không có phiên live thật nên mọi số tiền chỉ để so sánh tương đối. Hệ số deal đo từ khuyến mãi siêu thị trong dữ liệu mô phỏng. Quy tắc lần 2 được viết sau khi thấy lần 1 nên kết quả dương của nó nhẹ cân hơn một kiểm định ghi trước. Chưa tính uy tín khi hết hàng, đơn hoàn trả, phần phiên live lấy bớt khách của cửa hàng, và tồn của siêu thị không bị ảnh hưởng vì Q là hàng đặt thêm.
+
+**Trên dashboard (màn Mặt hàng):** nhập mức giảm, tài trợ, khả năng lên xu hướng, quy mô, cách xử lý hàng thừa, thời gian hàng về; hệ thống trả lời nên trữ bao nhiêu và vì sao, kèm đường lãi theo lượng trữ và "Phát lại một phiên" theo giờ. Bán lỗ thì báo không nên trữ và mức tài trợ tối thiểu để hòa vốn.
+
+### 10.9. Đối chiếu giả định với dữ liệu thật Dominick's (luật ghi ngày 04/11, TRƯỚC khi tính)
+
+`src/phan_tich_dominicks.py`, có test, chỉ đọc. Nguồn: James M. Kilts Center, University of Chicago Booth School of Business; chuỗi siêu thị Dominick's Finer Foods, Chicago, khoảng 100 cửa hàng, 09/1989–05/1997, số bán theo tuần. **Đây là số bán thật có giá và lãi gộp, nhưng là siêu thị Mỹ 30 năm trước, không phải Việt Nam và không phải livestream.** Dùng để kiểm tra giả định, không dùng để huấn luyện mô hình của hệ thống. Bỏ ngành thuốc lá (bị điều tiết, không có trong danh mục 121 mã).
+
+**Mức xem xét:** cộng toàn chuỗi theo mã và tuần, vì kho tổng nhìn nhu cầu gộp, không nhìn từng cửa hàng. Số bán chia cho số cửa hàng có bán ngành đó trong tuần, để cửa hàng mở thêm không bị tính thành tăng nhu cầu. Bỏ dòng tài liệu đánh dấu đáng ngờ (`OK = 0`), giá hoặc số bán bằng 0, lãi gộp ngoài khoảng −50% đến 80%. Đơn giá = giá / số món trong gói (theo tài liệu).
+
+**Nhận ra tuần khuyến mãi:** tài liệu nói cờ khuyến mãi không đầy đủ (có cờ là có, không có cờ vẫn có thể có). Vì vậy một tuần là khuyến mãi nếu ít nhất 50% cửa hàng có cờ, **hoặc** đơn giá ≤ 95% trung vị đơn giá 8 tuần trước.
+
+**Mức nền, không nhìn trước:** trung vị số bán các tuần không khuyến mãi trong 8 tuần trước, cần ít nhất 3 tuần; đơn giá thường và giá vốn thường tính cùng cách. Cỡ mẫu: mức nền toàn chuỗi ≥ 20 đơn vị/tuần, có ít nhất 10 cửa hàng bán. Hệ số deal lấy ngoài 62 tuần lễ tài liệu liệt kê, để so cùng điều kiện với mô phỏng.
+
+**Câu hỏi và luật kết luận:**
+1. **Hệ số deal:** so phân vị 10, 50, 90 và tỉ lệ tuần đạt ×3, ×5, ×10 với mô phỏng (trung vị ×1,47). Trung vị thật lệch quá 25% so với mô phỏng thì ghi là **giả định lệch**.
+2. **Phép đo có dùng được cho thời kỳ sau không:** từng ngành lấy 2/3 đầu thời gian để đo, 1/3 sau để kiểm, như mục 10.8: phân vị 50, 75, 90 phải phủ đúng, lệch không quá 5 điểm phần trăm ở cả 3 mức (tính gộp), đồng thời báo số ngành đạt. Đây là phép kiểm **trên số thật**, khác với phép kiểm trên mô phỏng ở 10.8.
+3. **Mức tài trợ:** khi giá giảm, nhà sản xuất gánh bao nhiêu = (giá vốn thường − giá vốn tuần đó) / (đơn giá thường − đơn giá tuần đó), tính gộp theo số lượng, chỉ các tuần giảm ≥ 5%. Ngoài khoảng 50–90% thì ghi giả định 70% là **lệch**. Giới hạn: tài liệu nói giá vốn là giá bình quân tồn kho, phản ánh chậm giá mua thật, nên đây chỉ là ước lượng.
+4. **Biên lãi gộp thật** so với 10–23% trong danh mục mô phỏng, tách tuần thường và tuần khuyến mãi.
+5. **Quan hệ độ sâu giảm giá và số bán:** trung vị hệ số deal theo dải giảm giá, và độ co giãn từ hồi quy log(hệ số) theo log(1 − mức giảm). Mô phỏng hiện không có quan hệ này: hệ số deal không phụ thuộc mức giảm trên màn hình.
+6. **Mua trước rồi giảm:** tuần ngay sau khuyến mãi so với mức nền. Trung vị dưới 0,9 thì ghi là có hiện tượng này, và nhu cầu ngay sau phiên live cần được tính đến.
+7. **Thử newsvendor bằng hệ số thật:** giá, mức nền, chi phí của 121 mã giữ nguyên. Lượng trữ tính theo (a) hệ số mô phỏng, (b) hệ số thật của 2/3 đầu; chấm trên hệ số thật của 1/3 sau, với p = 20% và p = 0 (không phiên nào bùng nổ). Newsvendor gọi là **bền** như 10.8 nếu lãi không thấp hơn 2 phương án so sánh ở mọi trường hợp. Lãi (a) thấp hơn (b) bao nhiêu chính là cái giá của việc dùng hệ số mô phỏng.
+
+**Giới hạn của cả mục:** bùng nổ của phiên live vẫn là giả định, dữ liệu này không kiểm được. **Kết quả chỉ để báo cáo: không tự đổi giả định mặc định, mô phỏng hay dashboard.** Đổi gì phải hỏi người làm đồ án trước.
+
+**Kết quả (chạy 04/11, xem `reports/dominicks.md`):** 27 ngành, 16.995 mã, 225.883 tuần khuyến mãi ngoài tuần lễ.
+
+| Câu hỏi | Số thật | Giả định trong đồ án | Theo luật |
+|---|---|---|---|
+| Hệ số deal, trung vị | ×1,63 | ×1,47 | Không lệch |
+| Hệ số deal, p90 | ×5,71 | ×3,00 | Luật không xét đuôi, nhưng **đuôi của mô phỏng quá mỏng**: từ ×5 là 11,9% so với 1,4% |
+| Đo trên 2/3 đầu, kiểm trên 1/3 sau | phủ 44,3 / 70,8 / 87,0% (mục tiêu 50 / 75 / 90) | Trên mô phỏng đạt: 47,5 / 76,2 / 92,0% | **Không đạt** (lệch 5,7 điểm ở mức 50%); 4/27 ngành đạt khi đo riêng |
+| Nhà sản xuất tài trợ | 43,4% (theo ngành 8,7–70,6%) | 70% | **Giả định lệch** |
+| Biên lãi gộp theo mã, tuần thường | trung vị 30,4% (p10 18,1%, p90 42,7%) | 10–23% | Không có ngưỡng; mô phỏng thấp hơn |
+| Biên lãi gộp, tuần khuyến mãi | 14,5% (tuần thường 26,0%) | Không mô hình hóa | |
+| Độ co giãn theo giá | 3,00 | **Không có**: đổi mức giảm không đổi nhu cầu | Thiếu sót của phần livestream |
+| Tuần ngay sau khuyến mãi | trung vị ×1,01 | Từng nói có "mua trước rồi giảm" | **Không rõ hiện tượng** ở mức toàn chuỗi |
+
+**Điều rút ra:**
+- **Phép đo của đồ án yếu hơn trên số thật.** Phép kiểm trên mô phỏng đạt vì cùng một quy luật sinh ra cả hai giai đoạn; trên số thật, nhu cầu giai đoạn sau cao hơn, chỉ 4/27 ngành giữ được. Hệ số deal phải đo lại định kỳ, không thể đo một lần rồi dùng mãi.
+- **Newsvendor vẫn bền:** dùng hệ số thật để chấm, cả 12 trường hợp đều không thua 2 phương án so sánh, kể cả khi Q tính bằng hệ số mô phỏng. Cái giá của việc dùng hệ số mô phỏng khi p = 20%: lãi thấp hơn 1,3 đến 5,9 triệu đ. Khi không có phiên bùng nổ (p = 0), Q theo hệ số mô phỏng lại lãi cao hơn ở 2 trong 3 trường hợp, vì Q theo hệ số thật cộng thêm giả định bùng nổ thì trữ dư. Trữ theo trung bình tệ hơn nhiều với đuôi dày thật: lỗ tới 594 triệu đ khi hàng thừa phải xả.
+- **Lãi phụ thuộc mức tài trợ nhiều nhất** (mục 8 của báo cáo, thêm sau khi thấy kết quả, không thuộc luật). Giảm 15%: tài trợ 70% lãi 52,1 triệu đ, 109/118 mã có lãi; tài trợ 43,4% lãi 20,9, còn 73/118 mã. Giảm 30%, tài trợ 43,4%: chỉ 3/118 mã có lãi. Tổ hợp này dùng tài trợ thật với biên lãi mô phỏng thấp hơn thật và phí sàn 8% nên là kịch bản bi quan.
+- **Đính chính báo cáo livestream:** bảng theo mức giảm trong `reports/tru_hang_live.md` giữ nguyên nhu cầu nên làm lãi tụt mạnh khi giảm sâu (65,1 / 52,1 / 25,0 triệu đ). Tính cả co giãn thì phẳng hơn nhiều (54,9 / 52,1 / 44,8). Độ co giãn 3,00 chỉ là tương quan, vì khuyến mãi siêu thị đi kèm trưng bày, tờ rơi.
+
+**Giới hạn:** siêu thị Mỹ 1990, không phải Việt Nam và không phải livestream; số theo tuần được dùng cho phiên 1 ngày; giá vốn là giá bình quân tồn kho nên mức tài trợ chỉ là ước lượng; bùng nổ vẫn là giả định. **Chưa đổi gì trong giả định mặc định, mô phỏng, dashboard:** các việc này chờ người làm đồ án quyết định.
+
+### 10.10. Trữ hàng livestream, bản sau đối chiếu với Dominick's (luật ghi ngày 04/11, TRƯỚC khi chạy)
+
+Người làm đồ án đồng ý sửa theo số thật. **Luật này viết sau khi đã thấy kết quả mục 10.8 và 10.9, nên không phải kiểm định ghi trước hoàn toàn.** Kết quả cũ của 10.8 giữ nguyên, `reports/tru_hang_live.md` không chạy lại.
+
+**Thay đổi so với 10.8:**
+- **Hệ số deal lấy theo đúng dải giảm giá:** 5–10%, 10–20%, 20–30%, 30–50%, 50–90%, từ số thật Dominick's. Trung vị lần lượt ×1,34, ×1,78, ×2,41, ×4,44, ×14,03. Lý do: mẫu gộp lẫn tuần giảm 50–90% vào mọi phiên, nhân thêm độ co giãn thì tính trùng. Mức giảm dưới 5% dùng dải thấp nhất vì không có dải riêng cho "không giảm".
+- **Nhãn hàng tài trợ mặc định 45%,** làm tròn từ 43,4% đo được; vẫn đổi được trên màn hình.
+- **Nếu chọn nguồn hệ số của hệ thống (mô phỏng):** số bán nhân thêm `((1 − giảm) / (1 − 15%))^(−3,00)`. Nguồn này không có dải theo mức giảm nên cần độ co giãn; nguồn thật thì không nhân thêm.
+- **Giữ nguyên, chưa sửa:** biên lãi của 121 mã (10–23%, thấp hơn số thật), xác suất và hệ số bùng nổ, phí sàn, tỉ lệ hủy, chi phí hàng thừa, quy tắc bổ sung lần 2. Việc hiệu chuẩn biên lãi trong dữ liệu mô phỏng là quyết định riêng.
+
+**Kiểm tra trên số thật, không dò tham số:**
+1. **Phép đo theo dải có giữ được cho thời kỳ sau không:** đo trên 2/3 đầu từng ngành, kiểm trên 1/3 sau, từng dải. **Đạt** nếu lệch không quá 5 điểm phần trăm ở cả 3 mức 50%, 75%, 90%. Báo cả so với cách gộp ở 10.9 (không đạt) để biết chia dải có giúp không. Thêm kiểm tra theo ngành và dải (đủ 30 tuần mỗi phần).
+2. **Newsvendor:** với mức giảm 10%, 15%, 30%, tài trợ 45%, 3 cách xử lý hàng thừa, p = 20% và p = 0: Q tính trên 2/3 đầu của đúng dải, chấm trên 1/3 sau. **Bền** nếu lãi không thấp hơn 2 phương án so sánh ở mọi trường hợp; thua ở đâu báo đúng ở đó.
+3. **Giá trị theo dõi theo giờ** với giả định mới, hàng về sau 6 giờ, cùng quy tắc lần 2, mức giảm 15%. Mã có lãi sau phụ phí ≤ 0 thì không bổ sung, nên giá trị có thể gần 0.
+4. **So lãi trước và sau đối chiếu** ở mặc định, kèm số mã còn lãi. Báo rõ khi lãi giảm.
+
+**Không sửa thêm để số đẹp hơn:** kết quả thế nào báo thế ấy. Giới hạn của 10.9 vẫn áp dụng: siêu thị Mỹ 1989–1997, số theo tuần dùng cho phiên 1 ngày, bùng nổ vẫn là giả định.
+
+**Kết quả (chạy 04/11, xem `reports/tru_hang_live_sau_doi_chieu.md`):**
+- **Chia theo dải giúp phép đo tốt hơn nhưng chưa đủ.** Gộp mọi mức giảm thì không đạt; theo dải thì đạt 3/5 dải (5–10%, 10–20%, 30–50%), không đạt ở 20–30% và 50–90%. Đo riêng từng ngành vẫn yếu: nhiều nhất 8/27 ngành đạt. Hệ số vẫn phải đo lại định kỳ, và nên đo theo ngành khi có đủ số liệu.
+- **Newsvendor bền ở cả 18 trường hợp.** Riêng giảm 30% với tài trợ 45% thì lãi xấp xỉ 0 (chỉ 6/118 mã còn lãi, newsvendor gần như không trữ), trong khi 2 phương án so sánh lỗ 43 đến 2.373 triệu đ. Tức là newsvendor bền ở đây vì nó từ chối trữ, không phải vì phiên đó đáng làm.
+- **Lãi mặc định giảm rõ khi dùng số thật** (giảm 15%, toàn kho): về kho thường 52,1 còn 31,0 triệu đ; trả nhà cung cấp 29,7 còn 18,3; phải xả 15,1 còn 12,7; số mã còn lãi 109 còn 74 trên 118. Phần lớn do tài trợ 45% thay vì 70%. Biên lãi mô phỏng thấp hơn số thật nên các số này thiên về bi quan.
+- **Giá trị theo dõi theo giờ nhỏ:** +0,5 / +1,5 / +0,6 triệu đ toàn kho (hàng về sau 6 giờ). Kết luận "chỉ đáng làm khi hàng thừa tốn kém" ở 10.8 **không còn rõ**: lãi sau phụ phí còn quá mỏng nên giá trị nhỏ ở cả 3 trường hợp. Đây là mức chi tối đa, chưa trừ chi phí cài đặt.
+
+**Trên dashboard:** tài trợ mặc định 45%; thêm ô chọn nguồn hệ số (số thật theo dải giảm giá, hoặc dữ liệu của hệ thống kèm độ co giãn). `reports/dominicks_he_so_deal.json` là tệp nhỏ dashboard đọc, không cần 13 GB gốc. **Điểm cần biết khi trình bày:** dải đổi đột ngột ở các mốc (giảm 25% dùng trung vị ×2,41, giảm 30% dùng ×4,44), nên kết quả nhảy bậc khi kéo qua mốc.
+
+### 10.11. Hạn sử dụng và sức chứa kho (luật ghi ngày 04/11, TRƯỚC khi chạy)
+
+`src/rang_buoc_kho.py`, có test, chỉ đọc CSDL, không đổi chính sách chính. Khi tắt hết ràng buộc, bộ mô phỏng này phải **trùng từng mã từng ngày** với chính sách AI + hiệu chỉnh trong CSDL. **Dữ liệu không có hạn sử dụng, thể tích hay diện tích kho**, nên các bảng dưới đây là **giả định** theo loại hàng, không phải số trên bao bì hay số của kho thật; kết quả chỉ cho thấy phương pháp và độ lớn tương đối. Dữ liệu đơn hàng và nhu cầu là mô phỏng.
+
+**Hạn sử dụng:**
+- **Mã được xét:** thực phẩm, đồ uống, sữa, gia vị, bánh kẹo, kem và đông lạnh, theo bảng giả định trong mã nguồn (từ 30 ngày với sữa chua đến 3 năm với đồ hộp). Hàng khác và rượu vang không xét.
+- **Quy tắc 1/3 (giả định):** kho chỉ được giao hàng trong 1/3 thời hạn kể từ lúc hàng về; quá mốc đó siêu thị không nhận, hàng bị loại. Tồn đầu kỳ coi như đã dùng hết nửa khoảng này. Xuất theo lô về trước (FIFO).
+- **Chi phí:** loại 1 đơn vị mất 100% giá vốn; thử thêm 50% (bán xả được một nửa).
+- **Phương án thử:** trần lượng đặt theo hạn: mỗi lần không đặt quá `max(MOQ, nhu cầu dự báo mỗi ngày × số ngày được giao)`. Mã MOQ lớn hơn lượng bán được trong thời hạn thì trần không giúp được, báo riêng.
+- **Luật chọn, chỉ trên validation2:** dùng trần nếu trên các mã có hạn, tổng chi phí (đặt hàng + lưu kho + lợi nhuận mất + hàng loại) giảm ít nhất 0,5% **và** Fill Rate không giảm quá 0,2 điểm. Test chỉ báo cáo. Thử độ nhạy thời hạn ×0,5 và ×2.
+
+**Sức chứa:**
+- **Thể tích từng đơn vị:** giả định theo đơn vị tính và loại hàng. Hai vùng riêng: **kho lạnh** (kem, đông lạnh, sữa chua) và **kho thường**.
+- **Sức chứa giả định:** mỗi vùng bằng đỉnh thể tích hàng thực tồn trong dữ liệu trên validation2 (kho vừa đủ cho hoạt động năm trước), thử thêm 90% và 80%, vì không biết kho thật lớn bao nhiêu.
+- **Phương án A, thuê kho ngoài:** không đổi quyết định đặt hàng; phần vượt tính 10 đ/lít/ngày (khoảng 300.000 đ/m³/tháng, giả định), thử thêm ×0,5 và ×2.
+- **Phương án B, cắt đơn:** trước khi đặt, ước lượng thể tích lúc hàng về = hàng hiện có + đang về − nhu cầu dự báo trong thời gian chờ. Mã ít ngày tồn nhất được đặt trước; không đủ chỗ thì giảm lượng đặt, dưới MOQ thì không đặt. Phần vẫn vượt tính tiền thuê như A.
+- **Luật chọn, chỉ trên validation2, từng mức sức chứa:** dùng B nếu tổng chi phí (đặt hàng + lưu kho + lợi nhuận mất + thuê ngoài) thấp hơn A ít nhất 0,5% **và** Fill Rate không giảm quá 0,2 điểm; còn lại dùng A. Test chỉ báo cáo.
+
+**Giới hạn:** hạn sử dụng và sức chứa được xét riêng, chưa gộp; chưa xét cửa nhận hàng, số chuyến xe, xếp chồng và chiều cao kệ. Hàng loại không được bù từ nhà cung cấp. Không tự đưa kết quả vào chính sách chính: đổi gì phải hỏi người làm đồ án trước.
+
+**Kết quả (chạy 04/11, xem `reports/rang_buoc_kho.md`). Các số tiền phụ thuộc nặng vào giả định:**
+
+| | Validation2 | Test |
+|---|---:|---:|
+| Hàng loại, không trần (triệu đ, 50 mã có hạn) | 6.443,6 | 6.233,3 |
+| Hàng loại, có trần | 5.996,6 | 5.950,1 |
+| Tổng chi phí 50 mã, không trần | 8.464,0 | 9.601,9 |
+| Tổng chi phí 50 mã, có trần | 8.089,5 | 9.312,7 |
+| Fill Rate 50 mã, không trần / có trần | 96,52% / 96,70% | 95,08% / 95,17% |
+| Đỉnh thể tích kho thường so với mốc 100% (không cắt đơn) | 93% | 134% |
+| Số ngày vượt mốc 100% (không cắt đơn) | 0 | 277 |
+| Fill Rate toàn kho nếu cắt đơn, mức 100% / 90% / 80% | 96,83 / 96,80 / 96,74% | 92,80 / 76,56 / 75,21% |
+
+**Theo luật:** dùng trần lượng đặt theo hạn (validation2 giảm 4,4% chi phí, Fill Rate không giảm). Ở cả 3 mức sức chứa, **dùng A, thuê ngoài, không cắt đơn**. Test đồng ý với cả hai lựa chọn.
+
+**Điều rút ra:**
+- **Hàng loại tập trung ở hàng chỉ bán dịp lễ:** 8 mã có hàng loại; 18 mã chỉ bán dịp lễ chiếm 92,4% giá trị. Hàng bán quanh năm gần như không bị loại, trừ sữa chua. Trần lượng đặt có tác dụng rõ với sữa chua (449,1 còn 86,5 triệu đ) nhưng gần như không giúp hàng dịp lễ, có mã còn tệ hơn (Mứt Tết 1.260,8 thành 1.437,5). **Con số 6,2 tỷ là mức trần bi quan:** coi hàng thừa sau mùa mất trắng, không trả được nhà cung cấp, không xả được; xả được một nửa thì tổng chi phí còn 6.485,3 triệu đ. Mô phỏng cũng không có quy tắc ngừng đặt khi hết mùa, nên có mã bị đặt thêm rồi lại loại.
+- **Vấn đề sức chứa gần như chỉ do một mã (chẩn đoán thêm sau khi thấy kết quả).** Chính sách đề xuất đặt 9.670 cây thông Noel trên test trong khi nhu cầu 4.999, hiện trạng nhập 5.075; cuối kỳ dư 5.193 cây. Dự báo khi vào mùa cao hơn thực tế khoảng 50%. Bỏ riêng mã này, đỉnh thể tích từ 134% còn 84%, ngày vượt từ 277 còn 1. Mức ảnh hưởng còn phụ thuộc giả định 120 lít/cây. **Đây là điểm yếu có sẵn trong kết quả chính, không phải do phần sức chứa tạo ra:** số liệu khớp `mo_phong_ngay` trong CSDL.
+- **Cắt đơn có thể rất nguy hiểm:** ở test, 62,5% thể tích là hàng vượt nhu cầu thật 60 ngày tới, 99,6% trong đó là nhóm Z. Tồn chết chiếm chỗ nên quy tắc cắt đơn chặn cả hàng bán chạy, Fill Rate tụt còn 76%. Muốn xử lý chỗ chứa phải xả tồn chết, không phải cắt đơn mới.
+- **Cả 2 ràng buộc cùng chỉ về một điểm: chính sách cho hàng chỉ bán dịp lễ.** Quy tắc đặt lặp lại đặt quá tay ở mùa cao điểm; đây chính là việc newsvendor mùa vụ nhắm tới. Phép thử đó dùng được nhu cầu đã có trong dữ liệu (dù mô phỏng), không cần giả định phiên live.
+
+**Chưa đổi chính sách chính.** Trần lượng đặt theo hạn và thuê ngoài chỉ là kết quả phân tích, chờ người làm đồ án quyết định.
+
+**Quyết định của người làm đồ án (04/11):** chuỗi có bán online và giao từ chính kho, nhưng chủ yếu là phân phối cho siêu thị; mọi mặt hàng đều bán online được. Khối livestream giữ sẵn để sau dùng, không phải hoạt động chính. Trần lượng đặt theo hạn (mục 10.11) **chưa đưa vào chính sách chính**.
+
+### 10.12. Newsvendor cho hàng chỉ bán dịp lễ (luật ghi ngày 04/11, TRƯỚC khi chạy)
+
+Người làm đồ án yêu cầu làm (04/11), sau khi mục 10.11 chỉ ra hàng dịp lễ gây phần lớn hàng loại và tồn chết. `src/newsvendor_mua_vu.py`, có test, chỉ đọc CSDL. Khác với livestream, phép thử này dùng **nhu cầu đã có trong dữ liệu**, nhưng dữ liệu vẫn là mô phỏng. **Không tự đưa vào chính sách chính.**
+
+**Phạm vi:** các mã "Chỉ dịp ..." (18 mã), mỗi mã gắn với 1 sự kiện trong `lich_su_kien` (Tết, Trung thu, Halloween, Noel). Mùa = cửa sổ của sự kiện trong lịch, biết trước. Hàng khác giữ nguyên quy tắc hiện tại. Nguồn dữ liệu không có nhãn mùa hoặc lịch thì không áp dụng.
+
+**Lượng đặt cho một mùa:** `Q = tổng nhu cầu mùa trước × phân vị Cu/(Cu + Co) của r`, trong đó `r` = tổng mùa này / tổng mùa trước của cùng mã, gộp mọi mã.
+- `Cu` = giá bán − giá vốn. `Co`: hàng có hạn theo bảng giả định mục 10.11 thì mất 100% giá vốn; hàng không hạn giữ sang năm, mất giá vốn × tỉ lệ lưu kho × 1 năm.
+- **Vì sao không dùng dự báo AI để tính Q:** lúc phải đặt (trước mùa một khoảng lead time) dự báo chỉ nhìn được 28 ngày nên không phủ hết mùa. Dự báo AI vẫn dùng ở phương án bổ sung trong mùa.
+- **Không nhìn trước:** trên test, `r` chỉ lấy từ các mùa đã kết thúc trước ngày đặt. Trên validation2 chưa có cặp mùa nào trước đó, nên dùng `r` của các mã khác cùng năm (bỏ chính mã đó); **cách này có nhìn ngang trong cùng năm nên validation2 thuận lợi hơn thực tế**.
+
+**Cách đặt:** ngày đặt = đầu mùa − lead time − 2 × độ lệch lead time (làm tròn lên). Đặt `max(Q − hàng hiện có − hàng đang về, 0)`, tối thiểu MOQ. Từ ngày đặt đến hết mùa tắt quy tắc đặt thường. Ngoài mùa giữ quy tắc thường. Mùa có ngày đặt trước đầu kỳ, hoặc kết thúc sau cuối kỳ, thì giữ quy tắc thường vì không chấm công bằng được.
+
+**Hai phương án:**
+1. **Một lần:** chỉ đặt 1 lần cho cả mùa.
+2. **Một lần + bổ sung:** thêm quy tắc đặt thường (có dự báo AI) trong mùa, nếu hàng về kịp trước khi hết mùa.
+
+**Chấm trong 2 môi trường:** có hạn sử dụng (lô hàng, quy tắc 1/3, loại mất 100% như 10.11) và không hạn (giống chính sách chính, hàng dư chỉ tốn lưu kho). Môi trường không hạn **thiên vị việc trữ dư** vì hàng dư gần như không mất gì và mô phỏng dừng ở cuối kỳ.
+
+**Luật chọn, chỉ trên validation2, môi trường có hạn:** dùng phương án có tổng chi phí toàn kho thấp nhất, nếu chi phí thấp hơn quy tắc hiện tại ít nhất 0,5%, **và** Fill Rate toàn kho không giảm quá 0,5 điểm **và** không dưới 95%. Ngưỡng 0,5 điểm rộng hơn 0,2 điểm của các mục trước vì newsvendor cố ý đổi mức phục vụ lấy chi phí theo tỉ số Cu/Co; ghi rõ lý do này trước khi chạy. Không phương án nào đạt thì **giữ quy tắc hiện tại**. Test chỉ báo cáo.
+
+**Báo cáo thêm:** môi trường không hạn, kể cả khi bất lợi; Fill Rate riêng hàng dịp lễ; giá trị tồn ngay sau mùa; cây thông Noel; đỉnh thể tích; độ nhạy `Co` khi xả được 50%. Giả định không sửa sau khi xem kết quả.
+
+**Kết quả (chạy 04/11, xem `reports/newsvendor_mua_vu.md`):**
+
+| Toàn kho, chính sách AI + hiệu chỉnh | Quy tắc hiện tại | Newsvendor, một lần (theo luật) | Bỏ mã hạn ngắn (thêm sau khi thấy test) |
+|---|---:|---:|---:|
+| Validation2, có hạn: chi phí (tr đ) · Fill Rate | 10.270,2 · 96,32% | 9.640,1 · 95,99% | 9.640,1 · 95,99% |
+| Test, có hạn: chi phí · Fill Rate | 11.756,9 · 95,85% | **13.441,9 · 93,89%** | 9.668,1 · 95,30% |
+| Test, không hạn: chi phí · Fill Rate | 5.778,3 · 95,82% | 5.343,2 · 95,34% | 5.242,1 · 95,33% |
+| Test, không hạn: Fill Rate hàng dịp lễ · tồn TB hàng dịp lễ (tr đ) | 94,93% · 6.422,2 | 91,16% · 3.571,7 | 91,04% · 3.417,5 |
+| Test, không hạn: đỉnh thể tích kho thường | 134% | 106% | 106% |
+
+**Theo luật:** validation2 chọn "một lần" (chi phí giảm 6,1%, Fill Rate giảm 0,33 điểm). **Test không xác nhận trong môi trường có hạn:** chi phí tăng 14,3%, Fill Rate 93,89%, dưới 95%. Vì vậy **không đưa phương án này vào chính sách chính.** Phương án "bổ sung trong mùa" đặt lại gần như quy tắc cũ (cây thông vẫn 9.670) nên không giải quyết được đặt quá tay.
+
+**Vì sao validation2 không báo trước:** hai mã bánh trung thu chỉ được giao 20 ngày theo giả định, trong khi từ ngày đặt đến hết mùa dài hơn, nên hàng hết hạn giữa mùa và không được đặt lại. Trên test chi phí nhóm Trung thu tăng từ 2.855,5 lên 6.659,6 triệu đ. Validation2 không có mùa Trung thu nào được chấm vì mùa 2025 kết thúc sau cuối kỳ, nên phép chọn **không thấy được** rủi ro này. Đây là điểm yếu của cách chia dữ liệu, không chỉ của phương án.
+
+**Điều rút ra:**
+- **Đặt một lần có ích ở các dịp còn lại (chẩn đoán sau khi thấy kết quả):** test, có hạn: Halloween 494,1 còn 155,6 triệu đ, Noel 825,9 còn 391,5, Tết 2.814,1 còn 1.468,5. Đổi lại Fill Rate Noel giảm từ 99,9% xuống 87,0%, Tết từ 99,7% xuống 94,6%; Halloween tăng từ 81,8% lên 94,6%.
+- **Đặt quá tay được giải quyết:** cây thông nhập 4.935 so với nhu cầu 4.999, cuối kỳ dư 481 thay vì 5.193. Đỉnh thể tích từ 134% còn 106%.
+- **Phương án bỏ mã hạn ngắn trông tốt nhưng chưa được kiểm chứng độc lập:** các mã bị bỏ được nhận ra bằng phép kiểm logic (mùa dài hơn số ngày được giao), không dò theo kết quả, nhưng phương án được **thêm sau khi đã thấy test**, và trên test Fill Rate giảm 0,55 điểm, nhích quá ngưỡng 0,5. Dữ liệu không còn năm nào chưa xem để kiểm lại. **Chỉ trình bày như đề xuất cải tiến**, không như kết quả đã kiểm định.
+- Hàng hạn ngắn có mùa dài cần giao nhiều đợt, chưa làm.
+
+**Giới hạn:** mỗi mã chỉ có 1–2 mùa trước để làm gốc; `r` trên validation2 nhìn ngang trong cùng năm; dữ liệu mô phỏng nên mùa này giống mùa trước hơn thực tế (`r` p10–p90 là 0,81–1,20), có thể làm lợi cho cách dựa vào mùa trước; hạn và chi phí hàng dư là giả định. Q dùng lịch sử mùa trước, không dùng dự báo AI, vì dự báo chỉ nhìn được 28 ngày.
 
 ## 11. Mô phỏng và bảng trước–sau ✅ (24/10)
 
@@ -689,6 +992,13 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 | 02/11 | Vòng 5: LSTM, RNN theo luật mục 9.7; giữ `ket_hop_v4` | `src/mo_hinh_dl.py`, `reports/mo_hinh_dl.md` | Nạp lại CSDL: bảng tồn kho, dự báo v4 trùng khớp từng dòng; đối chiếu số liệu khớp |  |
 | 02/11 | Chỉ số kho (mục 10.5); sơ đồ luồng báo cáo | `src/chi_so_kho.py`, `src/tao_so_do_bao_cao.py` | 39 test pytest, 32 thao tác giao diện đạt |  |
 | 02/11 | Sửa lỗi Vega "Unrecognized data set": nhúng dữ liệu vào đặc tả (`C.ve_bd`) | `app/chung.py`, `app/trang/*` | Bấm chuột thật 8 lần: 7 lần không lỗi JS, 1 lần trình duyệt không khởi động |  |
+| 03/11 | Gom đơn theo nhà cung cấp (mục 10.6); gỡ ghi cứng theo dữ liệu; bộ chuyển đổi M5 | `src/gom_don.py`, `src/kiem_tra_du_lieu.py`, `src/nguon/m5.py` | k = 0 trùng từng dòng với `mo_phong_ngay`; đặc trưng, CSDL trùng khớp sau khi gỡ ghi cứng |  |
+| 03/11 | Chấm điểm nhà cung cấp, cảnh báo giao chậm (mục 10.7); sổ số liệu đồ án | `src/cham_diem_ncc.py`, `src/so_lieu_do_an.py`, `reports/so_lieu_do_an.md` | Có test; cảnh báo phát hiện đúng nhưng chậm |  |
+| 03/11 | Trữ hàng cho phiên livestream, newsvendor hai bước (mục 10.8); khối trên màn Mặt hàng | `src/tru_hang_live.py`, `reports/tru_hang_live.md`, `app/trang/mat_hang.py` | Có test; quy tắc bổ sung lần 1 thua cả không làm gì, phải sửa, báo cả 2 lần |  |
+| 04/11 | Đối chiếu giả định với số bán thật Dominick's (mục 10.9) | `src/phan_tich_dominicks.py`, `reports/dominicks.md` | Có test; đuôi deal, mức tài trợ lệch, phép đo không đạt trên số thật; newsvendor vẫn bền; chưa đổi giả định |  |
+| 04/11 | Khối livestream bản sau đối chiếu: hệ số theo dải giảm giá, tài trợ 45%, độ co giãn (mục 10.10) | `src/tru_hang_live.py`, `src/phan_tich_dominicks.py`, `app/trang/mat_hang.py`, `reports/tru_hang_live_sau_doi_chieu.md` | Có test; newsvendor bền 18/18; lãi mặc định giảm khoảng 40%; giá trị theo dõi nhỏ |  |
+| 04/11 | Hạn sử dụng và sức chứa kho (mục 10.11) | `src/rang_buoc_kho.py`, `reports/rang_buoc_kho.md`, `app/trang/ket_qua.py` | Có test, khớp CSDL khi tắt ràng buộc; hàng dịp lễ chiếm 92% hàng loại; sức chứa vượt do 1 mã đặt quá tay |  |
+| 04/11 | Newsvendor cho hàng chỉ bán dịp lễ (mục 10.12); khối livestream dùng được cho mọi mã | `src/newsvendor_mua_vu.py`, `reports/newsvendor_mua_vu.md`, `app/trang/ket_qua.py`, `app/trang/mat_hang.py` | Có test; validation2 chọn đặt một lần, test có hạn không xác nhận do hàng hạn ngắn; không đưa vào chính sách chính |  |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

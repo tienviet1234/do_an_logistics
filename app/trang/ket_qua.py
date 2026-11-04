@@ -36,7 +36,7 @@ c1.segmented_control("Mức phục vụ mục tiêu", [0.90, 0.95, 0.99], format
                      help="Hệ số z trong công thức SS. Hiện trạng* không dùng công thức nên giống nhau ở mọi mức.")
 lv = s.kq_lv
 c2.markdown(f'<div class="dp-phu phai">{C.mo_ta_loc()} ({len(ids)} mã) · 12 tháng kiểm tra '
-            f'01/10/2025 – 29/09/2026 · {C.NOTE}</div>', unsafe_allow_html=True)
+            f'{C.ky_kiem_tra()} · {C.NOTE}</div>', unsafe_allow_html=True)
 
 k = C.q("SELECT * FROM ket_qua_ton_kho WHERE ROUND(muc_phuc_vu, 2) = ?", (lv,))
 k = k[k.ma_sku.isin(ids)]
@@ -95,28 +95,31 @@ C.muc("Theo nhóm XYZ: tồn kho đổi lấy mức đáp ứng", "góc trên b�
 x = tong(k.merge(p[["ma_sku", "xyz_train"]], on="ma_sku"), by=("xyz_train", "ma_chinh_sach")).reset_index()
 x["ten"] = x.ma_chinh_sach.map(C.CS_NGAN)
 x["nhom"] = "Nhóm " + x.xyz_train + x.xyz_train.map({"X": " · ổn định", "Y": " · dao động vừa", "Z": " · mùa vụ, thất thường"})
-diem = alt.Chart(x).mark_point(filled=True, size=150, opacity=1, stroke=C.MUC, strokeWidth=0.8).encode(
-    x=alt.X("ton:Q", title="Tồn kho TB (triệu đồng)", scale=alt.Scale(zero=False, padding=24)),
-    y=alt.Y("fr:Q", title="Fill Rate (%)", scale=alt.Scale(zero=False, padding=18)),
-    color=alt.Color("ma_chinh_sach:N", scale=alt.Scale(domain=CS, range=[C.CS_MAU[c] for c in CS]),
-                    legend=alt.Legend(orient="top", title=None, labelExpr="datum.label == 'hien_trang' ? 'Hiện trạng*' : "
-                                      "datum.label == 'cong_thuc_du_bao_moc' ? 'Dự báo mốc' : datum.label == "
-                                      "'cong_thuc_du_bao_ai' ? 'AI' : 'AI + hiệu chỉnh'")),
-    shape=alt.Shape("ma_chinh_sach:N", scale=alt.Scale(domain=CS, range=["square", "triangle-up", "diamond", "circle"]),
-                    legend=None),
-    tooltip=[alt.Tooltip("nhom:N", title="Nhóm"), alt.Tooltip("ten:N", title="Chính sách"),
-             alt.Tooltip("fr:Q", title="Fill Rate (%)", format=".1f"), alt.Tooltip("ton:Q", title="Tồn TB (tr đ)", format=",.0f"),
-             alt.Tooltip("ln:Q", title="Lợi nhuận mất (tr đ)", format=",.0f")])
-nhan = alt.Chart(x).mark_text(align="left", dx=10, dy=-9, fontSize=11, color=C.MUC2).encode(x="ton:Q", y="fr:Q", text="ten:N")
-C.ve_bd((diem + nhan).properties(width=380, height=260).facet(
-    column=alt.Column("nhom:N", title=None, header=alt.Header(labelFontSize=13, labelAnchor="start"))
-).resolve_scale(x="independent", y="independent"), use_container_width=False)
+# moi nhom 1 bieu do trong 1 cot, khong dung facet: facet can be rong co dinh nen tran man hinh (104 px o may tinh, hon 1.000 px o dien thoai)
+ten_nhom = sorted(x.nhom.unique())
+for cot_nhom, n_ in zip(st.columns(len(ten_nhom), gap="medium"), ten_nhom):
+    xn = x[x.nhom == n_]
+    diem = alt.Chart(xn).mark_point(filled=True, size=150, opacity=1, stroke=C.MUC, strokeWidth=0.8).encode(
+        x=alt.X("ton:Q", title="Tồn kho TB (triệu đồng)", scale=alt.Scale(zero=False, padding=24)),
+        y=alt.Y("fr:Q", title="Fill Rate (%)", scale=alt.Scale(zero=False, padding=18)),
+        color=alt.Color("ma_chinh_sach:N", scale=alt.Scale(domain=CS, range=[C.CS_MAU[c] for c in CS]), legend=None),       # moi diem da co nhan ten ngay canh
+        shape=alt.Shape("ma_chinh_sach:N", scale=alt.Scale(domain=CS, range=["square", "triangle-up", "diamond", "circle"]), legend=None),
+        tooltip=[alt.Tooltip("nhom:N", title="Nhóm"), alt.Tooltip("ten:N", title="Chính sách"),
+                 alt.Tooltip("fr:Q", title="Fill Rate (%)", format=".1f"), alt.Tooltip("ton:Q", title="Tồn TB (tr đ)", format=",.0f"),
+                 alt.Tooltip("ln:Q", title="Lợi nhuận mất (tr đ)", format=",.0f")])
+    # bo chu giai nen nhan phai doc duoc: chon tren / duoi it de nhat; diem o nua phai dat nhan sang trai cho khoi bi cat
+    phai_n, le_n = C.vi_tri_nhan(xn.ton.values, xn.fr.values, list(xn.ten))
+    xn = xn.assign(phai=phai_n, le=le_n)
+    lop_nhan = [alt.Chart(g).mark_text(align="right" if ph else "left", dx=-10 if ph else 10, dy=15 if le else -12, fontSize=11, color=C.MUC2).encode(x="ton:Q", y="fr:Q", text="ten:N")
+                for (ph, le), g in xn.groupby(["phai", "le"])]
+    with cot_nhom:
+        C.ve_bd(alt.layer(diem, *lop_nhan).properties(height=260, title=n_))
 if "Z" in set(x.xyz_train):
     z = x[x.xyz_train == "Z"].set_index("ma_chinh_sach")
     C.ghi("mỗi dấu là một chính sách; mỗi khung một nhóm, trục riêng.",
           f"nhóm Z: AI + hiệu chỉnh giữ tồn {vn(z.ton[C.CS_GOI_Y] / z.ton['hien_trang'], 1)} lần hiện trạng để đáp ứng "
-          f"{vn(z.fr[C.CS_GOI_Y])}% (hiện trạng {vn(z.fr['hien_trang'])}%). Với quy tắc chọn trên validation, nhóm Z đặt bù đến mức "
-          "(đủ bán đến lần đặt sau) thay vì EOQ, nên không còn đặt quá tay hàng chỉ bán dịp lễ như bản 28 ngày.")
+          f"{vn(z.fr[C.CS_GOI_Y])}% (hiện trạng {vn(z.fr['hien_trang'])}%). Quy tắc lượng đặt chọn trên validation: {C.quy_tac(C.CS_GOI_Y)} "
+          "(lai: nhóm Z đặt bù đến mức đủ bán đến lần đặt sau, nhóm X, Y theo EOQ).")
 
 # ------------------------------------------------------------------ chi so kho: von dong trong hang ton
 C.muc("Chỉ số kho", f"mức phục vụ {lv:.0%} · vòng quay càng cao, số ngày tồn càng thấp thì vốn càng ít bị đọng")
@@ -163,6 +166,61 @@ else:
 C.ghi("vòng quay = giá vốn hàng xuất quy ra 1 năm ÷ tồn kho bình quân; số ngày tồn kho = tồn kho bình quân ÷ giá vốn hàng xuất 1 ngày. "
       "Tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày kế tiếp (nhìn lại để chấm, không dùng để ra quyết định), bỏ 28 ngày cuối kỳ.",
       f"{them}10 mã trong bảng chiếm {vn(100 * top.du_tb.sum() / max(tong_du, 1), 0)}% tồn dư.")
+
+# ------------------------------------------------------------------ gom don theo nha cung cap (muc 1: khong doi quyet dinh dat hang)
+C.muc("Gom đơn theo nhà cung cấp", "các dòng cùng nhà cung cấp, cùng ngày gộp một phiếu · mức phục vụ 95%")
+ma_loc = C.ds_sku().set_index("ma_sku").loc[sorted(ids)]
+dong = ""
+for c in C.CS_CONG_THUC:
+    b_d = C.bang_dat(c).reindex(ma_loc.index).fillna(0)
+    gm = C.gom_cung_ngay(b_d.values, ma_loc.ma_ncc.values, ma_loc.chi_phi_dat_hang.values)
+    ten = C.CS_TEN[c].replace(" (đề xuất)", "") + (f"&nbsp; {C.dau('Đề xuất', 'la', 'duyet')}" if c == C.CS_GOI_Y else "")
+    giam = 100 * (1 - gm["so_phieu"] / gm["so_dong"]) if gm["so_dong"] else 0
+    dong += (f'<tr{" class=chon" if c == s.cs else ""}><td>{ten}</td><td>{vn(gm["so_dong"], 0)}</td><td>{vn(gm["so_phieu"], 0)}</td><td>{vn(giam)}%</td>'
+             f'<td>{vn(gm["chi_phi_rieng"] / 1e6)}</td><td>{vn(gm["chi_phi_gom"] / 1e6)}</td></tr>')
+st.markdown(f'<div class="bang-cuon"><table class="phieu"><tr><th>Chính sách</th><th>Dòng đặt</th><th>Số phiếu</th><th>Giảm số phiếu</th><th>CP đặt riêng (tr đ)</th>'
+            f'<th>CP đặt khi gom (tr đ)</th></tr>{dong}</table></div>', unsafe_allow_html=True)
+C.ghi(f"chi phí một phiếu = {vn(C.TI_LE_CHINH)} × chi phí đặt lớn nhất trong phiếu + {vn(1 - C.TI_LE_CHINH)} × tổng chi phí các dòng (tỉ lệ này là giả định); phiếu một dòng giữ nguyên chi phí cũ.",
+      "gom cùng ngày không đổi quyết định đặt hàng nên tồn kho và Fill Rate không đổi. Phân tích đặt kèm các mã sắp tới điểm đặt có ở reports/gom_don.md.")
+
+# ------------------------------------------------------------------ cham diem nha cung cap (toan kho)
+cd = C.cham_diem_ncc()
+if cd is not None and len(cd):
+    C.muc("Chấm điểm nhà cung cấp", "AI + hiệu chỉnh, mức phục vụ 95% · toàn kho, không theo bộ lọc nhóm")
+    st.dataframe(cd[["ncc", "so_don", "dung_han_pt", "tre_tb", "tre_max", "tre_tu_3_pt", "diem", "xep_loai"]], hide_index=True, use_container_width=True, height=38 + 35 * min(len(cd), 10), column_config={
+        "ncc": st.column_config.TextColumn("Nhà cung cấp", width="small"), "so_don": st.column_config.NumberColumn("Số đơn", format="%d"),
+        "dung_han_pt": st.column_config.NumberColumn("Đúng hạn (%)", format="%.1f"), "tre_tb": st.column_config.NumberColumn("Trễ TB (ngày)", format="%.2f"),
+        "tre_max": st.column_config.NumberColumn("Trễ lớn nhất", format="%d"), "tre_tu_3_pt": st.column_config.NumberColumn("Trễ ≥ 3 ngày (%)", format="%.1f"),
+        "diem": st.column_config.NumberColumn("Điểm", format="%.1f"), "xep_loai": st.column_config.TextColumn("Xếp loại")})
+    C.ghi("đúng hạn = trễ không quá 1 ngày so với lead time hẹn. Điểm = 60% đúng hạn + 40% độ ổn định (trọng số là giả định). Chỉ đo đúng hạn, chưa đo đủ hàng vì mô phỏng luôn giao đủ.",
+          f"đứng đầu {cd.ncc.iloc[0]} ({vn(cd.diem.iloc[0])} điểm), cuối bảng {cd.ncc.iloc[-1]} ({vn(cd.diem.iloc[-1])} điểm). " + ("Lead time là số liệu mô phỏng nên bảng này minh họa phương pháp." if C.NGUON["la_mo_phong"] else ""))
+
+# ------------------------------------------------------------------ han su dung, suc chua (toan kho)
+rb = C.rang_buoc_kho()
+if rb:
+    C.muc("Hạn sử dụng và sức chứa", "hạn, thể tích, sức chứa là giả định theo loại hàng · AI + hiệu chỉnh, mức phục vụ 95% · toàn kho")
+    cd_t, h_t, ct = rb["chan_doan"]["test"], rb["han"]["test"], rb["chua"]["muc"]["1.0"]["test"]["A"]
+    top_t = cd_t["top"][0]
+    C.o_hang([("Hàng phải loại nếu mất trắng", f"{vn(h_t['khong_tran']['huy_gia_tri'] / 1e6, 0)} tr đ", f"{vn(cd_t['loai_dip_le_pt'], 0)}% từ hàng chỉ bán dịp lễ", False),
+              ("Trần lượng đặt theo hạn", f"{vn(h_t['co_tran']['huy_gia_tri'] / 1e6, 0)} tr đ", "hàng loại khi có trần", False),
+              ("Đỉnh thể tích kho thường", f"{vn(ct['dinh_pt'][0], 0)}%", f"bỏ {top_t['ma']}: {vn(cd_t['bo_ma_lon_nhat']['dinh_pt'][0], 0)}%", False),
+              ("Tồn vượt nhu cầu 60 ngày tới", f"{vn(cd_t['vuot_pt'], 0)}%", f"{vn(cd_t['vuot_z_pt'], 0)}% là nhóm Z", False)])
+    C.ghi("hàng có hạn chỉ được giao trong 1/3 thời hạn (giả định), quá mốc đó bị loại. Sức chứa lấy bằng đỉnh hàng thực tồn năm trước (100%). Số tiền mất trắng là mức trần bi quan: chưa tính trả nhà cung cấp hay bán xả.",
+          f"{top_t['ten']} được đặt {vn(top_t['nhap'], 0)} trong khi nhu cầu cả kỳ {vn(top_t['nhu_cau'], 0)}, cuối kỳ dư {vn(top_t['ton_cuoi'], 0)}; riêng mã này đẩy đỉnh thể tích từ {vn(cd_t['bo_ma_lon_nhat']['dinh_pt'][0], 0)}% lên {vn(ct['dinh_pt'][0], 0)}%. "
+          "Cắt đơn khi hết chỗ làm Fill Rate tụt mạnh vì tồn chết chiếm chỗ. Cả 2 ràng buộc cùng chỉ về chính sách cho hàng chỉ bán dịp lễ.")
+
+# ------------------------------------------------------------------ newsvendor hang chi ban dip le (toan kho, chua dua vao chinh sach chinh)
+nv_mv = C.newsvendor_mua_vu()
+if nv_mv:
+    C.muc("Newsvendor cho hàng chỉ bán dịp lễ", "kỳ kiểm tra · toàn kho · chưa đưa vào chính sách chính")
+    PA_NV = [("goc", "Quy tắc hiện tại"), ("mot_lan", "Newsvendor, một lần"), ("mot_lan_bo_ma", "Một lần, bỏ mã hạn ngắn*")]
+    pa_t = nv_mv["tap"]["test"]["phuong_an"]
+    dong = "".join(f'<tr{" class=chon" if k == "goc" else ""}><td>{n}</td><td>{vn(pa_t[k]["co_han"]["toan_kho"]["cp_tong"] / 1e6, 0)}</td><td>{vn(pa_t[k]["co_han"]["toan_kho"]["fill_rate"], 2)}%</td><td>{vn(pa_t[k]["co_han"]["toan_kho"]["huy_gia_tri"] / 1e6, 0)}</td>'
+                   f'<td>{vn(pa_t[k]["khong_han"]["toan_kho"]["cp_tong"] / 1e6, 0)}</td><td>{vn(pa_t[k]["khong_han"]["toan_kho"]["fill_rate"], 2)}%</td><td>{vn(pa_t[k]["khong_han"]["dip_le"]["ton_tb"] / 1e6, 0)}</td></tr>' for k, n in PA_NV)
+    st.markdown(f'<div class="bang-cuon"><table class="phieu"><tr><th>Phương án</th><th>Có hạn: chi phí (tr đ)</th><th>Có hạn: Fill Rate</th><th>Có hạn: hàng loại (tr đ)</th><th>Không hạn: chi phí (tr đ)</th><th>Không hạn: Fill Rate</th><th>Tồn TB dịp lễ (tr đ)</th></tr>{dong}</table></div>', unsafe_allow_html=True)
+    dai_t = nv_mv["tap"]["test"]["mua_dai_hon_han"]
+    C.ghi("đặt một lần trước mùa, lượng theo tổng mùa trước và tỉ số thiệt hại thiếu / thừa. Có hạn: hàng quá 1/3 thời hạn bị loại (giả định). Không hạn: giống chính sách chính, hàng dư chỉ tốn lưu kho. * Thêm sau khi đã thấy kỳ kiểm tra nên chỉ để tham khảo.",
+          (f"mã {', '.join(dai_t)} có mùa dài hơn số ngày được giao, một lần đặt không phục vụ hết mùa nên hàng hết hạn giữa mùa. " if dai_t else "") + "Đặt một lần giảm mạnh tồn nhưng đổi lấy Fill Rate thấp hơn ở hàng dịp lễ; xem docs/10 mục 10.12.")
 
 # ------------------------------------------------------------------ thu do nhay
 C.muc("Thử độ nhạy: nếu hàng về trễ hoặc chi phí tăng", "mức phục vụ 95% · so với kịch bản bình thường")

@@ -3,6 +3,8 @@ CHI DOC co so du lieu data/kho_hang.db. Giao dien kieu "phieu ke hoach": khung v
 so lieu muc den, moi man mot mau lien giay, trang thai la con dau (luon co chu + bieu tuong, khong chi mau).
 Bo loc chung (ngay, chinh sach, nhom ABC / XYZ) nam o dau phieu, ap cho moi man (giong slicer cua Power BI).
 """
+import json
+import os
 import sqlite3
 import sys
 from contextlib import closing
@@ -18,14 +20,19 @@ from scipy.stats import norm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from chi_so_kho import chi_so_theo_nhom, ton_du_theo_ma  # noqa: E402,F401
+from gom_don import TI_LE_CHINH, gom_cung_ngay  # noqa: E402,F401
+from nhan_bieu_do import vi_tri_nhan  # noqa: E402,F401
+import tru_hang_live as LIVE  # noqa: E402
+from kiem_tra_du_lieu import moc_thoi_gian, ngay_mac_dinh, nguon_du_lieu  # noqa: E402,F401
 from csdl import TRANG_THAI, chia_lop_mau, de_xuat_ngay, hang_dang_ve, quy_tac_cua_ma, trang_thai_ton_kho  # noqa: E402,F401
 
-DB = ROOT / "data" / "kho_hang.db"
+GOC_DU_LIEU = Path(os.environ.get("KHO_GOC", ROOT))     # thu muc lam viec cua nguon du lieu (mac dinh: du lieu mo phong cua de tai)
+DB = GOC_DU_LIEU / "data" / "kho_hang.db"
+NGUON = nguon_du_lieu(GOC_DU_LIEU)
 MAIN = 0.95                                   # muc phuc vu cua mo phong (mo_phong_ngay chi luu muc nay)
 CS_GOI_Y = "cong_thuc_du_bao_ai_hc"           # chinh sach de xuat sau GD F
 MOC = "tb_truot_28_tuan"                      # du bao moc tot nhat (GD C), cap nhat moi tuan nhu mo hinh chon (docs/10 9.6)
 HORIZON = 28                                  # moi dot du bao dai 28 ngay; khoang cach giua 2 dot lay tu du lieu (7 ngay)
-NGAY_MAC_DINH = date(2026, 2, 9)              # truoc Tet 2026: ngay co nhieu viec de trinh bay
 
 # ------------------------------------------------------------------ mau (dung chung cho CSS va bieu do)
 MUC, MUC2, PHIEU, KE = "#15171a", "#4a4d52", "#1d4f73", "#9db0bf"
@@ -43,7 +50,7 @@ CS_NGAN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Dự báo m
            "cong_thuc_du_bao_ai_hc": "AI + hiệu chỉnh"}
 CS_MAU = {"hien_trang": C_HT, "cong_thuc_du_bao_moc": C_MOC, "cong_thuc_du_bao_ai": C_AI2, "cong_thuc_du_bao_ai_hc": C_AI}
 CS_CONG_THUC = [c for c in CS_TEN if c != "hien_trang"]
-NOTE = "Dữ liệu mô phỏng, không phải số liệu kho thật."
+NOTE = NGUON["ghi_chu"]
 NOTE_HT = ("\\* Hiện trạng: người lập kế hoạch trong dữ liệu mô phỏng **biết trước nhu cầu kỳ vọng** (lệch ±10%), "
            "nên là đối thủ mạnh hơn thực tế.")
 
@@ -350,7 +357,7 @@ def mo_hinh_chon():
 
 @st.cache_data(show_spinner=False)
 def ds_sku():
-    return q("""SELECT s.ma_sku, s.ten_sku, s.nhom_hang, s.don_vi, s.ma_ncc, s.gia_von, s.lead_time_tb, s.lead_time_std, s.moq,
+    return q("""SELECT s.ma_sku, s.ten_sku, s.nhom_hang, s.don_vi, s.ma_ncc, s.gia_von, s.gia_ban, s.lead_time_tb, s.lead_time_std, s.moq,
                        s.chi_phi_dat_hang, s.ty_le_chi_phi_luu_kho, p.abc_train, p.xyz_train, p.loai_nhu_cau
                 FROM dm_sku s JOIN phan_loai_sku p USING (ma_sku) ORDER BY s.ma_sku""")
 
@@ -374,6 +381,67 @@ def ton_du(cs):
     """Ton kho binh quan va ton du binh quan tung ma (dong) cua 1 chinh sach, muc phuc vu 95% (chi_so_kho.py)."""
     m = q("SELECT ma_sku, ngay, ton_cuoi, nhu_cau FROM mo_phong_ngay WHERE ma_chinh_sach = ?", (cs,))
     return ton_du_theo_ma(m, ds_sku().set_index("ma_sku").gia_von)
+
+
+@st.cache_data(show_spinner=False)
+def cham_diem_ncc():
+    """Bang cham diem nha cung cap do src/cham_diem_ncc.py tao; chua chay thi None."""
+    f = GOC_DU_LIEU / "reports" / "cham_diem_ncc.csv"
+    return pd.read_csv(f, encoding="utf-8-sig") if f.exists() else None
+
+
+@st.cache_data(show_spinner=False)
+def rang_buoc_kho():
+    """Ket qua han su dung, suc chua do src/rang_buoc_kho.py tao; chua chay thi None."""
+    f = GOC_DU_LIEU / "reports" / "rang_buoc_kho_trang_thai.json"
+    return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+
+
+@st.cache_data(show_spinner=False)
+def newsvendor_mua_vu():
+    """Ket qua newsvendor hang dip le do src/newsvendor_mua_vu.py tao; chua chay thi None."""
+    f = GOC_DU_LIEU / "reports" / "newsvendor_mua_vu_trang_thai.json"
+    return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+
+
+@st.cache_data(show_spinner=False)
+def du_lieu_live():
+    """He so deal do truoc test, nhu cau, khuyen mai, ngay nghi cho khoi livestream (doc dung CSDL cua nguon dang chon)."""
+    return LIVE.mau_deal_truoc(doc=q)
+
+
+@st.cache_data(show_spinner=False)
+def he_so_that():
+    """He so deal so that Dominick's theo dai giam gia (reports/dominicks_he_so_deal.json); chua tao thi None."""
+    return LIVE.doc_he_so_that()
+
+
+def mau_live(nguon, giam):
+    """Mau he so deal: so that theo dung dai giam gia, hoac do tu du lieu cua he thong."""
+    return LIVE.mau_theo_giam(he_so_that(), giam) if nguon == "that" else du_lieu_live()[0]
+
+
+@st.cache_data(show_spinner=False)
+def tinh_live(nen, gia_ban, gia_von, ti_le_luu, hang_thua, gd, nguon):
+    """Cac phuong an tru hang 1 phien. gd la dict de cache theo gia tri."""
+    return LIVE.cac_phuong_an(nen, mau_live(nguon, gd["giam_gia"]), gia_ban, gia_von, ti_le_luu, hang_thua, LIVE.GiaDinh(**gd), LIVE.SO_PHIEN_DO_NHAY)
+
+
+@st.cache_data(show_spinner=False)
+def duong_lai_live(nen, cu, co, gd, nguon, q_max):
+    return LIVE.duong_lai(nen, mau_live(nguon, gd["giam_gia"]), cu, co, LIVE.GiaDinh(**gd), q_max=q_max)
+
+
+@st.cache_data(show_spinner=False)
+def phat_lai_live(nen, q1, gia_ban, gia_von, ti_le_luu, hang_thua, gd, nguon, xu_huong, hat):
+    return LIVE.phat_lai(nen, mau_live(nguon, gd["giam_gia"]), q1, gia_ban, gia_von, ti_le_luu, hang_thua, LIVE.GiaDinh(**gd), xu_huong, hat)
+
+
+@st.cache_data(show_spinner=False)
+def bang_dat(cs):
+    """Bang (ma, ngay) luong dat cua 1 chinh sach theo cong thuc, muc phuc vu 95%."""
+    m = q("SELECT ma_sku, ngay, dat_hang FROM mo_phong_ngay WHERE ma_chinh_sach = ?", (cs,))
+    return m.pivot(index="ma_sku", columns="ngay", values="dat_hang").fillna(0)
 
 
 @st.cache_data(show_spinner=False)
@@ -432,7 +500,29 @@ def quy_tac(cs):
 
 
 # ------------------------------------------------------------------ bo loc chung (slicer)
-LOC_CHUNG = dict(ngay=NGAY_MAC_DINH, cs=CS_GOI_Y, abc=[], xyz=[])   # bo loc chung o dau phieu
+LOC_CHUNG = ("ngay", "cs", "abc", "xyz")                         # bo loc chung o dau phieu
+
+
+@st.cache_data(show_spinner=False)
+def so_ma():
+    return int(q("SELECT COUNT(*) AS n FROM dm_sku").n.iloc[0])
+
+
+@st.cache_data(show_spinner=False)
+def moc_du_lieu():
+    """Cac moc chia tap, suy tu ngay cuoi cua du lieu."""
+    return moc_thoi_gian(q("SELECT MAX(ngay) AS n FROM giao_dich_sach").n.iloc[0])
+
+
+def ky_kiem_tra():
+    mo = ngay_mo_cua(CS_GOI_Y)
+    return f"{ngay_vn(mo[0])} – {ngay_vn(mo[-1])}"
+
+
+def ngay_dau_tien():
+    """Ngay mo san: truoc Tet gan nhat trong ky; du lieu khong co Tet thi ngay giua ky."""
+    tet = q("SELECT ngay FROM lich_su_kien WHERE ten_su_kien = 'tet'").ngay.tolist()
+    return date.fromisoformat(ngay_mac_dinh(ngay_mo_cua(CS_GOI_Y), tet))
 
 
 def khoi_tao():
@@ -440,7 +530,9 @@ def khoi_tao():
     qua lai. Khong dung thang khoa cua widget: chuyen man bang st.switch_page thi Streamlit tao widget moi va DAT LAI gia tri
     mac dinh (da gap: doi ngay o Hom nay, bam "Xem mat hang" -> ngay quay ve 09/02)."""
     s = st.session_state
-    for k, v in dict(LOC_CHUNG, sku=None, qd={}, loc_tt=None).items():
+    if "ngay" not in s:
+        s.ngay = ngay_dau_tien()
+    for k, v in dict(cs=CS_GOI_Y, abc=[], xyz=[], sku=None, qd={}, loc_tt=None).items():
         s.setdefault(k, v)
     for k in LOC_CHUNG:                         # o nhap ve lai o lan chay nay mang gia tri that
         s[f"_w_{k}"] = s[k]
@@ -491,7 +583,7 @@ def sku_loc():
 def mo_ta_loc():
     s = st.session_state
     phan = ([f"ABC {', '.join(s.abc)}"] if s.abc else []) + ([f"XYZ {', '.join(s.xyz)}"] if s.xyz else [])
-    return " · ".join(phan) if phan else "cả 121 mã"
+    return " · ".join(phan) if phan else f"cả {so_ma()} mã"
 
 
 def ngay_lam_viec():
@@ -510,10 +602,9 @@ def dau_phieu(trang, cac_trang):
     s = st.session_state
     mo = ngay_mo_cua(s.cs)
     c = st.columns([3.1, 1.25, 1.75, 1.15, 1.15, 1.25], vertical_alignment="bottom")
-    c[0].markdown('<div class="dp-ten">Phiếu kế hoạch đặt hàng</div><div class="dp-phu">Kho tổng chuỗi siêu thị · 121 mã hàng · '
-                  'dữ liệu mô phỏng</div>', unsafe_allow_html=True)
+    c[0].markdown('<div class="dp-ten">Phiếu kế hoạch đặt hàng</div><div class="dp-phu">Kho tổng chuỗi siêu thị · ' + f'{so_ma()} mã hàng · {NGUON["ten"]}</div>', unsafe_allow_html=True)
     c[1].date_input("Ngày lập phiếu", key="_w_ngay", on_change=_chep, args=("ngay",), min_value=date.fromisoformat(mo[0]), max_value=date.fromisoformat(mo[-1]),
-                    format="DD/MM/YYYY", help="Giả lập “hôm nay” trong 12 tháng kiểm tra (01/10/2025 – 29/09/2026).")
+                    format="DD/MM/YYYY", help=f"Giả lập “hôm nay” trong 12 tháng kiểm tra ({ky_kiem_tra()}).")
     c[2].selectbox("Chính sách đặt hàng", CS_CONG_THUC, key="_w_cs", on_change=_chep, args=("cs",), format_func=CS_TEN.get,
                    help="Cách tính SS / ROP / EOQ dùng để mô phỏng. Áp cho mọi màn.")
     c[3].pills("Nhóm ABC", ["A", "B", "C"], selection_mode="multi", key="_w_abc", on_change=_chep, args=("abc",),

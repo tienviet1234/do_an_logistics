@@ -13,17 +13,21 @@ Chay rieng file nay: kiem tra khung bang 2 mo hinh moc Naive va Seasonal Naive.
     python src/danh_gia.py
 """
 import os
+import sys
 import time
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from kiem_tra_du_lieu import moc_thoi_gian, ngay_cuoi_cua  # noqa: E402
+
 FEAT = "data/features/dac_trung.csv"
-TRAIN_END = pd.Timestamp("2025-09-30")
-DATA_END = pd.Timestamp("2026-09-30")
+_MOC = moc_thoi_gian(ngay_cuoi_cua(FEAT))     # moc chia tap tu suy tu ngay cuoi cua du lieu
+TRAIN_END, DATA_END = _MOC["TRAIN_END"], _MOC["DATA_END"]
 HORIZON = 28
 STEP = 28
-VAL_START = pd.Timestamp("2025-03-31")      # moc dau validation (do tham so)
-VAL2_START = pd.Timestamp("2024-09-30")     # vong 2 (GD E): validation cung mua voi test, som 1 nam -> co Tet 2025, Trung thu, bao
+VAL_START = _MOC["VAL_START"]               # moc dau validation (do tham so)
+VAL2_START = _MOC["VAL2_START"]             # vong 2 (GD E): validation cung mua voi test, som 1 nam
 PRED_DIR = "reports/du_bao"
 RESULT = "reports/ket_qua_mo_hinh.csv"
 

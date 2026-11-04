@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(__file__))
-from csdl import SCHEMA, doc, ket_noi  # noqa: E402
+from csdl import SCHEMA, doc, ket_noi, ngay_su_kien  # noqa: E402
 from ton_kho import MAIN, POLICIES, kpis, load_inputs, run  # noqa: E402
 
 DAI_TAC = 21                     # 3 tuan tac cang
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     base = tong(kq[kq.ma_kich_ban == "goc"])
     fmt = lambda x, nd=1: f"{x:+.{nd}f}"
     L = ["# Thu do nhay chinh sach ton kho (GD F bo sung)", "",
-         f"12 thang test ({ds[0]} .. {ds[-1]}), 121 SKU, muc phuc vu {MAIN:.0%}, quy tac luong dat **{rule}**. "
+         f"12 thang test ({ds[0]} .. {ds[-1]}), {doc('SELECT COUNT(*) AS n FROM dm_sku').n.iloc[0]} SKU, muc phuc vu {MAIN:.0%}, quy tac luong dat **{rule}**. "
          "Kich ban theo `docs/07`. Du lieu mo phong. Kich ban goc trung khop ket qua GD F (da kiem tra trong script).",
          "Hien trang* chi so duoc o kich ban chi phi (don lay tu du lieu, khong chay lai duoc khi lead time doi).", "",
          "## 1. Kich ban goc", "", base.loc[[*CONG_THUC, "hien_trang"]].rename(index=TEN).round(2).to_markdown(), ""]
@@ -145,11 +145,16 @@ if __name__ == "__main__":
           pd.DataFrame(rows).round(2).to_markdown(index=False), "",
           "So dot moi chinh sach co chi phi lien quan thap nhat (trong 3 chinh sach theo cong thuc):", ""]
     L += [f"- Tre them {k} ngay: " + ", ".join(f"{TEN[p]} {c}/{so_dot}" for p, c in best[k].items()) for k in K_TAC]
-    tet = tc[(tc.tu_ngay <= "2026-02-16") & (tc.tu_ngay > "2026-01-01")]
-    L += ["", f"Dot truoc Tet (hang du kien ve {tet.tu_ngay.iloc[0]} tro di, Tet 17/02/2026):", "",
-          tet.assign(chinh_sach=tet.ma_chinh_sach.map(TEN))[["k", "chinh_sach", "fill_rate_pt", "d_fr", "so_ngay_sku_thieu",
-                                                              "chi_phi_lien_quan_trieu", "d_cp"]]
-          .sort_values(["k", "chinh_sach"]).round(2).to_markdown(index=False), ""]
+    tet_ky = [d for d in ngay_su_kien("tet") if ds[0] <= d <= ds[-1]]
+    tet = pd.DataFrame()
+    if tet_ky:                                     # du lieu co Tet: dot tac cang ngay truoc Tet
+        ngay_tet = pd.Timestamp(tet_ky[0])
+        tet = tc[(tc.tu_ngay <= (ngay_tet - pd.Timedelta(days=1)).strftime("%Y-%m-%d")) & (tc.tu_ngay > (ngay_tet - pd.Timedelta(days=47)).strftime("%Y-%m-%d"))]
+    if len(tet):
+        L += ["", f"Dot truoc Tet (hang du kien ve {tet.tu_ngay.iloc[0]} tro di, Tet {ngay_tet:%d/%m/%Y}):", "",
+              tet.assign(chinh_sach=tet.ma_chinh_sach.map(TEN))[["k", "chinh_sach", "fill_rate_pt", "d_fr", "so_ngay_sku_thieu",
+                                                                  "chi_phi_lien_quan_trieu", "d_cp"]]
+              .sort_values(["k", "chinh_sach"]).round(2).to_markdown(index=False), ""]
 
     def so_sanh(ma_list):
         x = v[v.ma_kich_ban.isin(ma_list)].merge(base.rename(columns=lambda c: c + "_goc"), left_on="ma_chinh_sach", right_index=True)

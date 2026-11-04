@@ -11,11 +11,11 @@ import sys
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(__file__))
-from csdl import TRANG_THAI, doc, hang_dang_ve, trang_thai_ton_kho  # noqa: E402
+from kiem_tra_du_lieu import ngay_mac_dinh  # noqa: E402
+from csdl import TRANG_THAI, doc, hang_dang_ve, ma_vi_du, ngay_su_kien, trang_thai_ton_kho  # noqa: E402
 
 OUT = "reports/power_bi"
 MAIN = 0.95
-NGAY_VI_DU = "2026-02-09"     # 8 ngay truoc Tet 2026, dung lam vi du canh bao (giong docs/10 muc 12)
 os.makedirs(OUT, exist_ok=True)
 CS_TEN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Công thức + dự báo mốc",
           "cong_thuc_du_bao_ai": "Công thức + dự báo AI", "cong_thuc_du_bao_ai_hc": "AI + hiệu chỉnh lệch (đề xuất)"}
@@ -93,8 +93,10 @@ cham = db.dropna(subset=["thuc_te"])
 wm = lambda f: (cham.thuc_te - cham[f]).abs().sum() / cham.thuc_te.sum()
 wm_csdl = doc("SELECT wmape FROM ket_qua_mo_hinh WHERE ma_mo_hinh = ? AND tap = 'test'", (chon,)).wmape.iloc[0]
 assert abs(wm("du_bao_ai") - wm_csdl) < 0.001, f"WMAPE lech: {wm('du_bao_ai')} vs {wm_csdl}"
+NGAY_VI_DU = ngay_mac_dinh(sorted(mp[mp.rop.notna()].ngay.unique()), ngay_su_kien("tet"))   # cung cach chon voi dashboard
+MA_VD = ma_vi_du()
 tt = mp[(mp.ngay == NGAY_VI_DU) & (mp.ma_chinh_sach == "cong_thuc_du_bao_ai_hc")].trang_thai.value_counts()
-sku001 = cham[cham.ma_sku == "SKU001"]
+sku001 = cham[cham.ma_sku == MA_VD]
 
 L = ["# So doi chieu cho Power BI", "",
      "Sinh tu dong boi `python src/xuat_power_bi.py`, tinh tu chinh cac file CSV vua xuat va da doi chieu voi CSDL "
@@ -109,9 +111,9 @@ for c in CS_TEN:
     L.append(f"| {CS_TEN[c]} | {vn(fr[c], 2)}% | {vn(k95.so_ngay_thieu.sum()[c], 0)} | "
              f"{vn(k95.gia_tri_ton_tb.sum()[c] / 1e6, 1)} | {vn(cp[c], 1)} |")
 L += ["", "## 3. Du bao (buoi 3 va 5)", "",
-      f"- WMAPE du bao AI ({chon}), ca 121 SKU, tap test: **{vn(wm('du_bao_ai'), 3)}** "
+      f"- WMAPE du bao AI ({chon}), ca {cham.ma_sku.nunique()} SKU, tap test: **{vn(wm('du_bao_ai'), 3)}** "
       f"(du bao moc TB truot 28 ngay: {vn(wm('du_bao_moc'), 3)}). Chi tinh dong co `thuc_te`.",
-      f"- Rieng SKU001: WMAPE AI {vn((sku001.thuc_te - sku001.du_bao_ai).abs().sum() / sku001.thuc_te.sum(), 3)}, "
+      f"- Rieng {MA_VD}: WMAPE AI {vn((sku001.thuc_te - sku001.du_bao_ai).abs().sum() / sku001.thuc_te.sum(), 3)}, "
       f"tong thuc te {vn(sku001.thuc_te.sum(), 0)}, tong du bao AI cung ngay {vn(sku001.du_bao_ai.sum(), 0)}.",
       "", f"## 4. Canh bao ngay {pd.Timestamp(NGAY_VI_DU):%d/%m/%Y}, chinh sach AI + hieu chinh lech (buoi 5)", "",
       "| Trang thai | So SKU |", "|---|---:|"]

@@ -50,7 +50,7 @@ def tinh_tay(cs, lv, abc=None, xyz=None):
         p = p[p.x.isin(xyz)]
     k = doc("SELECT * FROM ket_qua_ton_kho WHERE ma_chinh_sach = ? AND ROUND(muc_phuc_vu, 2) = ?", (cs, lv))
     k = k[k.ma_sku.isin(p.index)]
-    return chi_so_theo_nhom(k.assign(gia_von=k.ma_sku.map(p.gia_von), c=1), ["c"], 364).iloc[0]
+    return chi_so_theo_nhom(k.assign(gia_von=k.ma_sku.map(p.gia_von), c=1), ["c"], doc("SELECT COUNT(DISTINCT ngay) AS n FROM mo_phong_ngay").n.iloc[0]).iloc[0]
 
 
 def vn(v):

@@ -30,7 +30,7 @@ def holidays_table():
     lich = lich[~lich.holiday.str.startswith("bao_") & ~lich.holiday.isin(bad)]
     hol = lich[["holiday", "ds", "lower_window", "upper_window"]]
     sales = []
-    for y in range(2023, 2028):
+    for y in range(lich.ds.dt.year.min(), lich.ds.dt.year.max() + 2):
         nov = pd.date_range(f"{y}-11-01", f"{y}-11-30")
         for name, d in [("sale_11_11", pd.Timestamp(y, 11, 11)), ("sale_12_12", pd.Timestamp(y, 12, 12)),
                         ("black_friday", nov[nov.weekday == 4][3])]:
@@ -53,7 +53,8 @@ def fit_one(args):
         return pd.DataFrame({"ma_sku": sku, "date": future.ds, "du_bao": 0.0})
     m = Prophet(holidays=hol, seasonality_mode=mode, yearly_seasonality=True,
                 weekly_seasonality=True, daily_seasonality=False)
-    m.add_regressor("khuyen_mai")
+    if train.khuyen_mai.nunique() > 1:                     # du lieu khong co khuyen mai: cot hang so lam Prophet chia cho 0
+        m.add_regressor("khuyen_mai")
     m.fit(train)
     fc = m.predict(future)
     return pd.DataFrame({"ma_sku": sku, "date": fc.ds.values, "du_bao": fc.yhat.values})

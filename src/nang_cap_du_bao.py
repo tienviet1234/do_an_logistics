@@ -45,6 +45,9 @@ def lich_su_kien(dates):
     out = pd.DataFrame({"date": d})
     for e in EVENTS:
         x = np.sort(ev.loc[ev.holiday == e, "ds"].values)
+        if not len(x):                                                      # du lieu khong co su kien nay: coi nhu rat xa
+            out[f"den_{e}"], out[f"sau_{e}"] = float(CLIP_DEN), float(CLIP_SAU)
+            continue
         i = np.searchsorted(x, d.values)                                    # lan xay ra tiep theo (>= ngay)
         den = np.where(i < len(x), (x[np.minimum(i, len(x) - 1)] - d.values) / np.timedelta64(1, "D"), np.inf)
         j = np.searchsorted(x, d.values, side="right") - 1                  # lan gan nhat da qua (<= ngay)
@@ -55,6 +58,8 @@ def lich_su_kien(dates):
     best_dist, shift = np.full(len(d), np.inf), np.full(len(d), np.nan)
     for e in ["tet", "trung_thu"]:
         x = np.sort(ev.loc[ev.holiday == e, "ds"].values)
+        if not len(x):
+            continue
         for k in range(1, len(x)):
             dist = np.abs((d.values - x[k]) / np.timedelta64(1, "D"))
             better = dist < best_dist

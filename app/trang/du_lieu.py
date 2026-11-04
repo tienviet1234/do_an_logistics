@@ -21,8 +21,9 @@ def tong_quan():
     g["d"] = pd.to_datetime(g.ngay)
     tuan = (g.assign(trieu=g.qty_out * g.gia_von / 1e6).groupby("d").trieu.sum()
             .resample("W-MON", label="left", closed="left").sum().reset_index().rename(columns={"d": "ngay"}))
-    nam = g.assign(gt=g.qty_out * g.gia_von).groupby(pd.cut(g.d, pd.to_datetime(["2023-10-01", "2024-10-01", "2025-10-01",
-                                                                                  "2026-10-01"]), right=False), observed=False).gt.sum()
+    dau, cuoi = g.d.min(), g.d.max()
+    moc_nam = [dau + pd.DateOffset(years=i) for i in range(int((cuoi - dau).days / 365.25) + 2)]      # moi nam tinh tu ngay dau du lieu
+    nam = g.assign(gt=g.qty_out * g.gia_von).groupby(pd.cut(g.d, pd.DatetimeIndex(moc_nam), right=False), observed=False).gt.sum()
     ok = g[(g.het_hang == 0) & (g.la_ngay_nghi == 0)].copy()
     tb = ok.groupby("ma_sku").qty_out.mean()
     ok["thu"], ok["thang"], ok["ym"] = ok.d.dt.weekday, ok.d.dt.month, ok.d.dt.to_period("M")
@@ -39,7 +40,7 @@ def tong_quan():
     dot = (x[x.dot_km.notna()].groupby("dot_km").agg(ma_sku=("ma_sku", "first"), ym=("ym", "first"), q=("qty_out", "mean"))
            .join(nen, on=["ma_sku", "ym"]))
     tang = (100 * (dot.q / dot.nen - 1)).dropna().rename("tang").reset_index(drop=True)
-    gt_train = (g[g.ngay <= "2025-09-30"].assign(gt=lambda f: f.qty_out * f.gia_von).groupby("ma_sku").gt.sum())
+    gt_train = (g[g.d <= C.moc_du_lieu()["TRAIN_END"]].assign(gt=lambda f: f.qty_out * f.gia_von).groupby("ma_sku").gt.sum())
     p = C.q("SELECT ma_sku, abc_train AS abc, xyz_train AS xyz FROM phan_loai_sku").assign(gia_tri=lambda f: f.ma_sku.map(gt_train))
     abcxyz = p.groupby(["abc", "xyz"]).agg(so_ma=("ma_sku", "size"), gia_tri=("gia_tri", "sum")).reset_index()
     abcxyz["pt"] = 100 * abcxyz.gia_tri / abcxyz.gia_tri.sum()
@@ -61,15 +62,10 @@ C.o_hang([("Mặt hàng", f"{int(n.sku)}", f"{n.nhom} nhóm hàng", False),
 st.write("")
 a, b = st.columns([1.15, 1], gap="large")
 a.markdown(
-    '<div class="dao-mau"><b>Đây là dữ liệu mô phỏng</b> (máy sinh ra theo quy tắc), vì chưa có dữ liệu từ kho thật. Tên hàng là '
-    'sản phẩm phổ biến trên thị trường nhưng <b>mọi con số không phải của hãng hay của kho nào</b>. Mục tiêu là xây <b>quy trình</b> '
-    'dự báo và đặt hàng rồi so sánh các cách làm trên cùng dữ liệu; có file xuất – nhập – tồn của kho thật (cùng tên cột) thì '
-    'chạy lại toàn bộ là ra kết quả thật.</div>', unsafe_allow_html=True)
+    f'<div class="dao-mau">{C.NGUON["mo_ta"]}</div>', unsafe_allow_html=True)
 b.markdown(
-    f"- **Lấy từ nguồn thật:** ngày các cơn bão (Yagi 07/09/2024, các bão năm 2025), lễ Tết, Trung thu, lịch sale 11.11 / 12.12 "
-    f"/ Black Friday; giá bán lẻ 37 mã tra ngày 24/10/2026.\n"
-    f"- **Giả định:** lượng bán từng ngày, mức tăng do lễ, bão, khuyến mãi; giá vốn, chi phí đặt hàng, lưu kho; thời gian giao "
-    f"hàng; lỗi cài sẵn trong dữ liệu thô; {vn(n.het * 100)}% ngày-mặt hàng hết hàng.")
+    f"- **Lấy từ nguồn thật:** {C.NGUON['that']}\n"
+    f"- **Giả định:** {C.NGUON['gia_dinh']}; {vn(n.het * 100)}% ngày-mặt hàng hết hàng.")
 
 C.muc("Hệ thống chạy thế nào", "mỗi bước là một script chạy lại được trong src/")
 buoc = [("Ghi nhận", "nhập – xuất – tồn hằng ngày", "lam_sach.py"), ("Đặc trưng", "lịch lễ, mùa, khuyến mãi, trễ", "dac_trung.py"),
@@ -79,14 +75,16 @@ C.o_hang([(f"Bước {i + 1}", t_, f"{p_} · {f_}", False) for i, (t_, p_, f_) i
 
 tuan, nam, thu, mua, tang, abcxyz = tong_quan()
 
-C.muc("Giá trị hàng xuất kho mỗi tuần", "3 năm, theo giá vốn")
+C.muc("Giá trị hàng xuất kho mỗi tuần", f"{len(nam)} năm, theo giá vốn")
 sk = pd.DataFrame(
     [("Tết", d) for d in C.q("SELECT ngay FROM lich_su_kien WHERE ten_su_kien = 'tet'").ngay]
     + [("Trung thu", d) for d in C.q("SELECT ngay FROM lich_su_kien WHERE ten_su_kien = 'trung_thu'").ngay]
-    + [("Bão Yagi", "2024-09-07")] + [("Sale 11.11", f"{y}-11-11") for y in (2023, 2024, 2025)], columns=["su_kien", "ngay"])
+    + [("Bão Yagi", d) for d in C.q("SELECT ngay FROM lich_su_kien WHERE ten_su_kien LIKE 'bao_yagi%'").ngay]
+    + [("Sale 11.11", f"{y}-11-11") for y in range(tuan.ngay.min().year, tuan.ngay.max().year + 1)], columns=["su_kien", "ngay"])
 sk["ngay"] = pd.to_datetime(sk.ngay)
+sk = sk[sk.ngay.between(tuan.ngay.min(), tuan.ngay.max())]
 sk_mau = alt.Scale(domain=["Tết", "Trung thu", "Bão Yagi", "Sale 11.11"], range=[C.DO, C.LA, C.MUC2, C.HO_PHACH])
-test = pd.DataFrame({"tu": [pd.Timestamp("2025-10-01")], "den": [tuan.ngay.max()], "nhan": ["Năm dùng để kiểm tra mô hình"]})
+test = pd.DataFrame({"tu": [C.moc_du_lieu()["TRAIN_END"] + pd.Timedelta(days=1)], "den": [tuan.ngay.max()], "nhan": ["Năm dùng để kiểm tra mô hình"]})
 gan = alt.selection_point(nearest=True, on="pointerover", fields=["ngay"], empty=False, clear="pointerout")
 nen = alt.Chart(test).mark_rect(color="#1d4f7314").encode(x="tu:T", x2="den:T")
 nen_txt = alt.Chart(test).mark_text(align="left", dx=6, dy=10, baseline="top", color=C.PHIEU, fontSize=11, fontWeight=600).encode(
@@ -103,12 +101,13 @@ re_ = alt.Chart(tuan).mark_rule(color=C.MUC2).encode(
 ).add_params(gan)
 C.ve_bd(alt.layer(nen, nen_txt, duong, moc, re_).properties(height=280))
 dinh = tuan.loc[tuan.trieu.idxmax()]
+tang_nam = (nam[-1] / nam[0] - 1) * 100
 tet = sk[sk.su_kien == "Tết"].ngay
 cach_tet = (tet[tet >= dinh.ngay] - dinh.ngay).dt.days.min()
-C.ghi("mỗi điểm là tổng giá trị hàng xuất trong 1 tuần (số lượng × giá vốn, 121 mã). Vạch đứt màu là sự kiện; vùng tô là năm kiểm tra.",
+C.ghi(f"mỗi điểm là tổng giá trị hàng xuất trong 1 tuần (số lượng × giá vốn, {C.so_ma()} mã). Vạch đứt màu là sự kiện; vùng tô là năm kiểm tra.",
       f"tuần cao nhất bắt đầu {ngay_vn(dinh.ngay)}{f' ({cach_tet} ngày trước Tết)' if cach_tet <= 30 else ''}, gấp "
-      f"{vn(dinh.trieu / tuan.trieu.median())} lần tuần bình thường; tuần Tết kho nghỉ nên tụt sâu. Năm 3 so với năm 1: "
-      f"{C.dau_cong((nam[2] / nam[0] - 1) * 100)}% → nhu cầu gần như đi ngang, biến động chủ yếu do mùa và sự kiện.")
+      f"{vn(dinh.trieu / tuan.trieu.median())} lần tuần bình thường{"; tuần Tết kho nghỉ nên tụt sâu" if len(tet) else ""}. Năm {len(nam)} so với năm 1: "
+      f"{C.dau_cong(tang_nam)}% → {'nhu cầu gần như đi ngang, biến động chủ yếu do mùa và sự kiện' if abs(tang_nam) < 15 else ('nhu cầu có xu hướng tăng' if tang_nam > 0 else 'nhu cầu có xu hướng giảm')}.")
 
 c1, c2 = st.columns([1.35, 1], gap="large")
 with c1:
@@ -177,7 +176,7 @@ with c2:
               C.MOC: "Trung bình 28 ngày, cập nhật tuần",
               "tb_truot_28": "Trung bình 28 ngày, cập nhật 28 ngày", "croston_sba": "Croston (bán thưa)", "tsb": "TSB (bán thưa)",
               "ets": "ETS / Holt-Winters", "naive": "Lấy ngày gần nhất", "seasonal_naive_7": "Lặp lại tuần trước"}
-    xh = C.q("SELECT ma_mo_hinh, wmape FROM v_xep_hang_mo_hinh WHERE pham_vi = 'Toan bo 121 SKU'")
+    xh = C.q("SELECT ma_mo_hinh, wmape FROM v_xep_hang_mo_hinh WHERE pham_vi LIKE 'Toan bo%'")
     xh = xh[xh.ma_mo_hinh.isin(TEN_MH)].assign(ten=lambda f: f.ma_mo_hinh.map(TEN_MH), pt=lambda f: f.wmape * 100)
     xh["loai"] = np.where(xh.ma_mo_hinh == cm.ma_mo_hinh, "chon", np.where(xh.ma_mo_hinh == C.MOC, "moc", "khac"))
     base = alt.Chart(xh).encode(y=alt.Y("ten:N", sort=xh.sort_values("pt").ten.tolist(), title=None, axis=alt.Axis(labelLimit=220, labelOverlap=False)),

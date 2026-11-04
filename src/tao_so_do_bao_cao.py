@@ -45,6 +45,12 @@ LUONG = [
          ["reports/ton_kho_chon_quy_tac.md", "reports/ton_kho_so_sanh.md"], ["Word Bảng 5.1 đến 5.3", "Bảng tham_so_ton_kho, ket_qua_ton_kho, mo_phong_ngay"]),
         (["data/kho_hang.db"], "src/do_nhay.py", "Thử tắc cảng, lead time dài thêm, chi phí tăng", ["reports/do_nhay.md"], ["Word Bảng 6.1", "Bảng ket_qua_do_nhay"]),
         (["data/kho_hang.db"], "src/chi_so_kho.py", "Vòng quay, số ngày tồn kho, tồn dư theo chính sách và nhóm XYZ", ["reports/chi_so_kho.md"], ["Dashboard, màn Kịch bản & kết quả"]),
+        (["data/kho_hang.db"], "src/gom_don.py", "Gom đơn theo nhà cung cấp: gom cùng ngày, đặt kèm; chỉ đọc CSDL", ["reports/gom_don.md", "reports/gom_don_trang_thai.json"], ["Dashboard, màn Kịch bản & kết quả"]),
+        (["data/kho_hang.db"], "src/cham_diem_ncc.py", "Chấm điểm nhà cung cấp theo đúng hạn và độ ổn định; cảnh báo giao chậm", ["reports/cham_diem_ncc.md", "reports/cham_diem_ncc.csv"], ["Dashboard, màn Kịch bản & kết quả"]),
+        (["data/kho_hang.db"], "src/rang_buoc_kho.py", "Hạn sử dụng theo lô (FIFO) và sức chứa theo vùng: hàng loại, trần lượng đặt, thuê ngoài hay cắt đơn", ["reports/rang_buoc_kho.md", "reports/rang_buoc_kho_trang_thai.json"], ["Dashboard, màn Kịch bản & kết quả"]),
+        (["data/kho_hang.db"], "src/newsvendor_mua_vu.py", "Newsvendor cho hàng chỉ bán dịp lễ: đặt một lần trước mùa theo tỉ số Cu/Co, so với quy tắc hiện tại", ["reports/newsvendor_mua_vu.md", "reports/newsvendor_mua_vu_trang_thai.json"], ["Dashboard, màn Kịch bản & kết quả"]),
+        (["data/kho_hang.db"], "src/tru_hang_live.py", "Trữ hàng cho phiên livestream: newsvendor hai bước, thử khi thực tế khác giả định, giá trị theo dõi theo giờ", ["reports/tru_hang_live.md", "reports/tru_hang_live_trang_thai.json"], ["Dashboard, màn Mặt hàng"]),
+        (["data/dominicks", "data/kho_hang.db"], "src/phan_tich_dominicks.py", "Đối chiếu giả định với số bán thật Dominick's: hệ số deal, mức tài trợ, biên lãi, độ co giãn", ["reports/dominicks.md", "reports/dominicks_trang_thai.json", "reports/dominicks_he_so_deal.json", "reports/tru_hang_live_sau_doi_chieu.md"], ["Chương đánh giá của đồ án", "Dashboard, màn Mặt hàng"]),
     ]),
     ("Luồng 4. Báo cáo trình bày", "Mọi hình, bảng và màn hình đều đọc từ cơ sở dữ liệu, nên cùng một con số ở mọi nơi.", [
         (["data/kho_hang.db"], "src/bieu_do_ket_qua.py", "Vẽ 7 biểu đồ kết quả kèm chú thích tính từ dữ liệu", ["reports/ket_qua/k0*.png", "reports/bao_cao_bieu_do_ket_qua.md"], ["Word Hình 3.1, 3.2, 5.1, 5.2, 6.1"]),
@@ -53,6 +59,7 @@ LUONG = [
         (["data/kho_hang.db"], "src/tao_trang_luong.py", "Trang luồng nghiệp vụ, luồng dữ liệu, cơ sở dữ liệu", ["trinh_bay/luong_he_thong.html"], ["Trình bày nhiệm vụ của giảng viên"]),
     ]),
     ("Luồng 5. Báo cáo đồ án (Word)", "Số liệu được gom tự động rồi mới đưa vào văn bản, không gõ tay, và được đối chiếu lại với cơ sở dữ liệu.", [
+        (["data/kho_hang.db", "reports/ket_qua_mo_hinh.csv", "reports/gom_don.md", "reports/cham_diem_ncc.md", "reports/tru_hang_live.md", "reports/dominicks.md"], "src/so_lieu_do_an.py", "Sổ số liệu đồ án: gom mọi số, ghi nguồn, đánh dấu phần chưa có", ["reports/so_lieu_do_an.md"], ["Nguồn số khi viết đồ án"]),
         (["data/kho_hang.db", "reports/nang_cap_du_bao_v4_trang_thai.json", "reports/ton_kho_chon_quy_tac.md", "reports/rui_ro_du_bao.csv"], "src/bao_cao_word/gom_so_lieu.py", "Gom mọi con số của báo cáo thành một tệp JSON", ["so_lieu.json"], ["Đầu vào của bước viết Word"]),
         (["so_lieu.json", "reports/ket_qua/k0*.png", "reports/eda/h04_chi_so_mua.png"], "src/bao_cao_word/tao_bao_cao.js", "Viết báo cáo: bìa, mục lục, 8 chương, phụ lục", ["reports/word/bao_cao_tong_hop_do_an.docx"], ["Nộp và in"]),
         (["reports/word/bao_cao_tong_hop_do_an.docx"], "Microsoft Word", "Cập nhật mục lục, xuất PDF, soát từng trang", ["reports/word/bao_cao_tong_hop_do_an.pdf"], ["Gửi giảng viên"]),

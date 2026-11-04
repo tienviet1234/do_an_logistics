@@ -106,6 +106,7 @@ with trai:
         st.write("")
         C.o_hang([("Chờ duyệt", f"{len(cho)}", "dòng", False), ("Đã duyệt / sửa", f"{len(ok)}", "dòng", False),
                   ("Bỏ qua", f"{int((dat.qd == 'bo').sum())}", "dòng", False),
+                  ("Số phiếu sau gom", f"{ok.ma_ncc.nunique()}", f"{len(ok)} dòng đã duyệt", False),
                   ("Giá trị phiếu (giá vốn)", f"{vn((ok.sl * ok.gia_von).sum() / 1e6)}", "triệu đồng", False)])
         st.write("")
         h1, h2, _ = st.columns([1.3, 1.5, 1.4])
@@ -222,7 +223,8 @@ for cot_st, cot, ten, mau in [(c_het, "het", "Mã hết hàng", C.C_TT[0]), (c_d
 dinh = theo_thang.loc[theo_thang.het.idxmax()]
 C.ghi("mỗi ô là một ngày, ô vàng là ngày đang lập phiếu, ô xám là ngày kho nghỉ. Bấm ô trạng thái ở đầu màn để lịch chỉ tô theo trạng thái đó.",
       f"cả năm trung bình {vn(lam.dat.mean())} mã phải đặt và {vn(lam.het.mean())} mã hết hàng mỗi ngày; hết hàng cao nhất tháng {dinh.thang} "
-      f"({vn(dinh.het)} mã/ngày). {C.NGAY_KHOI_DONG} ngày đầu kỳ là giai đoạn khởi động: tồn đầu kỳ chưa được đặt theo chính sách nên hết hàng cao hơn hẳn.")
+      f"({vn(dinh.het)} mã/ngày). {C.NGAY_KHOI_DONG} ngày đầu kỳ là giai đoạn khởi động (tồn đầu kỳ chưa được đặt theo chính sách): "
+      f"{vn(lam[~lam.ngay.isin(sau_kd.ngay)].het.mean())} mã hết hàng mỗi ngày, các ngày sau {vn(sau_kd.het.mean())} mã.")
 
 # ------------------------------------------------------------------ danh sach theo doi (bam dong -> man Mat hang)
 loc = s.loc_tt
