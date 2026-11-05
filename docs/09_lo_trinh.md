@@ -39,7 +39,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | H5 | Slide, tập bảo vệ, chuẩn bị câu hỏi phản biện | 8 | — | 11–29/12 | Slide 15–20 trang | |
 | H6 | **Bảo vệ** | — | — | **30–31/12** | | |
 
-**Song song suốt lộ trình:** làm việc với đơn vị thực tập và giảng viên hướng dẫn (mục 3).
+**Song song suốt lộ trình:** làm việc với giảng viên hướng dẫn (mục 3).
 
 ---
 
@@ -50,7 +50,7 @@ Cách dùng: đánh dấu `[x]` khi xong một việc; xong giai đoạn nào th
 | T1 | 12–18/10 | GĐ A: EDA + `dac_trung.py` | Hỏi GVHD về dữ liệu mô phỏng; xin dữ liệu đơn vị thực tập; hỏi ngày bảo vệ | Có file đặc trưng + 6–8 hình EDA |
 | T2 | 19–25/10 | GĐ B (3 ngày) → bắt đầu GĐ C | Viết Chương 1 (mở đầu) ✅ nháp 23/10 (`do_an/chuong_1_mo_dau.md`) | Có WMAPE của Naive, Seasonal Naive |
 | T3 | 26/10–01/11 | Xong GĐ C → bắt đầu Prophet | Rà Chương 2 theo bảng "điểm khác" ở `docs/08` | Bảng chỉ số đủ mô hình mốc |
-| T4 | 02–08/11 | GĐ D: Prophet + LightGBM | Viết Chương 3 (thực trạng kho) | Có chỉ số Prophet, LightGBM |
+| T4 | 02–08/11 | GĐ D: Prophet + LightGBM | Viết Chương 3 (mô tả bài toán và dữ liệu) | Có chỉ số Prophet, LightGBM |
 | T5 | 09–15/11 | GĐ E (3 ngày) → bắt đầu GĐ F | **Gửi GVHD bảng so sánh mô hình** | Đã chọn mô hình theo nhóm SKU |
 | T6 | 16–22/11 | GĐ F: SS/ROP/EOQ + mô phỏng | Viết Chương 4 phần dữ liệu, mô hình | **Có bảng trước–sau** |
 | T7 | 23–29/11 | GĐ G: dashboard bản gọn (3–4 ngày) | Viết Chương 4 phần tồn kho + Chương 5; **gửi GVHD bảng trước–sau** | Dashboard chạy được |
@@ -76,7 +76,7 @@ Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `d
 
 | Mặt | Tiêu chí đạt | Đo bằng | Trạng thái |
 |---|---|---|---|
-| **1. Được chấp nhận** | Giảng viên đồng ý dùng dữ liệu mô phỏng cho Chương 4 | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
+| **1. Được chấp nhận** | Giảng viên đồng ý dùng M5 cho dự báo và dữ liệu mô phỏng cho nghiệp vụ (quyết định 05/11, mục 3) | Câu trả lời của giảng viên | ⏳ **Chưa hỏi, rủi ro lớn nhất** |
 | | Nộp đủ 5 chương đúng mẫu trường trước 09/12 | Lịch tuần mục 1b | ⏳ |
 | **2. Dự báo** | Mô hình chọn được giảm WMAPE ít nhất **20%** so với Seasonal Naive trên tập test | `reports/bang_so_sanh_test.md`, cột FVA | ✅ v4 cập nhật mỗi tuần, WMAPE 0,356 (01/11; v3 0,368) |
 | | Nhóm Z (mùa vụ) giảm rõ rệt (mốc hiện tại: WMAPE 1,64) | Cột WMAPE_Z | ✅ Prophet 0,638 (24/10) |
@@ -189,15 +189,21 @@ Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ 
 ### GĐ H. Viết đồ án và bảo vệ (song song T1–T8, nộp 09/12, slide 11–29/12, bảo vệ 30–31/12)
 - [x] Chương 1: Mở đầu (lý do, mục tiêu, phạm vi, phương pháp). → Nháp lần 1: `do_an/chuong_1_mo_dau.md` (còn chỗ [CẦN TRÍCH DẪN] phải tự tra nguồn).
 - [ ] Chương 2: Cơ sở lý thuyết (đã có từ GĐ1, rà lại theo bảng "điểm khác" trong `docs/08`).
-- [ ] Chương 3: Thực trạng kho tại đơn vị thực tập (cần thông tin thật, mục 3).
+- [ ] Chương 3: Mô tả bài toán và dữ liệu (quyết định 05/11: chưa thực tập, chưa có dữ liệu thực tập nên **không viết thực trạng kho**). Dàn ý:
+  - 3.1. Bối cảnh: kho tổng của chuỗi siêu thị nói chung (không gắn với đơn vị cụ thể), luồng từ nhà cung cấp qua kho đến siêu thị và đơn online; đặc điểm chung lấy từ tài liệu công khai, có trích dẫn.
+  - 3.2. Phát biểu bài toán: đặt mã nào, khi nào, bao nhiêu; đầu vào, đầu ra, mục tiêu, ràng buộc (lead time, lượng đặt tối thiểu, sức chứa, hạn sử dụng), chỉ số đánh giá.
+  - 3.3. Dữ liệu: M5 (số bán thật, Mỹ) và bộ mô phỏng (nghiệp vụ Việt Nam); bảng phân biệt phần nào thật, phần nào giả định.
+  - 3.4. Đặc điểm dữ liệu: phân loại ABC/XYZ, mùa vụ, khuyến mãi của từng bộ.
+  - 3.5. Tiền xử lý: làm sạch theo đẳng thức tồn kho, nhận diện hết hàng (mô phỏng); giữ nguyên số bán, suy khuyến mãi từ giá (M5).
+  - 3.6. Giới hạn của dữ liệu: không có số liệu của một kho Việt Nam cụ thể.
 - [ ] Chương 4: Xây dựng mô hình (dữ liệu → EDA → mô hình → so sánh → tồn kho → dashboard).
-- [ ] Chương 5: Kết luận, đề xuất cho đơn vị (ví dụ: áp ROP tự động cho nhóm A trước, mở rộng B/C sau 3 tháng), hạn chế (dữ liệu mô phỏng), hướng phát triển.
+- [ ] Chương 5: Kết luận, đề xuất cho kho cùng loại, không gắn với đơn vị cụ thể (ví dụ: áp ROP tự động cho nhóm A trước, mở rộng B/C sau 3 tháng), hạn chế (không có dữ liệu của kho Việt Nam: M5 là số của Mỹ, phần còn lại là mô phỏng và giả định), hướng phát triển.
 - [ ] Slide 15–20 trang, 2–3 biểu đồ chính, demo dashboard (làm trong 11–29/12, sau khi nộp).
 - [ ] Chuẩn bị câu hỏi phản biện: vì sao dữ liệu mô phỏng, vì sao WMAPE không phải MAPE, vì sao không chia ngẫu nhiên, LSTM có hơn không...
 
 ---
 
-## 3. Việc song song: đơn vị thực tập và giảng viên
+## 3. Việc song song: giảng viên (phần đơn vị thực tập dừng từ 05/11)
 
 | Khi nào | Việc | Ai |
 |---|---|---|
@@ -206,6 +212,8 @@ Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ 
 | Trong GĐ A–C | Hỏi kho: loại kho (B2B hay fulfillment cho sàn), chính sách đặt hàng hiện tại, mức phục vụ mục tiêu, chi phí đặt hàng và lưu kho ước tính | Bạn |
 | Khi có dữ liệu thật | Thay file raw, giữ tên cột, chạy lại toàn bộ script. **Hạn chót nhận dữ liệu thật: 08/11** (sau đó không kịp chạy lại, chỉ dùng cho Chương 3) | AI hỗ trợ |
 | Cuối GĐ E và F | Gửi giảng viên bảng so sánh mô hình và bảng trước–sau để xin góp ý | Bạn |
+
+**Quyết định của người làm đồ án (05/11): không có dữ liệu từ đơn vị thực tập, dùng dữ liệu hiện có.** Số bán thật M5 làm kết quả chính cho phần dự báo; bộ mô phỏng minh họa nghiệp vụ kho Việt Nam mà M5 không có (Tết, bão, hàng mùa vụ, tên hàng, hạn sử dụng, làm sạch dữ liệu), ghi rõ là mô phỏng; phần tồn kho báo cả hai bộ, gồm cả việc lợi ích giảm từ 35,3% xuống 1,7%. Giảng viên chưa xác nhận cách này. Việc "xin dữ liệu đơn vị thực tập" và "hỏi kho" ở bảng trên dừng lại vì người làm đồ án chưa thực tập; quy trình vẫn thay được dữ liệu nếu sau này có. Chương 3 đổi thành mô tả bài toán; cần kiểm tra mẫu đồ án của trường có bắt buộc chương thực trạng không.
 
 ---
 
@@ -226,7 +234,7 @@ Kết quả 23/10: dashboard **chỉ đọc** CSDL (mở SQLite ở chế độ 
 ## 5. Rủi ro và cách xử lý
 | Rủi ro | Cách xử lý |
 |---|---|
-| Không xin được dữ liệu thật | Giữ dữ liệu mô phỏng, nói rõ ở phần hạn chế; quy trình đã sẵn sàng thay dữ liệu |
+| Không xin được dữ liệu thật (**đã xảy ra, 05/11**) | M5 cho dự báo, mô phỏng cho nghiệp vụ, nói rõ ở phần hạn chế; quy trình đã sẵn sàng thay dữ liệu |
 | Prophet/LightGBM cài lỗi trên Windows | Dùng môi trường ảo (`.venv`), cài sớm ngay đầu GĐ C |
 | Chạy 121 SKU × 13 mốc backtest quá lâu | Chạy nhóm A trước, các nhóm khác chạy sau hoặc giảm số mốc |
 | Mô hình AI không thắng Seasonal Naive | Vẫn là kết quả hợp lệ; phân tích vì sao, nhóm nào AI có lợi |

@@ -116,6 +116,7 @@ def tao():
     L += ["", "### 9.2. TiDE, N-HiTS, TFT (nguồn: `reports/mo_hinh_nf.md`)", ""] + doc_tep("reports/mo_hinh_nf.md")
     L += ["", "## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)", "", "### 10.1. Các mô hình (nguồn: `du_lieu_nguon/m5/reports/kiem_chung.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/kiem_chung.md")
     L += ["", "### 10.2. TiDE, N-HiTS, TFT trên M5 (nguồn: `du_lieu_nguon/m5/reports/mo_hinh_nf.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/mo_hinh_nf.md")
+    L += ["", "### 10.3. Tồn kho trên bộ dữ liệu dựng từ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md`; lead time, chi phí, tồn kho là giả định)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md")
     L += ["", "## 11. Nguồn dữ liệu công khai cần trích dẫn", "", "- M5 Forecasting: bản sao Zenodo record 12636070, gốc từ Kaggle (Walmart, University of Nicosia). Zenodo ghi CC BY 4.0, người đăng là bên thứ ba: cần hỏi giảng viên.",
           "- Dominick's Dataset: Kilts Center for Marketing, University of Chicago Booth School of Business. Chỉ dùng cho nghiên cứu học thuật, phải ghi nguồn.", "",
           "## 12. Hình cho đồ án", "", "- Kết quả: `reports/ket_qua/k01`–`k07`. Khám phá dữ liệu: `reports/eda/h01`–`h08`. Sơ đồ: `reports/so_do/`.", "",

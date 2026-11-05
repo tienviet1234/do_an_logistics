@@ -5,6 +5,7 @@ Cập nhật: 10/10/2026.
 ## 1. Mục tiêu và bối cảnh
 - Đề tài: ứng dụng AI trong dự báo nhu cầu và tối ưu tồn kho, hướng thực tập kho.
 - Giảng viên hướng dẫn yêu cầu **xây dựng dữ liệu đầu vào** cho bài toán. Báo cáo giai đoạn 1 ("Kiến thức cần chuẩn bị") nằm ở `docs/Bao_cao_Giai_doan_1_Kien_thuc_can_chuan_bi.docx`, bản md: `docs/08_bao_cao_giai_doan_1.md` (có tóm tắt và bảng điểm khác với cách dự án đang làm).
+- **Quyết định của người làm đồ án (05/11): không có dữ liệu từ đơn vị thực tập, dùng dữ liệu hiện có.** Số bán thật M5 làm kết quả chính cho phần dự báo; bộ mô phỏng minh họa nghiệp vụ kho Việt Nam mà M5 không có (Tết, bão, hàng mùa vụ, tên hàng, hạn sử dụng, làm sạch dữ liệu), ghi rõ là mô phỏng; phần tồn kho báo cả hai bộ, gồm cả việc lợi ích giảm từ 35,3% xuống 1,7%. Giảng viên chưa xác nhận cách này.
 - **Chưa có dữ liệu thật** từ đơn vị thực tập. Vì vậy dữ liệu được mô phỏng bằng Python để xây dựng và kiểm thử quy trình. Khi có file xuất từ WMS/ERP, giữ nguyên tên cột để thay vào.
 - Lịch trường: thực hiện 14/09–06/12/2026 (12 tuần), nộp 09/12/2026, chấm phản biện 11–26/12/2026, thành lập hội đồng 27–29/12, bảo vệ 30–31/12/2026.
 - Chuỗi bài toán: dự báo nhu cầu (d) → tham số tồn kho (EOQ, SS, ROP) → so sánh mô hình bằng backtest.

@@ -55,19 +55,19 @@ Hoạt động dự báo nhu cầu và quản lý tồn kho theo từng mã hàn
 
 ### 1.4.2. Phạm vi nghiên cứu
 
-- **Không gian:** một kho phân phối hàng tiêu dùng tại khu vực miền Bắc (mùa vụ theo khí hậu miền Bắc).
-- **Thời gian dữ liệu:** 36 tháng, từ 01/10/2023 đến 30/09/2026, theo ngày.
-- **Mặt hàng:** 121 mã hàng thuộc 17 nhóm (thực phẩm khô, đồ uống, bánh kẹo, hóa phẩm, gia dụng, văn phòng phẩm, hàng thời vụ...), từ 14 nhà cung cấp, thời gian giao hàng từ 1 đến 15 ngày.
-- **Dữ liệu:** do chưa có số liệu xuất nhập tồn từ đơn vị thực tập, đề tài sử dụng **bộ dữ liệu mô phỏng** được xây dựng có chủ đích để chứa các hiện tượng của kho thực tế: mùa vụ, ngày lễ, khuyến mãi, bão lũ (theo ngày bão thực tế), hết hàng và lỗi nhập liệu. Ngày diễn ra các cơn bão và lịch thi đấu thể thao là số liệu thực tế; mức độ tác động là giả định. Quy trình được thiết kế để thay bằng dữ liệu thật mà không cần sửa đổi, chỉ cần giữ nguyên cấu trúc cột.
+- **Không gian:** bài toán kho tổng của chuỗi siêu thị nói chung, không gắn với một đơn vị cụ thể. Bộ dữ liệu mô phỏng lấy bối cảnh miền Bắc Việt Nam; bộ M5 là số bán tại Mỹ.
+- **Thời gian dữ liệu:** theo ngày. Bộ M5 từ 29/01/2011 đến 22/05/2016; bộ mô phỏng 36 tháng, từ 01/10/2023 đến 30/09/2026.
+- **Mặt hàng:** mỗi bộ 121 mã hàng. Bộ mô phỏng gồm 17 nhóm (thực phẩm khô, đồ uống, bánh kẹo, hóa phẩm, gia dụng, văn phòng phẩm, hàng thời vụ...), từ 14 nhà cung cấp, thời gian giao hàng từ 1 đến 15 ngày. Bộ M5 gồm thực phẩm, gia dụng và hàng sở thích, tên hàng được nguồn dữ liệu ẩn; nhà cung cấp và thời gian giao hàng là giả định.
+- **Dữ liệu:** đề tài không sử dụng số liệu của một đơn vị cụ thể mà dùng hai bộ dữ liệu với vai trò khác nhau. **Bộ M5** (số bán thật của Walmart, Mỹ, cộng 10 cửa hàng thành một kho tổng) là cơ sở chính để đánh giá dự báo; giá bán là số thật, còn tồn kho, chi phí và thời gian giao hàng là giả định. **Bộ mô phỏng** được xây dựng có chủ đích để minh họa các nghiệp vụ mà M5 không có: mùa vụ Việt Nam, ngày lễ, khuyến mãi, bão lũ (theo ngày bão thực tế), hết hàng và lỗi nhập liệu; ngày diễn ra các cơn bão và lịch thi đấu thể thao là số liệu thực tế, mức độ tác động là giả định. Kết quả tồn kho được báo trên cả hai bộ. Kết quả không phải số liệu của một kho Việt Nam; quy trình được thiết kế để thay bằng dữ liệu thật, chỉ cần giữ nguyên cấu trúc cột.
 - **Nội dung:** dự báo nhu cầu với tầm 28 ngày; tham số tồn kho theo mô hình đặt hàng cố định (EOQ, SS, ROP); không nghiên cứu bài toán định tuyến vận tải và bố trí mặt bằng kho.
 
 ## 1.5. Phương pháp nghiên cứu
 
 1. **Nghiên cứu tài liệu:** tổng hợp lý thuyết về quản lý tồn kho, dự báo chuỗi thời gian và học máy (Chương 2).
-2. **Xây dựng và xử lý dữ liệu:** mô phỏng dữ liệu bằng Python; làm sạch dựa trên đẳng thức tồn kho (tồn cuối = tồn đầu + nhập − xuất); nhận diện ngày hết hàng để không coi lượng xuất ngày đó là nhu cầu.
+2. **Xây dựng và xử lý dữ liệu:** dựng bộ dữ liệu kho từ số bán M5 và mô phỏng dữ liệu bằng Python; với bộ mô phỏng, làm sạch dựa trên đẳng thức tồn kho (tồn cuối = tồn đầu + nhập − xuất); nhận diện ngày hết hàng để không coi lượng xuất ngày đó là nhu cầu.
 3. **Thống kê mô tả và phân tích khám phá:** phân tích chu kỳ tuần, mùa vụ, tác động khuyến mãi; phân loại ABC/XYZ và phân loại nhu cầu theo Syntetos–Boylan.
 4. **Mô hình hóa dự báo:** các mô hình thống kê (ETS, ARIMA, Croston, TSB) và mô hình trí tuệ nhân tạo (Prophet, LightGBM/XGBoost).
-5. **Đánh giá theo thời gian (backtest cuốn chiếu):** chia dữ liệu theo trình tự thời gian (24 tháng huấn luyện, 12 tháng kiểm tra), dự báo lặp lại tại 13 mốc; đo bằng MAE, RMSE, WMAPE, MASE và Bias. Mô hình chỉ được sử dụng thông tin biết trước tại thời điểm dự báo.
+5. **Đánh giá theo thời gian (backtest cuốn chiếu):** chia dữ liệu theo trình tự thời gian (12 tháng cuối để kiểm tra, phần trước để huấn luyện), dự báo lặp lại tại nhiều mốc; đo bằng MAE, RMSE, WMAPE, MASE và Bias. Mô hình chỉ được sử dụng thông tin biết trước tại thời điểm dự báo.
 6. **Mô hình tồn kho và mô phỏng:** tính EOQ, Safety Stock, Reorder Point từ kết quả dự báo; mô phỏng vận hành kho trong 12 tháng để so sánh các chính sách.
 
 Công cụ: Python (pandas, statsmodels, statsforecast, Prophet, LightGBM), Excel, Streamlit (dashboard).
@@ -83,6 +83,6 @@ Ngoài phần mở đầu, kết luận, tài liệu tham khảo và phụ lục
 
 - **Chương 1. Mở đầu:** lý do, mục tiêu, phạm vi và phương pháp nghiên cứu.
 - **Chương 2. Cơ sở lý thuyết:** quản lý tồn kho (EOQ, Safety Stock, Reorder Point, ABC/XYZ), dự báo nhu cầu, các mô hình thống kê và học máy, chỉ số đánh giá dự báo.
-- **Chương 3. Mô tả bài toán và dữ liệu:** bối cảnh kho, cấu trúc và đặc điểm dữ liệu, quy trình tiền xử lý. *(Nếu có dữ liệu từ đơn vị thực tập: "Thực trạng công tác dự báo và quản lý tồn kho tại đơn vị".)*
+- **Chương 3. Mô tả bài toán và dữ liệu:** bối cảnh kho tổng chuỗi siêu thị, phát biểu bài toán, hai bộ dữ liệu và đặc điểm của chúng, quy trình tiền xử lý, giới hạn của dữ liệu.
 - **Chương 4. Xây dựng mô hình và đánh giá kết quả:** phân tích khám phá, tạo đặc trưng, khung đánh giá, kết quả các mô hình dự báo, tham số tồn kho, mô phỏng và so sánh chính sách, dashboard.
 - **Chương 5. Kết luận và đề xuất:** kết quả đạt được, đề xuất áp dụng, hạn chế và hướng phát triển.

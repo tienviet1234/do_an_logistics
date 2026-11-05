@@ -1,6 +1,6 @@
 # Sổ số liệu đồ án
 
-Tạo tự động lúc 04/11/2026 10:34 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
+Tạo tự động lúc 05/11/2026 16:15 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
 
 **Lưu ý chung:** các số ở mục 1–9 là kết quả trên **dữ liệu mô phỏng**, không phải số liệu kho thật. Dữ liệu đổi thì số đổi, và mô hình được chọn có thể đổi.
 
@@ -27,13 +27,17 @@ Ma trận ABC × XYZ (số mã):
 |---|---|---|---|---|---|---|
 | RNN | 0,349 | 0,209 | +7,2% | 0,301 | 0,367 | 0,474 |
 | Ghép v4 + LSTM (không đạt luật) | 0,351 | 0,201 | +4,8% | 0,307 | 0,370 | 0,469 |
+| Ghép v4 + mô hình mới | 0,354 | 0,205 | +5,0% | 0,308 | 0,370 | 0,477 |
 | LSTM | 0,355 | 0,210 | +5,2% | 0,314 | 0,383 | 0,459 |
 | Kết hợp v4, cập nhật tuần (đang dùng) | 0,356 | 0,203 | +3,0% | 0,310 | 0,378 | 0,477 |
 | Kết hợp v3, cập nhật 28 ngày | 0,368 | 0,226 | +3,9% | 0,319 | 0,392 | 0,496 |
 | LightGBM theo tầm | 0,375 | 0,242 | +6,7% | 0,320 | 0,392 | 0,523 |
 | Kết hợp theo nhóm v2 | 0,375 | 0,234 | +6,3% | 0,311 | 0,391 | 0,546 |
 | LightGBM | 0,399 | 0,269 | +11,7% | 0,312 | 0,391 | 0,638 |
+| TFT gọn | 0,425 | 0,302 | +17,1% | 0,322 | 0,409 | 0,710 |
+| N-HiTS | 0,429 | 0,321 | +11,4% | 0,367 | 0,420 | 0,601 |
 | Prophet | 0,454 | 0,257 | −4,9% | 0,383 | 0,486 | 0,638 |
+| TiDE | 0,477 | 0,357 | +17,8% | 0,373 | 0,446 | 0,767 |
 | TB trượt 28 ngày, cập nhật tuần | 0,584 | 0,443 | −0,2% | 0,391 | 0,558 | 1,116 |
 | TB trượt 28 ngày | 0,640 | 0,511 | −0,8% | 0,408 | 0,653 | 1,272 |
 | Croston SBA | 0,651 | 0,516 | +0,4% | 0,395 | 0,589 | 1,365 |
@@ -47,12 +51,16 @@ Ma trận ABC × XYZ (số mã):
 | Mô hình | WMAPE ngày | WMAPE tuần | Bias | X | Y | Z |
 |---|---|---|---|---|---|---|
 | Ghép v4 + LSTM (không đạt luật) | 0,351 | 0,208 | +7,7% | 0,299 | 0,352 | 0,503 |
+| Ghép v4 + mô hình mới | 0,352 | 0,207 | +7,3% | 0,299 | 0,354 | 0,505 |
 | Kết hợp v4, cập nhật tuần (đang dùng) | 0,358 | 0,213 | +5,5% | 0,307 | 0,359 | 0,505 |
 | Kết hợp v3, cập nhật 28 ngày | 0,379 | 0,243 | +7,1% | 0,312 | 0,392 | 0,573 |
 | LSTM | 0,384 | 0,239 | +7,5% | 0,305 | 0,370 | 0,620 |
 | LightGBM theo tầm | 0,385 | 0,251 | +10,2% | 0,312 | 0,392 | 0,597 |
 | Kết hợp theo nhóm v2 | 0,388 | 0,252 | +7,9% | 0,313 | 0,388 | 0,607 |
 | RNN | 0,395 | 0,253 | +5,6% | 0,307 | 0,373 | 0,657 |
+| TFT gọn | 0,412 | 0,289 | +16,9% | 0,309 | 0,391 | 0,716 |
+| TiDE | 0,465 | 0,344 | +18,7% | 0,373 | 0,416 | 0,744 |
+| N-HiTS | 0,478 | 0,376 | +0,5% | 0,433 | 0,461 | 0,615 |
 | Prophet additive | 0,488 | 0,304 | −1,4% | 0,399 | 0,567 | 0,727 |
 | TB trượt 28 ngày, cập nhật tuần | 0,566 | 0,425 | −1,1% | 0,383 | 0,498 | 1,120 |
 | TB trượt 28 ngày | 0,631 | 0,499 | −5,0% | 0,397 | 0,563 | 1,332 |
@@ -790,7 +798,18 @@ Quyết định theo luật: giữ **ket_hop_v4**; học sâu tốt hơn trên v
 
 ### 9.2. TiDE, N-HiTS, TFT (nguồn: `reports/mo_hinh_nf.md`)
 
-⏳ Chưa có kết quả.
+
+Luật ghi trước: docs/10 mục 9.9. Quyết định chỉ dựa trên validation2. Mô hình đang dùng: ket_hop_v4.
+
+| Mô hình | Validation2 WMAPE | Validation2 Bias | Test WMAPE | Test Bias |
+|---|---:|---:|---:|---:|
+| ket_hop_v4 | 0.358 | +5.5% | 0.356 | +3.0% |
+| tide | 0.465 | +18.7% | 0.477 | +17.8% |
+| nhits | 0.478 | +0.5% | 0.429 | +11.4% |
+| tft | 0.412 | +16.9% | 0.425 | +17.1% |
+| ket_hop_nf | 0.352 | +7.3% | 0.354 | +5.0% |
+
+Quyết định: **ket_hop_v4** (trọng số ghép theo nhóm {'X': 0.5, 'Y': 0.3, 'Z': 0.0}, ghép với tft).
 
 ## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)
 
@@ -831,7 +850,64 @@ Trên test, mô hình chọn giảm WMAPE 13.8% so với trung bình trượt.
 
 ### 10.2. TiDE, N-HiTS, TFT trên M5 (nguồn: `du_lieu_nguon/m5/reports/mo_hinh_nf.md`)
 
-⏳ Chưa có kết quả.
+
+Luật ghi trước: docs/10 mục 9.9. Quyết định chỉ dựa trên validation2. Mô hình đang dùng: ket_hop_dl.
+
+| Mô hình | Validation2 WMAPE | Validation2 Bias | Test WMAPE | Test Bias |
+|---|---:|---:|---:|---:|
+| ket_hop_dl | 0.331 | +1.8% | 0.307 | +3.1% |
+| tide | 0.350 | +9.1% | 0.328 | +8.0% |
+| nhits | 0.366 | +10.2% | 0.341 | +10.9% |
+| tft | 0.351 | +6.1% | 0.325 | +5.5% |
+| ket_hop_nf | 0.328 | +3.5% | 0.306 | +4.3% |
+
+Quyết định: **ket_hop_dl** (trọng số ghép theo nhóm {'X': 0.2, 'Y': 0.4, 'Z': 0.0}, ghép với tide). Batch 14.
+
+### 10.3. Tồn kho trên bộ dữ liệu dựng từ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md`; lead time, chi phí, tồn kho là giả định)
+
+
+12 thang test (2015-05-24 .. 2016-05-21), 121 SKU, quy tac luong dat **eoq** (chon tren validation2), muc phuc vu chinh 95%. Nguon: số bán thật M5 (Walmart), dựng thành kho tổng.
+Hien trang: Hiện trạng: **quy tắc kinh nghiệm giả định** (mỗi 7 ngày đặt đủ 21 ngày bán theo trung bình 28 ngày trước), vì M5 không có số tồn kho.
+
+## Toan kho (95%)
+
+| ma_chinh_sach          |   fill_rate_pt |   so_ngay_sku_thieu |   ton_tb_trieu_vnd |   so_lan_nhap |   chi_phi_dat_trieu |   chi_phi_luu_trieu |   tong_chi_phi_trieu |   doanh_thu_mat_trieu |   loi_nhuan_mat_trieu |   chi_phi_lien_quan_trieu |
+|:-----------------------|---------------:|--------------------:|-------------------:|--------------:|--------------------:|--------------------:|---------------------:|----------------------:|----------------------:|--------------------------:|
+| cong_thuc_du_bao_ai_hc |          99.71 |                 126 |             1623.3 |          1500 |               247.5 |               323.8 |                571.3 |                 113.1 |                  23.6 |                     594.9 |
+| cong_thuc_du_bao_ai    |          99.64 |                 127 |             1584.4 |          1511 |               249.3 |               316   |                565.3 |                 150.1 |                  31.9 |                     597.2 |
+| cong_thuc_du_bao_moc   |          99.67 |                 112 |             1658.6 |          1483 |               244.7 |               330.8 |                575.5 |                 139.8 |                  29.6 |                     605.1 |
+| hien_trang             |          99.38 |                 303 |             1195   |          5830 |               962   |               238.3 |               1200.3 |                 214.2 |                  44.7 |                    1245   |
+
+## Theo nhom XYZ (95%)
+
+| xyz_train   | ma_chinh_sach          |   fill_rate_pt |   ton_tb_trieu |   loi_nhuan_mat_trieu |
+|:------------|:-----------------------|---------------:|---------------:|----------------------:|
+| X           | cong_thuc_du_bao_ai    |           99.6 |          993.6 |                  23.8 |
+| X           | cong_thuc_du_bao_ai_hc |           99.6 |          987.4 |                  21   |
+| X           | cong_thuc_du_bao_moc   |           99.7 |         1043.7 |                  15.1 |
+| X           | hien_trang             |           99.5 |          690.9 |                  20.9 |
+| Y           | cong_thuc_du_bao_ai    |           99.8 |          585.3 |                   8.1 |
+| Y           | cong_thuc_du_bao_ai_hc |           99.9 |          629.3 |                   2.6 |
+| Y           | cong_thuc_du_bao_moc   |           99.5 |          607   |                  14.4 |
+| Y           | hien_trang             |           99.1 |          501.8 |                  23.4 |
+| Z           | cong_thuc_du_bao_ai    |          100   |            5.5 |                   0   |
+| Z           | cong_thuc_du_bao_ai_hc |          100   |            6.6 |                   0   |
+| Z           | cong_thuc_du_bao_moc   |           98   |            7.9 |                   0.2 |
+| Z           | hien_trang             |           95.6 |            2.2 |                   0.4 |
+
+## Do nhay theo muc phuc vu
+
+| ma_chinh_sach          |   muc_phuc_vu |   fill_rate_pt |   ton_tb_trieu_vnd |   chi_phi_lien_quan_trieu |
+|:-----------------------|--------------:|---------------:|-------------------:|--------------------------:|
+| cong_thuc_du_bao_ai_hc |          0.9  |          99.45 |             1544   |                     609   |
+| cong_thuc_du_bao_ai    |          0.9  |          99.39 |             1503.8 |                     614.4 |
+| cong_thuc_du_bao_moc   |          0.9  |          99.34 |             1575.5 |                     616.7 |
+| cong_thuc_du_bao_ai_hc |          0.95 |          99.71 |             1623.3 |                     594.9 |
+| cong_thuc_du_bao_ai    |          0.95 |          99.64 |             1584.4 |                     597.2 |
+| cong_thuc_du_bao_moc   |          0.95 |          99.67 |             1658.6 |                     605.1 |
+| cong_thuc_du_bao_ai    |          0.99 |          99.91 |             1726.4 |                     602.8 |
+| cong_thuc_du_bao_ai_hc |          0.99 |          99.91 |             1773.6 |                     610.7 |
+| cong_thuc_du_bao_moc   |          0.99 |          99.87 |             1823.6 |                     626.2 |
 
 ## 11. Nguồn dữ liệu công khai cần trích dẫn
 

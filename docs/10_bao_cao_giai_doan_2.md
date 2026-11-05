@@ -449,6 +449,51 @@ Tra cứu nghiên cứu: trên dữ liệu bán lẻ cửa hàng, mô hình cây
 3. **Chỉ thay mô hình khi** WMAPE validation2 giảm ≥ 0,005 **và** |Bias| không tăng quá 1 điểm. Không đạt thì giữ nguyên.
 4. Test chạy một lần, chỉ báo cáo, không đổi quyết định.
 
+**Kết quả trên bộ mô phỏng (chạy xong 04/11):**
+
+| Mô hình | Validation2 WMAPE | Validation2 Bias | Test WMAPE | Test Bias |
+|---|---:|---:|---:|---:|
+| `ket_hop_v4` (đang dùng) | 0,358 | +5,5% | 0,356 | +3,0% |
+| TFT cấu hình gọn | 0,412 | +16,9% | 0,425 | +17,1% |
+| TiDE | 0,465 | +18,7% | 0,477 | +17,8% |
+| N-HiTS | 0,478 | +0,5% | 0,429 | +11,4% |
+| Ghép `ket_hop_v4` với TFT | 0,352 | +7,3% | 0,354 | +5,0% |
+
+**Quyết định theo luật: giữ `ket_hop_v4`.** Ghép với TFT giảm WMAPE 0,006 trên validation2, đạt ngưỡng 0,005, nhưng |Bias| tăng 1,8 điểm, quá ngưỡng 1 điểm. Test chỉ báo cáo: ghép giảm WMAPE 0,002, Bias cao hơn 2,0 điểm. Không mô hình đơn nào trong ba mô hình tốt hơn mô hình đang dùng, đúng với điều đã tra cứu trước: mô hình cây thường thắng trên dữ liệu bán lẻ. TiDE trên test chết 3 lần (mã 139) trước khi chạy qua ở lần thử thứ 4; mỗi lần chạy lại từ đầu với cùng hạt giống và chỉ lần chạy trọn mới ghi kết quả. Nguyên nhân xem phần đính chính dưới đây.
+
+**Đổi cấu hình cho M5, ghi ngày 04–05/11, TRƯỚC khi có bất kỳ sai số nào của ba mô hình này trên M5:** TiDE trên M5 chết 2 lần mã 139, lần 3 báo hết bộ nhớ GPU ở `_create_windows`. Thư viện dựng mọi cửa sổ của cả lô trên GPU rồi mới lấy mẫu, nên bộ nhớ tăng theo số ngày × số biến × số mã. Dữ liệu cửa sổ của một lô 32 mã trên M5 là 0,95–1,54 GB (1.211–1.912 ngày, 84 cột), trên mô phỏng là 0,18–0,64 GB (366–1.067 ngày, 65 cột), chưa kể các bản sao thư viện tạo thêm.
+
+**Đính chính nguyên nhân:** bản ghi đầu của mục này chỉ quy lỗi cho kích thước dữ liệu là chưa đủ. Đo trên mốc lớn nhất của M5 (đo bộ nhớ, không tính sai số), nguyên nhân chính là thiết lập `PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128` thêm vào hàng đợi sau khi đọc nhầm một lỗi trước đó là phân mảnh GPU:
+
+| Cấu hình đo trên mốc lớn nhất, batch 14 | Kết quả | Thực dùng cao nhất | Giữ lại cao nhất |
+|---|---|---:|---:|
+| TiDE, có `max_split_size_mb:128` | Hết bộ nhớ ở bước 14 | 1,43 GB | 6,67 GB |
+| TiDE, bỏ thiết lập, 1.000 bước | Đạt | 1,45 GB | 5,19 GB |
+| N-HiTS, bỏ thiết lập, 1.000 bước | Đạt | 1,51 GB | 6,27 GB |
+| TFT, bỏ thiết lập, 500 bước | Đạt | 1,46 GB | 4,61 GB |
+| Trần 60% GPU, N-HiTS | Hết bộ nhớ ở bước 5 | 1,45 GB | 1,96 GB |
+| **Trần 75% GPU, N-HiTS, 1.000 bước** | **Đạt** | 1,51 GB | 2,66 GB |
+| **Trần 75% GPU, TiDE, 1.000 bước** | **Đạt** | 1,45 GB | 2,67 GB |
+| **Trần 75% GPU, TFT, 500 bước** | **Đạt** | 1,46 GB | 2,72 GB |
+
+Phần "giữ lại" vượt 4 GB nghĩa là bộ nhớ GPU tràn sang RAM máy. **Chưa xác định được batch 32 có chạy được không khi bỏ thiết lập trên:** lần thử duy nhất trùng lúc máy sập (màn hình xanh `0x19C`, lần ghi cuối 23:45 ngày 04/11), không kết luận được hai việc có liên quan, nên không thử lại vì có thể làm mất việc đang mở trên máy. **Đính chính lần 2 (05/11):** thiết lập trên giải thích lỗi hết bộ nhớ GPU và tràn sang RAM, nhưng **không giải thích hết mã 139**: sau khi bỏ thiết lập và có trần 75%, N-HiTS trên test của M5 vẫn chết 2 lần mã 139 (khoảng 10 phút sau khi bắt đầu, không báo lỗi Python), rồi chạy qua ở lần thử 3. Nguyên nhân mã 139 chưa xác định; có thể do GPU hoặc driver (cùng máy từng màn hình xanh `0x10E`, `0x19C`), chưa kiểm chứng.
+
+- **Luật mới:** `chon_batch` trong `src/mo_hinh_nf.py` chọn số mã mỗi lô sao cho dữ liệu cửa sổ của một lô không quá 0,7 GB, tối đa 32, tối thiểu 4, tính theo số ngày và số biến của dữ liệu đang chạy, nên dữ liệu đổi vẫn tự thích ứng. Bộ mô phỏng vẫn là 32, kết quả trên không đổi; M5 là 14. Tiến trình bị giới hạn ở 75% GPU (`TRAN_GPU`), không còn dùng `max_split_size_mb`. Cả hai không đổi cách tính, chỉ đổi cách dùng bộ nhớ.
+- **Không đổi:** mỗi bước vẫn lấy mẫu 256 cửa sổ (TFT 64), số bước, kiến trúc, hạt giống, luật quyết định; cả ba mô hình dùng cùng một batch.
+- **Khác biệt phải nêu:** mỗi bước trên M5 lấy cửa sổ từ 14 mã thay vì 32, nên độ đa dạng trong một bước thấp hơn bộ mô phỏng. Kết quả có thể kém hơn một chút so với máy mạnh hơn; đây là giới hạn của máy, tương tự TFT cấu hình gọn.
+
+**Kết quả trên M5 (chạy xong 05/11, batch 14):**
+
+| Mô hình | Validation2 WMAPE | Validation2 Bias | Test WMAPE | Test Bias |
+|---|---:|---:|---:|---:|
+| `ket_hop_dl` (đang dùng) | 0,331 | +1,8% | 0,307 | +3,1% |
+| TiDE | 0,350 | +9,1% | 0,328 | +8,0% |
+| TFT cấu hình gọn | 0,351 | +6,1% | 0,325 | +5,5% |
+| N-HiTS | 0,366 | +10,2% | 0,341 | +10,9% |
+| Ghép `ket_hop_dl` với TiDE | 0,328 | +3,5% | 0,306 | +4,3% |
+
+**Quyết định theo luật: giữ `ket_hop_dl`.** Bản ghép chỉ giảm WMAPE 0,003 trên validation2, chưa đạt ngưỡng 0,005, và |Bias| tăng 1,7 điểm, quá ngưỡng 1 điểm. Test chỉ báo cáo: bản ghép giảm WMAPE dưới 0,001, Bias cao hơn 1,2 điểm. Cả hai bộ dữ liệu cho cùng kết luận: ba mô hình này không tốt hơn mô hình đang dùng. Khoảng cách trên M5 nhỏ hơn bộ mô phỏng (trên test, TFT kém 0,018 so với 0,069), nên chưa thể nói ba mô hình này kém về bản chất; batch và TFT cấu hình gọn là giới hạn của máy.
+
 ### 9.3. Biểu đồ kết quả ✅ (24/10)
 `src/bieu_do_ket_qua.py` (đọc từ CSDL) → `reports/ket_qua/`, chú thích ở `reports/bao_cao_bieu_do_ket_qua.md`. Màu cố định theo đối tượng ở mọi hình (thực tế đen, AI xanh dương, dự báo mốc cam, Prophet xanh ngọc, LightGBM vàng, hiện trạng xám).
 - `k01` xếp hạng sai số các mô hình (tập test); `k02` dự báo so với thực tế, tổng toàn kho, mốc trước Tết và trước Trung thu 2026 (TB trượt dự báo phẳng, AI bám đỉnh nhưng vẫn thấp hơn đỉnh, khớp Bias dương); `k03` sai số theo nhóm XYZ; `k04` giá trị tồn kho theo ngày của 4 chính sách; `k05` trước–sau (Fill Rate, chi phí liên quan); `k06` mô hình răng cưa tồn kho – ROP – đặt hàng của SKU001 (minh họa lý thuyết Chương 2).
@@ -814,6 +859,55 @@ Người làm đồ án yêu cầu làm (04/11), sau khi mục 10.11 chỉ ra h�
 
 **Giới hạn:** mỗi mã chỉ có 1–2 mùa trước để làm gốc; `r` trên validation2 nhìn ngang trong cùng năm; dữ liệu mô phỏng nên mùa này giống mùa trước hơn thực tế (`r` p10–p90 là 0,81–1,20), có thể làm lợi cho cách dựa vào mùa trước; hạn và chi phí hàng dư là giả định. Q dùng lịch sử mùa trước, không dùng dự báo AI, vì dự báo chỉ nhìn được 28 ngày.
 
+### 10.13. Bộ dữ liệu kho dựng từ số bán thật M5 (luật ghi ngày 04/11, TRƯỚC khi chạy tồn kho)
+
+Người làm đồ án yêu cầu (04/11) làm sạch dữ liệu công khai để làm dữ liệu của đồ án. `src/nguon/m5_kho.py`, có test, ghi vào thư mục riêng `du_lieu_nguon/m5_kho/`; bộ mô phỏng và bộ kiểm chứng `du_lieu_nguon/m5/` không bị đổi. Dashboard chọn bộ này bằng biến `KHO_GOC`.
+
+**Nguyên tắc không đổi: dữ liệu luôn ghi rõ nguồn và hiện nguồn trên dashboard, không trình bày như số của một kho Việt Nam, không đặt tên hàng giả cho mã ẩn danh của M5, không đổi năm.** Tài liệu Dominick's yêu cầu ghi nguồn khi sử dụng.
+
+| Thành phần | Cách làm | Loại |
+|---|---|---|
+| Số bán theo ngày | M5, cộng 10 cửa hàng, 121 mã như mục 9.8, **giữ nguyên số**. Dùng làm nhu cầu; M5 không có cờ hết hàng nên ngày hết hàng trong thực tế bị tính là nhu cầu thấp | **Thật** |
+| Giá bán | Giá M5 theo tuần, trung bình theo mã, quy đổi 25.000 đ/USD để cùng đơn vị với hệ thống; **không phải giá Việt Nam** | **Thật**, tỉ giá là giả định |
+| Khuyến mãi | Suy từ giá thật: tuần có giá trung bình toàn chuỗi ≤ 95% trung vị 8 tuần trước, cùng quy tắc mục 10.9 | **Suy từ số thật** |
+| Giá vốn | Biên lãi gộp thật của Dominick's theo nhóm: thực phẩm, hàng gia dụng, hàng khác lấy biên toàn bộ. Khác chuỗi, khác thời kỳ | Đo từ nguồn khác |
+| Lịch sự kiện, ngày nghỉ, phân nhóm, dự báo | Lấy nguyên từ mục 9.8, **không học lại** | Thật / tính từ số thật |
+| Lead time 7 ± 1,5 ngày, chi phí đặt 165.000 đ, lưu kho 20%/năm, MOQ 1 | Như các mục trước | **Giả định** |
+| Nhà cung cấp | Mỗi phòng ban M5 coi là 1 nhà cung cấp (7 nhà) | **Giả định** |
+| Tồn kho và hàng nhập | M5 không có. Tạo bằng "quy tắc kinh nghiệm", dùng làm phương án "hiện trạng" | **Giả định** |
+
+**Quy tắc kinh nghiệm (cố định trước khi xem kết quả):** mỗi 7 ngày kho mở cửa, đặt lên đủ `(14 + 7) ngày × trung bình bán 28 ngày trước`, hàng về sau đúng 7 ngày. Đối thủ này yếu hơn "hiện trạng" của bộ mô phỏng (vốn biết trước nhu cầu), nên **không so trực tiếp được mức cải thiện giữa hai bộ**.
+
+**Cách chạy:** giữ nguyên quy trình: chọn quy tắc lượng đặt trên validation2 (`ton_kho.py`), test chỉ báo cáo. Mô hình dự báo là mô hình đã chọn ở mục 9.8.
+
+**Câu hỏi và luật báo cáo, ghi trước:**
+1. So với dự báo mốc dùng cùng công thức: Fill Rate, tồn, chi phí liên quan của chính sách AI. Báo cả khi bất lợi.
+2. Có đạt Fill Rate ≥ 95% không, và tồn so với quy tắc kinh nghiệm thế nào.
+3. Thứ hạng các chính sách có giống bộ mô phỏng không.
+4. Giả định không sửa sau khi xem kết quả; muốn đổi phải ghi lý do và báo cả kết quả cũ.
+
+**Việc đổi dữ liệu chính của đồ án là quyết định của người làm đồ án và giảng viên.** Bộ mô phỏng vẫn giữ nguyên; kết quả hai bộ được báo song song.
+
+**Quyết định của người làm đồ án (05/11): không có dữ liệu từ đơn vị thực tập, dùng dữ liệu hiện có.** Số bán thật M5 làm kết quả chính cho phần dự báo; bộ mô phỏng minh họa nghiệp vụ kho Việt Nam mà M5 không có (Tết, bão, hàng mùa vụ, tên hàng, hạn sử dụng, làm sạch dữ liệu), ghi rõ là mô phỏng; phần tồn kho báo cả hai bộ, gồm cả việc lợi ích giảm từ 35,3% xuống 1,7%. Giảng viên chưa xác nhận cách này.
+
+**Kết quả (chạy 04/11, xem `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md`):** 121 mã, số bán gốc giữ nguyên, CSDL đạt 7/7 phép kiểm toàn vẹn, 157 đợt khuyến mãi suy từ giá. Biên lãi đo từ Dominick's: thực phẩm 22,0%, gia dụng 16,6%, toàn bộ 21,4%. Validation2 chọn quy tắc EOQ cho mọi nhóm.
+
+| Tập kiểm tra, mức phục vụ 95% | Fill Rate | Ngày-mã thiếu | Tồn TB (tr đ) | Số lần nhập | Chi phí liên quan (tr đ) |
+|---|---:|---:|---:|---:|---:|
+| AI + hiệu chỉnh | 99,71% | 126 | 1.623,3 | 1.500 | 594,9 |
+| AI | 99,64% | 127 | 1.584,4 | 1.511 | 597,2 |
+| Dự báo mốc | 99,67% | 112 | 1.658,6 | 1.483 | 605,1 |
+| Quy tắc kinh nghiệm | 99,38% | 303 | 1.195,0 | 5.830 | 1.245,0 |
+
+**Trả lời các câu hỏi ghi trước:**
+1. **So với dự báo mốc: lợi ích gần như biến mất.** Chi phí chỉ giảm 1,7%, tồn giảm 2,1%, Fill Rate tăng 0,04 điểm, số ngày thiếu còn **cao hơn** (126 so với 112). Trên bộ mô phỏng, chi phí giảm 35,3% và Fill Rate tăng 4,13 điểm.
+2. **Fill Rate đạt, nhưng con số 99,7% chủ yếu do giả định chứ không do dự báo.** Mức phục vụ đặt 95% mà đạt 99,7% vì lượng đặt quá lớn so với nhu cầu: trung vị 5,8 đơn vị/ngày (10 cửa hàng), EOQ bằng khoảng 35 ngày bán, trong khi tồn an toàn chỉ khoảng 4 ngày. Lượng đặt lớn che gần hết sai số dự báo, nên dự báo tốt hơn không đổi được bao nhiêu. Chi phí đặt 165.000 đ là giả định, chưa thử độ nhạy trên bộ này. Tồn cao hơn quy tắc kinh nghiệm 35,8%.
+3. **Thứ hạng khác bộ mô phỏng:** trên mô phỏng AI hơn hẳn dự báo mốc; ở đây ba chính sách theo công thức gần như ngang nhau. So với quy tắc kinh nghiệm, chi phí thấp hơn 52,2%, nhưng phần lớn do quy tắc đó đặt 5.830 lần, tức cũng phụ thuộc giả định chi phí đặt.
+
+**Điều rút ra:** kết hợp với mục 9.8 (sai số dự báo giảm 13,8%, so với 39% trên mô phỏng), bộ số thật cho thấy **giá trị của AI phụ thuộc mạnh vào đặc điểm kho**: với hàng bán ít và lượng đặt lớn, dự báo tốt hơn gần như không đổi được kết quả tồn kho. Đây là kết luận thật, không nên che đi. Giới hạn: M5 chỉ là 10 cửa hàng nên quy mô nhỏ hơn kho tổng thật, số bán không phân biệt được hết hàng, và không có tồn kho thật để làm "hiện trạng". Hai bộ không so trực tiếp được vì đối thủ "hiện trạng" khác nhau.
+
+**Chưa làm trên bộ này:** dashboard, gom đơn, chấm điểm nhà cung cấp, hạn sử dụng, sức chứa, thử độ nhạy theo chi phí đặt. Chạy sau khi hàng đợi mô hình xong để tránh thiếu bộ nhớ.
+
 ## 11. Mô phỏng và bảng trước–sau ✅ (24/10)
 
 **Từ 01/11 (vòng 4):** dự báo `ket_hop_v4` cập nhật mỗi tuần, dự báo mốc TB trượt 28 ngày cũng cập nhật mỗi tuần, quy tắc lượng đặt **lai** (chọn trên validation2, mục 10.4), 12 tháng test, 121 SKU, mức phục vụ 95% (`reports/ton_kho_so_sanh.md`, CSDL `v_so_sanh_chinh_sach`). Chi phí liên quan = chi phí đặt hàng + chi phí lưu kho + lợi nhuận mất do thiếu hàng.
@@ -999,6 +1093,11 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 | 04/11 | Khối livestream bản sau đối chiếu: hệ số theo dải giảm giá, tài trợ 45%, độ co giãn (mục 10.10) | `src/tru_hang_live.py`, `src/phan_tich_dominicks.py`, `app/trang/mat_hang.py`, `reports/tru_hang_live_sau_doi_chieu.md` | Có test; newsvendor bền 18/18; lãi mặc định giảm khoảng 40%; giá trị theo dõi nhỏ |  |
 | 04/11 | Hạn sử dụng và sức chứa kho (mục 10.11) | `src/rang_buoc_kho.py`, `reports/rang_buoc_kho.md`, `app/trang/ket_qua.py` | Có test, khớp CSDL khi tắt ràng buộc; hàng dịp lễ chiếm 92% hàng loại; sức chứa vượt do 1 mã đặt quá tay |  |
 | 04/11 | Newsvendor cho hàng chỉ bán dịp lễ (mục 10.12); khối livestream dùng được cho mọi mã | `src/newsvendor_mua_vu.py`, `reports/newsvendor_mua_vu.md`, `app/trang/ket_qua.py`, `app/trang/mat_hang.py` | Có test; validation2 chọn đặt một lần, test có hạn không xác nhận do hàng hạn ngắn; không đưa vào chính sách chính |  |
+| 04/11 | Bộ dữ liệu kho dựng từ số bán thật M5, chạy đủ đến tồn kho (mục 10.13) | `src/nguon/m5_kho.py`, `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md` | Có test; AI giảm chi phí 1,7% so với dự báo mốc (mô phỏng: 35,3%); chưa đổi dữ liệu chính |  |
+| 04/11 | TiDE, N-HiTS, TFT xong trên mô phỏng, giữ `ket_hop_v4`; M5 đổi sang batch tự chọn + trần 75% GPU, đính chính nguyên nhân lỗi bộ nhớ (mục 9.9) | `src/mo_hinh_nf.py`, `reports/mo_hinh_nf.md` | Có test; luật batch ghi trước khi có sai số M5 |  |
+| 05/11 | Quyết định không dùng dữ liệu đơn vị thực tập: M5 cho dự báo, mô phỏng cho nghiệp vụ (mục 10.13) | `docs/01`, `docs/09` | Chưa có xác nhận của giảng viên |  |
+| 05/11 | Chương 3 đổi thành mô tả bài toán và dữ liệu, không viết thực trạng kho vì chưa thực tập | `docs/09_lo_trinh.md`, `do_an/chuong_1_mo_dau.md` | Chưa kiểm tra mẫu của trường, chưa có xác nhận của giảng viên |  |
+| 05/11 | TiDE, N-HiTS, TFT xong trên M5, giữ `ket_hop_dl`; đính chính: mã 139 chưa rõ nguyên nhân (mục 9.9) | `du_lieu_nguon/m5/reports/mo_hinh_nf.md` | Luật ghi trước; bản ghép không đạt ngưỡng |  |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

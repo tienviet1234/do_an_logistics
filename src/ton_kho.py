@@ -32,6 +32,7 @@ from scipy.stats import norm
 sys.path.insert(0, os.path.dirname(__file__))
 from csdl import ket_noi, doc  # noqa: E402
 from danh_gia import HORIZON  # noqa: E402
+from kiem_tra_du_lieu import nguon_du_lieu  # noqa: E402
 
 SEED = 20261023
 LEVELS = [0.90, 0.95, 0.99]
@@ -39,10 +40,12 @@ MAIN = 0.95
 R_COVER = 7
 RULES = ["eoq", "dat_den_muc", "lai"]
 AI = doc("SELECT ma_mo_hinh FROM mo_hinh WHERE duoc_chon = 1").ma_mo_hinh.iloc[0]   # chon o nap_database.MO_HINH_DUOC_CHON
+NGUON_DL = nguon_du_lieu()
+GHI_NGUON = "Du lieu mo phong." if NGUON_DL["la_mo_phong"] else f"Nguon: {NGUON_DL['ten']}."
 POLICIES = {   # ma -> (mo ta, mo hinh du bao, hieu chinh lech)
-    "hien_trang": ("Hiện trạng trong dữ liệu (người lập kế hoạch biết trước nhu cầu kỳ vọng, lệch ±10%)", None, 0),
+    "hien_trang": (NGUON_DL.get("note_ht", "Hiện trạng trong dữ liệu (người lập kế hoạch biết trước nhu cầu kỳ vọng, lệch ±10%)").replace("\\* ", ""), None, 0),
     "cong_thuc_du_bao_moc": ("Công thức + dự báo mốc: trung bình trượt 28 ngày, cập nhật mỗi tuần", "tb_truot_28_tuan", 0),
-    "cong_thuc_du_bao_ai": ("Công thức + dự báo AI: kết hợp LightGBM + Prophet theo nhóm", AI, 0),
+    "cong_thuc_du_bao_ai": (NGUON_DL.get("mo_ta_ai", "Công thức + dự báo AI: kết hợp LightGBM + Prophet theo nhóm"), AI, 0),
     "cong_thuc_du_bao_ai_hc": ("Công thức + dự báo AI + hiệu chỉnh lệch theo nhóm XYZ (ước lượng trên validation)", AI, 1),
 }
 
@@ -230,7 +233,7 @@ if __name__ == "__main__":
     sel["duoc_chon"] = np.where(sel.index == 0, "✅", "")
     txt = ["# Chon quy tac luong dat (GD F, buoc 1: validation2)", "",
            f"Giai doan {val['ds'][0]} .. {val['ds'][-1]}, muc phuc vu {MAIN:.0%}. Tieu chi: chi phi lien quan = dat + luu + loi nhuan mat (thap nhat).",
-           f"**Duoc chon: quy tac {best_rule}, chinh sach {best_pol}.** Du lieu mo phong.", "", sel.to_markdown(index=False)]
+           f"**Duoc chon: quy tac {best_rule}, chinh sach {best_pol}.** {GHI_NGUON}", "", sel.to_markdown(index=False)]
     with open("reports/ton_kho_chon_quy_tac.md", "w", encoding="utf-8") as f:
         f.write("\n".join(txt) + "\n")
     print("\n".join(txt[3:]))
@@ -275,8 +278,8 @@ if __name__ == "__main__":
     sens = v[v.ma_chinh_sach != "hien_trang"][["ma_chinh_sach", "muc_phuc_vu", "fill_rate_pt", "ton_tb_trieu_vnd", "chi_phi_lien_quan_trieu"]]
     lines = ["# So sanh chinh sach ton kho (GD F, buoc 2: test)", "",
              f"12 thang test ({te['ds'][0]} .. {te['ds'][-1]}), {len(sku)} SKU, quy tac luong dat **{best_rule}** (chon tren validation2), "
-             f"muc phuc vu chinh {MAIN:.0%}. Du lieu mo phong.",
-             "Hien trang: nguoi lap ke hoach trong du lieu biet truoc nhu cau ky vong (lech +-10%) -> doi thu manh hon thuc te.", "",
+             f"muc phuc vu chinh {MAIN:.0%}. {GHI_NGUON}",
+             ("Hien trang: nguoi lap ke hoach trong du lieu biet truoc nhu cau ky vong (lech +-10%) -> doi thu manh hon thuc te." if NGUON_DL["la_mo_phong"] else "Hien trang: " + POLICIES["hien_trang"][0]), "",
              "## Toan kho (95%)", "", main.to_markdown(index=False), "",
              "## Theo nhom XYZ (95%)", "", grp.to_markdown(index=False), "",
              "## Do nhay theo muc phuc vu", "", sens.to_markdown(index=False)]

@@ -1,5 +1,6 @@
 """Gom so lieu cho bao cao Word tu CSDL va file ket qua (khong ghi so theo tri nho). Chay tai thu muc goc du an."""
 import json
+import os
 import sys
 sys.path.insert(0, "src")
 import pandas as pd
@@ -58,5 +59,46 @@ mp = doc("SELECT * FROM mo_phong_ngay WHERE ma_chinh_sach='cong_thuc_du_bao_ai_h
 out["canh_bao_0902"] = trang_thai_ton_kho(mp).value_counts().reindex(TRANG_THAI).fillna(0).astype(int).to_dict()
 out["rui_ro"] = pd.read_csv("reports/rui_ro_du_bao.csv", encoding="utf-8-sig").fillna("").to_dict("records")
 out["bang"] = doc("SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'").values.tolist()
+# ---------------------------------------------------------------- phan logistics bo sung va kiem chung (doc tep ket qua, thieu tep thi None)
+def doc_json(f):
+    return json.load(open(f, encoding="utf-8")) if os.path.exists(f) else None
+
+
+def dong_ket_qua(f, ds):
+    """Dong WMAPE, Bias theo mo hinh va tap tu 1 tep ket_qua_mo_hinh.csv; thieu thi None."""
+    if not os.path.exists(f):
+        return None
+    k = pd.read_csv(f, encoding="utf-8-sig")
+    ra = {}
+    for mh in ds:
+        ra[mh] = {}
+        for tap in ("validation2", "test"):
+            x = k[(k.mo_hinh == mh) & (k.tap == tap)]
+            ra[mh][tap] = None if x.empty else dict(wmape=float(x.WMAPE.iloc[0]), bias=float(x.Bias_pct.iloc[0]), wmape_x=None if pd.isna(x.WMAPE_X.iloc[0]) else float(x.WMAPE_X.iloc[0]), wmape_z=None if pd.isna(x.WMAPE_Z.iloc[0]) else float(x.WMAPE_Z.iloc[0]))
+    return ra
+
+
+def bo_chuoi_dai(x):
+    """Bo cac danh sach theo tung ma trong trang thai newsvendor, chi giu so tong."""
+    if isinstance(x, dict):
+        return {k: bo_chuoi_dai(v) for k, v in x.items() if k not in ("nhap", "ton_cuoi", "ke_hoach_mot_lan", "bo_qua")}
+    return x
+
+
+kho = [l.split("|")[1:-1] for l in open("reports/chi_so_kho.md", encoding="utf-8") if l.startswith("| cong_thuc") or l.startswith("| hien_trang")]
+out["kho"] = {r[0].strip(): [float(v) for v in r[1:6]] for r in kho[:4]}
+out["gom"] = doc_json("reports/gom_don_trang_thai.json")
+out["ncc"] = doc_json("reports/cham_diem_ncc_trang_thai.json")
+ncc = pd.read_csv("reports/cham_diem_ncc.csv", encoding="utf-8-sig").sort_values("diem", ascending=False)
+out["ncc_bang"] = dict(dau=ncc.iloc[0].to_dict(), cuoi=ncc.iloc[-1].to_dict(), loai=ncc.xep_loai.value_counts().to_dict(), so=int(len(ncc)))
+out["rb"] = doc_json("reports/rang_buoc_kho_trang_thai.json")
+out["nv"] = bo_chuoi_dai(doc_json("reports/newsvendor_mua_vu_trang_thai.json"))
+out["live"] = doc_json("reports/tru_hang_live_trang_thai.json")
+out["live_sau"] = doc_json("reports/tru_hang_live_sau_doi_chieu_trang_thai.json")
+out["dom"] = doc_json("reports/dominicks_trang_thai.json")
+out["dl"] = dong_ket_qua("reports/ket_qua_mo_hinh.csv", ["ket_hop_v4", "ket_hop_v5", "lstm_tuan", "rnn_tuan", "tide_tuan", "nhits_tuan", "tft_tuan", "ket_hop_nf", "tb_truot_28_tuan"])
+out["nf"] = doc_json("reports/mo_hinh_nf_trang_thai.json")
+out["m5"] = dong_ket_qua("du_lieu_nguon/m5/reports/ket_qua_mo_hinh.csv", ["ket_hop_dl", "ket_hop", "lightgbm", "rnn", "lstm", "tb_truot", "prophet", "lap_tuan", "tide_tuan", "nhits_tuan", "tft_tuan", "ket_hop_nf"])
+out["m5_chon"] = (doc_json("du_lieu_nguon/m5/reports/kiem_chung_trang_thai.json") or {}).get("chon")
 json.dump(out, open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=float)
 print("ok", list(out))

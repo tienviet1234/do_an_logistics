@@ -9,7 +9,7 @@ import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from mo_hinh_nf import dat_luat, ghep, tao_khung  # noqa: E402
+from mo_hinh_nf import BATCH, chon_batch, dat_luat, ghep, tao_khung  # noqa: E402
 
 
 def khung(o=59, sua_y_sau_moc=None):
@@ -52,6 +52,24 @@ def test_chuan_hoa_va_dung_ma():
     a, b = hoc[hoc.unique_id == "A"], hoc[hoc.unique_id == "B"]
     assert a.y.iloc[1] == pytest.approx(1 / 2) and b.y.iloc[0] == pytest.approx(100 / 4)
     assert a.x0.iloc[1] == 3 and tl[tl.unique_id == "B"].x0.iloc[0] == 3 * (100 + 60)
+
+
+def test_batch_khong_doi_bo_du_lieu_nho():
+    assert chon_batch(1095, 63) == BATCH
+
+
+def test_batch_giam_khi_du_lieu_lon():
+    b = chon_batch(1941, 82)
+    assert 4 <= b < BATCH
+    assert (1941 - 83) * 84 * 84 * 4 / 2 ** 30 * b <= 0.7
+
+
+def test_batch_giam_khi_them_ngay_hoac_bien():
+    assert chon_batch(4000, 82) <= chon_batch(1941, 82) and chon_batch(1941, 200) <= chon_batch(1941, 82)
+
+
+def test_batch_co_san_va_tran():
+    assert chon_batch(10 ** 6, 500) == 4 and chon_batch(100, 1) == BATCH
 
 
 def test_luat():

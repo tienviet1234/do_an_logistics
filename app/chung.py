@@ -51,7 +51,7 @@ CS_NGAN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Dự báo m
 CS_MAU = {"hien_trang": C_HT, "cong_thuc_du_bao_moc": C_MOC, "cong_thuc_du_bao_ai": C_AI2, "cong_thuc_du_bao_ai_hc": C_AI}
 CS_CONG_THUC = [c for c in CS_TEN if c != "hien_trang"]
 NOTE = NGUON["ghi_chu"]
-NOTE_HT = ("\\* Hiện trạng: người lập kế hoạch trong dữ liệu mô phỏng **biết trước nhu cầu kỳ vọng** (lệch ±10%), "
+NOTE_HT = NGUON.get("note_ht") or ("\\* Hiện trạng: người lập kế hoạch trong dữ liệu mô phỏng **biết trước nhu cầu kỳ vọng** (lệch ±10%), "
            "nên là đối thủ mạnh hơn thực tế.")
 
 vn = lambda v, nd=1: f"{v:,.{nd}f}".replace(",", "_").replace(".", ",").replace("_", ".")

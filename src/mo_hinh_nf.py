@@ -23,6 +23,8 @@ VAL = "validation2"
 TAM_THU = {"tide": "TiDE", "nhits": "NHITS", "tft": "TFT"}
 CUA_SO, MAX_STEPS, HOC_LAI_MOI, HAT_GIONG = 56, 1000, 4, 20261103     # hoc lai tu dau moi 4 moc (28 ngay), cac moc giua chi cap nhat dau vao
 BATCH, WINDOWS = 32, 256
+TRAN_CUA_SO_GB = 0.7                                                           # du lieu cua so toi da cua 1 lo tren GPU 4 GB (docs/10 muc 9.9), thu vien con tao them ban sao
+TRAN_GPU = 0.75                                                                # phan GPU tien trinh duoc giu; nhu cau thuc o batch tu chon khoang 1,5 GB
 TFT_AN, TFT_WINDOWS, TFT_SO_BIEN, TFT_MAX_STEPS = 32, 64, 8, 500               # TFT gon: it bien tuong lai nhat (8 co lich + gia tri tre cung ky nam truoc)
 NGUONG_WMAPE, NGUONG_BIAS = 0.005, 0.01
 GRID_W = np.round(np.arange(0, 1.01, 0.1), 1)
@@ -56,10 +58,19 @@ def bien_cua(ten, ten_x):
     return ten_x[:TFT_SO_BIEN] + ten_x[-6:] if ten == "tft" else ten_x
 
 
-def tao_mo_hinh(ten, ten_x, ten_tinh, max_steps=MAX_STEPS):
+def chon_batch(so_ngay, so_bien, toi_da=BATCH, toi_thieu=4, tran_gb=TRAN_CUA_SO_GB):
+    """So ma moi lo de cua so ca lo vua GPU. Thu vien dung MOI cua so cua lo tren GPU roi moi lay mau nen bo nho tang theo so ngay x so bien x so ma.
+    Tinh theo so ngay cua ca du lieu (moc cuoi can nhieu nhat). Luon lay mau WINDOWS cua so moi buoc, chi doi so ma duoc lay mau."""
+    cua_so = CUA_SO + HORIZON
+    cot = so_bien + 2                                                          # y va available_mask
+    moi_ma = max(so_ngay - cua_so + 1, 1) * cua_so * cot * 4 / 2 ** 30
+    return int(min(toi_da, max(toi_thieu, tran_gb // moi_ma)))
+
+
+def tao_mo_hinh(ten, ten_x, ten_tinh, max_steps=MAX_STEPS, batch=BATCH):
     from neuralforecast.losses.pytorch import MAE
     from neuralforecast.models import NHITS, TFT, TiDE
-    chung = dict(h=HORIZON, input_size=CUA_SO, futr_exog_list=bien_cua(ten, ten_x), stat_exog_list=ten_tinh, loss=MAE(), max_steps=max_steps, batch_size=BATCH, windows_batch_size=WINDOWS,
+    chung = dict(h=HORIZON, input_size=CUA_SO, futr_exog_list=bien_cua(ten, ten_x), stat_exog_list=ten_tinh, loss=MAE(), max_steps=max_steps, batch_size=batch, windows_batch_size=WINDOWS,
                  scaler_type="identity", random_seed=HAT_GIONG, enable_progress_bar=False, enable_model_summary=False, logger=False, enable_checkpointing=False)
     if ten == "tide":
         return TiDE(hidden_size=128, decoder_output_dim=16, temporal_decoder_dim=64, num_encoder_layers=2, num_decoder_layers=2, **chung)
@@ -75,6 +86,11 @@ def make_model(d, ten, max_steps=MAX_STEPS):
     from neuralforecast import NeuralForecast
     so = d.co_dinh.shape[2]
     ten_x = [f"x{i}" for i in range(so + 6)]
+    batch = chon_batch(len(d.ngay), len(ten_x))
+    print(f"  {ten}: {len(d.ngay)} ngay, {len(ten_x)} bien -> batch {batch}", flush=True)
+    import torch
+    if torch.cuda.is_available():                                              # khong co tran thi bo cap phat giu phan thua vuot ca GPU, tran sang RAM (docs/10 muc 9.9)
+        torch.cuda.set_per_process_memory_fraction(TRAN_GPU)
     tinh = pd.get_dummies(pd.DataFrame(d.cat.cpu().numpy()[:, 1:], columns=[c for c, _ in __import__("mo_hinh_dl").CAT[1:]]).astype(str), dtype=float)
     ten_tinh = [f"s{i}" for i in range(tinh.shape[1])]
     tinh.columns = ten_tinh
@@ -91,7 +107,7 @@ def make_model(d, ten, max_steps=MAX_STEPS):
         hoc, tl_f = tao_khung(d.skus, d.ngay, m["o"], m["Y"].cpu().numpy(), m["co"].cpu().numpy(), x, tl, ten_x)
         if dem[0] % HOC_LAI_MOI == 0:
             t0 = time.time()
-            nf[0] = NeuralForecast(models=[tao_mo_hinh(ten, ten_x, ten_tinh, max_steps)], freq="D")
+            nf[0] = NeuralForecast(models=[tao_mo_hinh(ten, ten_x, ten_tinh, max_steps, batch)], freq="D")
             nf[0].fit(df=hoc, static_df=tinh, val_size=0)
             print(f"  {ten} hoc lai tai moc {moc.date()}: {time.time() - t0:.0f}s", flush=True)
         dem[0] += 1
@@ -102,6 +118,7 @@ def make_model(d, ten, max_steps=MAX_STEPS):
             raise ValueError("Thieu du bao")
         ra["du_bao"] = np.where(ra.la_ngay_nghi == 1, 0, ra.f.values * ra.ma_sku.map(dict(zip(d.skus, tl))).values)
         return ra[["date", "ma_sku", "du_bao"]]
+    fn.batch = batch
     return fn
 
 
@@ -159,7 +176,7 @@ if __name__ == "__main__":
         for t in [ten_nen, "tide", "nhits", "tft", "ket_hop_nf"]:
             v, x = q["bang"][t], st["test"][t]
             L.append(f"| {t} | {v['WMAPE']:.3f} | {100 * v['Bias']:+.1f}% | {x['WMAPE']:.3f} | {100 * x['Bias']:+.1f}% |")
-        L += ["", f"Quyết định: **{q['chon']}** (trọng số ghép theo nhóm {q['w']}, ghép với {q['tot_nhat']}).", ""]
+        L += ["", f"Quyết định: **{q['chon']}** (trọng số ghép theo nhóm {q['w']}, ghép với {q['tot_nhat']}). Batch {st.get('batch', BATCH)}.", ""]
         open(REPORT, "w", encoding="utf-8").write("\n".join(L))
         print("\n".join(L))
         sys.exit()
@@ -179,7 +196,9 @@ if __name__ == "__main__":
         import mo_hinh_dl as D
         ten = a[a.index("--mo_hinh") + 1]
         assert tap == VAL or "quyet_dinh" in st, "luat 9.9: test chi chay sau khi da quyet dinh tren validation2"
-        p = backtest(make_model(D.DuLieu(df), ten), df, folds(tap, step=7), name=ten, verbose=False)
+        mo_hinh = make_model(D.DuLieu(df), ten)
+        p = backtest(mo_hinh, df, folds(tap, step=7), name=ten, verbose=False)
+        st["batch"] = mo_hinh.batch
         p.to_csv(f"{THU_MUC}/{ten}_{tap}.csv", index=False, encoding="utf-8-sig")
         save_results(f"{ten}_tuan", ban_moi_nhat(p), df, tap, f"{TAM_THU[ten]}, hoc lai moi 28 ngay, cap nhat dau vao moi 7 ngay, docs/10 muc 9.9")
         print(ten, tap, "xong", flush=True)

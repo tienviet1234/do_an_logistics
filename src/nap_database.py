@@ -17,9 +17,11 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(__file__))
 from csdl import DB_PATH, SCHEMA, ket_noi  # noqa: E402
 from danh_gia import UNFORESEEABLE, PRED_DIR, RESULT  # noqa: E402
+from kiem_tra_du_lieu import nguon_du_lieu  # noqa: E402
 
 REF = "data/reference"
-MO_HINH_DUOC_CHON = "ket_hop_v4"                 # GD E vong 4: cap nhat moi tuan (docs/10 muc 9.6); truoc do: ket_hop_v3
+# GD E vong 4: cap nhat moi tuan (docs/10 muc 9.6); truoc do: ket_hop_v3. Nguon du lieu khac ghi mo hinh da chon trong tep nguon
+MO_HINH_DUOC_CHON = nguon_du_lieu().get("mo_hinh_chon", "ket_hop_v4")
 TAPS = ("validation2", "validation", "test")     # thu tu quan trong: "validation2" truoc "validation"
 
 
