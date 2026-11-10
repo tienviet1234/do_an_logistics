@@ -1,0 +1,90 @@
+{
+ "nguon": "dữ liệu mô phỏng",
+ "quy_tac": "lai",
+ "ket_qua": {
+  "0.1": {
+   "eoq_ngay": 4.837320857880856,
+   "loi_ich": 37.09519863938523,
+   "fill_rate_cong_thuc_du_bao_ai_hc": 95.11749697678637,
+   "ngay_thieu_cong_thuc_du_bao_ai_hc": 1013.0,
+   "ton_tb_cong_thuc_du_bao_ai_hc": 10484.416254120879,
+   "cplq_cong_thuc_du_bao_ai_hc": 5408.424193383562,
+   "fill_rate_cong_thuc_du_bao_moc": 90.94877408557107,
+   "ngay_thieu_cong_thuc_du_bao_moc": 1161.0,
+   "ton_tb_cong_thuc_du_bao_moc": 18203.546910714285,
+   "cplq_cong_thuc_du_bao_moc": 8597.79234080822,
+   "fill_rate_hien_trang": 93.56682333855034,
+   "ngay_thieu_hien_trang": 1564.0,
+   "ton_tb_hien_trang": 11993.636651098901,
+   "cplq_hien_trang": 6171.309398945205
+  },
+  "0.25": {
+   "eoq_ngay": 7.648475841971585,
+   "loi_ich": 37.21210176953554,
+   "fill_rate_cong_thuc_du_bao_ai_hc": 95.34211819508164,
+   "ngay_thieu_cong_thuc_du_bao_ai_hc": 948.0,
+   "ton_tb_cong_thuc_du_bao_ai_hc": 10844.68120054945,
+   "cplq_cong_thuc_du_bao_ai_hc": 5454.406542986301,
+   "fill_rate_cong_thuc_du_bao_moc": 91.15137361579819,
+   "ngay_thieu_cong_thuc_du_bao_moc": 1073.0,
+   "ton_tb_cong_thuc_du_bao_moc": 18594.395046703296,
+   "cplq_cong_thuc_du_bao_moc": 8687.034757821919,
+   "fill_rate_hien_trang": 93.56682333855034,
+   "ngay_thieu_hien_trang": 1564.0,
+   "ton_tb_hien_trang": 11993.636651098901,
+   "cplq_hien_trang": 6219.433898945205
+  },
+  "0.5": {
+   "eoq_ngay": 10.816578267199192,
+   "loi_ich": 36.46385204535525,
+   "fill_rate_cong_thuc_du_bao_ai_hc": 95.50140262547073,
+   "ngay_thieu_cong_thuc_du_bao_ai_hc": 862.0,
+   "ton_tb_cong_thuc_du_bao_ai_hc": 11296.26939010989,
+   "cplq_cong_thuc_du_bao_ai_hc": 5562.097070246576,
+   "fill_rate_cong_thuc_du_bao_moc": 91.45343488048118,
+   "ngay_thieu_cong_thuc_du_bao_moc": 972.0,
+   "ton_tb_cong_thuc_du_bao_moc": 19026.585789835164,
+   "cplq_cong_thuc_du_bao_moc": 8754.224562397261,
+   "fill_rate_hien_trang": 93.56682333855034,
+   "ngay_thieu_hien_trang": 1564.0,
+   "ton_tb_hien_trang": 11993.636651098901,
+   "cplq_hien_trang": 6299.641398945206
+  },
+  "1.0": {
+   "eoq_ngay": 15.29695168394317,
+   "loi_ich": 35.32185308989212,
+   "fill_rate_cong_thuc_du_bao_ai_hc": 95.81518567057428,
+   "ngay_thieu_cong_thuc_du_bao_ai_hc": 735.0,
+   "ton_tb_cong_thuc_du_bao_ai_hc": 11905.975586538461,
+   "cplq_cong_thuc_du_bao_ai_hc": 5828.146765109589,
+   "fill_rate_cong_thuc_du_bao_moc": 91.68814792748171,
+   "ngay_thieu_cong_thuc_du_bao_moc": 916.0,
+   "ton_tb_cong_thuc_du_bao_moc": 19669.742387362636,
+   "cplq_cong_thuc_du_bao_moc": 9010.998372,
+   "fill_rate_hien_trang": 93.56682333855034,
+   "ngay_thieu_hien_trang": 1564.0,
+   "ton_tb_hien_trang": 11993.636651098901,
+   "cplq_hien_trang": 6460.056398945206
+  },
+  "2.0": {
+   "eoq_ngay": 21.633156534398385,
+   "loi_ich": 34.92052516478748,
+   "fill_rate_cong_thuc_du_bao_ai_hc": 96.14613522842386,
+   "ngay_thieu_cong_thuc_du_bao_ai_hc": 660.0,
+   "ton_tb_cong_thuc_du_bao_ai_hc": 12760.787967032966,
+   "cplq_cong_thuc_du_bao_ai_hc": 6066.298903863014,
+   "fill_rate_cong_thuc_du_bao_moc": 91.90375239160734,
+   "ngay_thieu_cong_thuc_du_bao_moc": 842.0,
+   "ton_tb_cong_thuc_du_bao_moc": 20558.844929945055,
+   "cplq_cong_thuc_du_bao_moc": 9321.370400150685,
+   "fill_rate_hien_trang": 93.56682333855034,
+   "ngay_thieu_hien_trang": 1564.0,
+   "ton_tb_hien_trang": 11993.636651098901,
+   "cplq_hien_trang": 6780.886398945206
+  }
+ },
+ "ket_luan": {
+  "chenh_diem": 1.7733455494931079,
+  "phu_thuoc": false
+ }
+}

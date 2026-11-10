@@ -1,6 +1,6 @@
 # Sổ số liệu đồ án
 
-Tạo tự động lúc 05/11/2026 16:15 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
+Tạo tự động lúc 10/11/2026 16:41 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
 
 **Lưu ý chung:** các số ở mục 1–9 là kết quả trên **dữ liệu mô phỏng**, không phải số liệu kho thật. Dữ liệu đổi thì số đổi, và mô hình được chọn có thể đổi.
 
@@ -191,7 +191,7 @@ Tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày k�
 ### 8.2. Gom đơn (nguồn: `reports/gom_don.md`)
 
 
-Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%. Dữ liệu mô phỏng; tỉ lệ chi phí chung của phiếu là **giả định**. Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).
+Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%, quy tắc lượng đặt lai. Dữ liệu mô phỏng; tỉ lệ chi phí chung của phiếu là **giả định**. Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).
 
 ## Validation2: chọn k (tỉ lệ 0,5)
 
@@ -790,6 +790,188 @@ Quy tắc hiện tại so với newsvendor một lần. Chi phí gồm đặt h�
 
 Mã có thời gian từ ngày đặt đến hết mùa dài hơn số ngày được giao (một lần đặt không phục vụ hết mùa): validation2: không có; test: SKU067, SKU068.
 
+### 8.9. Độ nhạy theo chi phí đặt (nguồn: `reports/do_nhay_chi_phi_dat.md`)
+
+
+Luật ghi trước: docs/10 mục 10.13. Dữ liệu mô phỏng. Tập test, mức phục vụ 95%, quy tắc lượng đặt **lai** (giữ nguyên), EOQ tính lại theo S. Quy tắc kinh nghiệm / hiện trạng giữ nguyên đơn, chỉ tính lại chi phí. Đây là phân tích độ nhạy, không đổi giả định chính.
+
+| S so với gốc | EOQ (ngày bán, trung vị) | Lợi ích AI so với dự báo mốc | Fill AI + HC | Fill dự báo mốc | Ngày-mã thiếu AI + HC | Ngày-mã thiếu dự báo mốc | Tồn AI + HC (tr đ) | Tồn dự báo mốc (tr đ) | CP liên quan AI + HC (tr đ) | CP liên quan dự báo mốc (tr đ) | CP liên quan hiện trạng (tr đ) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| × 0,10 | 4,8 | +37,1% | 95,12% | 90,95% | 1.013 | 1.161 | 10.484,4 | 18.203,5 | 5.408,4 | 8.597,8 | 6.171,3 |
+| × 0,25 | 7,6 | +37,2% | 95,34% | 91,15% | 948 | 1.073 | 10.844,7 | 18.594,4 | 5.454,4 | 8.687,0 | 6.219,4 |
+| × 0,50 | 10,8 | +36,5% | 95,50% | 91,45% | 862 | 972 | 11.296,3 | 19.026,6 | 5.562,1 | 8.754,2 | 6.299,6 |
+| × 1,00 | 15,3 | +35,3% | 95,82% | 91,69% | 735 | 916 | 11.906,0 | 19.669,7 | 5.828,1 | 9.011,0 | 6.460,1 |
+| × 2,00 | 21,6 | +34,9% | 96,15% | 91,90% | 660 | 842 | 12.760,8 | 20.558,8 | 6.066,3 | 9.321,4 | 6.780,9 |
+
+**Theo luật:** lợi ích AI ở S × 0,1 cao hơn ở S × 1 1,8 điểm %, ngưỡng 5,0 điểm → **không phụ thuộc rõ**.
+
+### 8.10. Cảnh báo dự báo lệch, mô phỏng (nguồn: `reports/canh_bao_lech.md`; M5: `du_lieu_nguon/m5_kho/reports/canh_bao_lech.md`)
+
+
+Luật ghi trước: docs/10 mục 10.14. Dữ liệu mô phỏng. Mô hình ket_hop_v4, dự báo gốc. TS = tổng sai số / MAD trên 28 ngày đến hết ngày lập phiếu (ít nhất 14 ngày có thực tế). Lệch = (thực tế − dự báo) / dự báo của 28 ngày kế tiếp.
+
+## Validation2: chọn ngưỡng
+
+| Ngưỡng \|TS\| | Cặp (mã, mốc) | Cảnh báo | Tỉ lệ cảnh báo | Cùng chiều | Trung vị \|lệch\| có cảnh báo | Trung vị \|lệch\| không cảnh báo | Gấp | Mã bị cảnh báo quá nửa số mốc | Đạt luật |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 3 | 5.657 | 4.102 | 72,5% | 51,5% | 12,4% | 10,2% | 1,22 | 120 | ❌ |
+| 4 | 5.657 | 3.685 | 65,1% | 51,8% | 12,6% | 10,3% | 1,23 | 112 | ❌ |
+| 5 | 5.657 | 3.274 | 57,9% | 52,0% | 13,2% | 9,9% | 1,33 | 83 | ❌ |
+| 6 | 5.657 | 2.855 | 50,5% | 52,9% | 13,8% | 10,0% | 1,38 | 59 | ❌ |
+
+Theo luật: **không ngưỡng nào đạt, cảnh báo chưa đủ tin cậy**.
+
+M5:
+
+
+Luật ghi trước: docs/10 mục 10.14. Nguồn: số bán thật M5 (Walmart), dựng thành kho tổng. Mô hình ket_hop_dl, dự báo gốc. TS = tổng sai số / MAD trên 28 ngày đến hết ngày lập phiếu (ít nhất 14 ngày có thực tế). Lệch = (thực tế − dự báo) / dự báo của 28 ngày kế tiếp.
+
+## Validation2: chọn ngưỡng
+
+| Ngưỡng \|TS\| | Cặp (mã, mốc) | Cảnh báo | Tỉ lệ cảnh báo | Cùng chiều | Trung vị \|lệch\| có cảnh báo | Trung vị \|lệch\| không cảnh báo | Gấp | Mã bị cảnh báo quá nửa số mốc | Đạt luật |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 3 | 5.628 | 4.324 | 76,8% | 61,5% | 15,9% | 13,3% | 1,19 | 119 | ❌ |
+| 4 | 5.628 | 3.874 | 68,8% | 62,5% | 16,3% | 13,2% | 1,23 | 108 | ❌ |
+| 5 | 5.628 | 3.478 | 61,8% | 63,2% | 16,5% | 13,3% | 1,24 | 92 | ❌ |
+| 6 | 5.628 | 3.081 | 54,7% | 64,4% | 17,3% | 13,3% | 1,30 | 73 | ❌ |
+
+Theo luật: **không ngưỡng nào đạt, cảnh báo chưa đủ tin cậy**.
+
+### 8.11. Cảnh báo dự báo lệch, vòng 2 (nguồn: `reports/canh_bao_lech_v2.md`; M5: `du_lieu_nguon/m5_kho/reports/canh_bao_lech_v2.md`)
+
+
+Luật ghi trước: docs/10 mục 10.14 (vòng 2). Dữ liệu mô phỏng. Mô hình ket_hop_v4, dự báo gốc. TS = tổng sai số 4 tuần / MAD theo tuần của 13 tuần; sai số = số bán − dự báo.
+
+## Phần 1: lệch kéo dài, validation2
+
+| Ngưỡng \|TS\| | Cặp (mã, mốc) | Tỉ lệ cảnh báo | Cùng chiều | Trung vị \|lệch\| có / không cảnh báo | Gấp | Đạt (a, b, c) |
+|---:|---:|---:|---:|---:|---:|---|
+| 3 | 4.961 | 25,3% | 50,3% | 15,1% / 11,2% | 1,35 | ❌ |
+| 4 | 4.961 | 13,9% | 50,2% | 17,9% / 11,4% | 1,57 | ❌ |
+| 5 | 4.961 | 8,2% | 49,5% | 21,8% / 11,5% | 1,90 | ❌ |
+| 6 | 4.961 | 4,8% | 49,2% | 34,2% / 11,5% | 2,97 | ❌ |
+
+Theo luật: **không ngưỡng nào đạt**.
+
+## Phần 2: thay đổi đột ngột, validation2
+
+166 cặp (mã, đợt) có hệ số tác động ≥ 0,5 trong các đợt dài ≥ 7 ngày (cả kỳ dữ liệu); 0 đợt ngắn hơn bị loại. Bão và đơn B2B nằm ngoài phạm vi.
+
+| Ngưỡng | (mã, đợt) xét được | Phát hiện | Cặp không sự kiện | TS > ngưỡng ở cặp không sự kiện | \|TS\| > ngưỡng ở cặp không sự kiện | Gấp | Đạt (d, e, c') |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 3 | 56 | 42,9% | 4.644 | 8,9% | 23,9% | 4,81 | ❌ |
+| 4 | 56 | 32,1% | 4.644 | 5,0% | 12,7% | 6,38 | ❌ |
+| 5 | 56 | 21,4% | 4.644 | 3,4% | 7,2% | 6,38 | ❌ |
+| 6 | 56 | 14,3% | 4.644 | 2,2% | 4,3% | 6,44 | ❌ |
+
+Theo luật: **không ngưỡng nào đạt**.
+
+M5:
+
+
+Luật ghi trước: docs/10 mục 10.14 (vòng 2). Nguồn: số bán thật M5 (Walmart), dựng thành kho tổng. Mô hình ket_hop_dl, dự báo gốc. TS = tổng sai số 4 tuần / MAD theo tuần của 13 tuần; sai số = số bán − dự báo.
+
+## Phần 1: lệch kéo dài, validation2
+
+| Ngưỡng \|TS\| | Cặp (mã, mốc) | Tỉ lệ cảnh báo | Cùng chiều | Trung vị \|lệch\| có / không cảnh báo | Gấp | Đạt (a, b, c) |
+|---:|---:|---:|---:|---:|---:|---|
+| 3 | 4.961 | 29,2% | 70,5% | 17,7% / 14,3% | 1,23 | ❌ |
+| 4 | 4.961 | 15,1% | 72,8% | 19,2% / 14,6% | 1,32 | ❌ |
+| 5 | 4.961 | 6,2% | 72,5% | 20,9% / 14,9% | 1,41 | ❌ |
+| 6 | 4.961 | 2,9% | 72,9% | 28,7% / 15,0% | 1,92 | ❌ |
+
+Theo luật: **không ngưỡng nào đạt**.
+
+### 8.12. Dự báo 28 ngày chưa xảy ra (nguồn: `reports/du_bao_tuong_lai.md`; M5: `du_lieu_nguon/m5/reports/du_bao_tuong_lai.md`)
+
+
+Ngày lập: **2026-09-30** (ngày cuối của dữ liệu). Mô hình **ket_hop_v4**. Các ngày dưới đây **chưa xảy ra**, chưa có số thật để so.
+
+- Lịch biết trước mở rộng theo quy tắc của lịch hiện có (`src/tuong_lai.py`). Sự kiện không tự suy ra (không biết trước hoặc không lặp theo ngày cố định): dich_cum, nang_nong, ret_dam, sot_xuat_huyet, the_thao, tin_don_gia.
+- Khuyến mãi có lịch gửi trước trong 28 ngày: 0 dòng mã-ngày (chưa có lịch khuyến mãi: coi như không khuyến mãi).
+- Ngày kho nghỉ: không.
+
+| Ngày | Tổng dự báo toàn kho | Khoảng 80% |
+|---|---:|---|
+| 2026-10-01 | 5.615 | 2.755 – 8.970 |
+| 2026-10-02 | 6.039 | 2.960 – 9.650 |
+| 2026-10-03 | 6.155 | 3.007 – 9.840 |
+| 2026-10-04 | 2.743 | 1.363 – 4.379 |
+| 2026-10-05 | 5.409 | 2.664 – 8.633 |
+| 2026-10-06 | 5.528 | 2.729 – 8.819 |
+| 2026-10-07 | 5.490 | 2.699 – 8.762 |
+| 2026-10-08 | 5.763 | 2.791 – 9.246 |
+| 2026-10-09 | 6.247 | 3.013 – 10.030 |
+| 2026-10-10 | 6.405 | 3.064 – 10.301 |
+| 2026-10-11 | 2.926 | 1.422 – 4.700 |
+| 2026-10-12 | 5.474 | 2.626 – 8.798 |
+| 2026-10-13 | 5.687 | 2.742 – 9.131 |
+| 2026-10-14 | 5.734 | 2.763 – 9.206 |
+| 2026-10-15 | 6.116 | 2.878 – 9.842 |
+| 2026-10-16 | 6.430 | 2.976 – 10.394 |
+| 2026-10-17 | 6.175 | 2.850 – 9.986 |
+| 2026-10-18 | 2.903 | 1.346 – 4.697 |
+| 2026-10-19 | 5.498 | 2.493 – 8.932 |
+| 2026-10-20 | 5.695 | 2.601 – 9.233 |
+| 2026-10-21 | 5.926 | 2.666 – 9.645 |
+| 2026-10-22 | 6.252 | 2.762 – 10.223 |
+| 2026-10-23 | 6.933 | 2.945 – 11.447 |
+| 2026-10-24 | 7.291 | 3.087 – 12.042 |
+| 2026-10-25 | 3.881 | 1.463 – 6.587 |
+| 2026-10-26 | 6.688 | 2.644 – 11.217 |
+| 2026-10-27 | 7.397 | 2.840 – 12.486 |
+| 2026-10-28 | 7.746 | 2.767 – 13.262 |
+
+M5:
+
+
+Ngày lập: **2016-05-22** (ngày cuối của dữ liệu). Mô hình **ket_hop_dl** (RNN ghép với LightGBM + Prophet). Các ngày dưới đây **chưa xảy ra**.
+
+- Lịch biết trước lấy từ lịch gốc của nguồn: snap_ca 10, snap_tx 10, snap_wi 10, the_thao 2, m5_memorialday 1, m5_ramadanstarts 1, m5_fathersday 1.
+- Nguồn không có lịch khuyến mãi gửi trước: coi như không khuyến mãi.
+
+Khoảng 80% / 95% có cho **từng mã**; không cộng thành khoảng của tổng.
+
+| Ngày | Thứ | Tổng dự báo toàn kho |
+|---|---|---:|
+| 2016-05-23 | Thứ Hai | 1.249 |
+| 2016-05-24 | Thứ Ba | 1.131 |
+| 2016-05-25 | Thứ Tư | 1.118 |
+| 2016-05-26 | Thứ Năm | 1.114 |
+| 2016-05-27 | Thứ Sáu | 1.290 |
+| 2016-05-28 | Thứ Bảy | 1.474 |
+| 2016-05-29 | Chủ nhật | 1.387 |
+| 2016-05-30 | Thứ Hai | 1.248 |
+| 2016-05-31 | Thứ Ba | 1.120 |
+| 2016-06-01 | Thứ Tư | 1.286 |
+| 2016-06-02 | Thứ Năm | 1.270 |
+| 2016-06-03 | Thứ Sáu | 1.490 |
+| 2016-06-04 | Thứ Bảy | 1.634 |
+| 2016-06-05 | Chủ nhật | 1.739 |
+| 2016-06-06 | Thứ Hai | 1.407 |
+| 2016-06-07 | Thứ Ba | 1.246 |
+| 2016-06-08 | Thứ Tư | 1.267 |
+| 2016-06-09 | Thứ Năm | 1.337 |
+| 2016-06-10 | Thứ Sáu | 1.366 |
+| 2016-06-11 | Thứ Bảy | 1.663 |
+| 2016-06-12 | Chủ nhật | 1.663 |
+| 2016-06-13 | Thứ Hai | 1.312 |
+| 2016-06-14 | Thứ Ba | 1.287 |
+| 2016-06-15 | Thứ Tư | 1.304 |
+| 2016-06-16 | Thứ Năm | 1.159 |
+| 2016-06-17 | Thứ Sáu | 1.317 |
+| 2016-06-18 | Thứ Bảy | 1.522 |
+| 2016-06-19 | Chủ nhật | 1.407 |
+
+## Kiểm tra độ hợp lý (tính tự động từ dữ liệu)
+
+| So sánh, trung bình mỗi ngày | Số bán / dự báo |
+|---|---:|
+| Cùng kỳ 1 năm trước (2015-05-25 … 2015-06-21) | 1.255 |
+| Cùng kỳ 2 năm trước (2014-05-26 … 2014-06-22) | 1.395 |
+| 28 ngày gần nhất trước ngày lập | 1.456 |
+| **Dự báo 28 ngày tới** | **1.350** |
+
 ## 9. Học sâu trên dữ liệu mô phỏng
 
 ### 9.1. LSTM, RNN (nguồn: `reports/mo_hinh_dl.md`)
@@ -908,6 +1090,97 @@ Hien trang: Hiện trạng: **quy tắc kinh nghiệm giả định** (mỗi 7 n
 | cong_thuc_du_bao_ai    |          0.99 |          99.91 |             1726.4 |                     602.8 |
 | cong_thuc_du_bao_ai_hc |          0.99 |          99.91 |             1773.6 |                     610.7 |
 | cong_thuc_du_bao_moc   |          0.99 |          99.87 |             1823.6 |                     626.2 |
+
+### 10.4. Chỉ số kho trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/chi_so_kho.md`)
+
+
+Mô phỏng 364 ngày của tập kiểm tra, mức phục vụ 95%. Nguồn: số bán thật M5 (Walmart), dựng thành kho tổng; tồn kho là kết quả mô phỏng chính sách, lead time và chi phí là giả định, không phải số liệu kho thật.
+
+Tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày kế tiếp (nhìn lại để chấm, không dùng để ra quyết định); bỏ 28 ngày cuối kỳ.
+
+## Theo chính sách
+
+| ma_chinh_sach          |   vong_quay_lan_nam |   so_ngay_ton |   ton_tb_trieu |   ton_du_tb_trieu |   ti_le_du_pt |
+|:-----------------------|--------------------:|--------------:|---------------:|------------------:|--------------:|
+| cong_thuc_du_bao_ai    |                22.1 |          16.5 |         1584.4 |             242   |          15.3 |
+| cong_thuc_du_bao_ai_hc |                21.6 |          16.9 |         1623.3 |             252.4 |          15.5 |
+| cong_thuc_du_bao_moc   |                21.1 |          17.3 |         1658.6 |             263.3 |          15.9 |
+| hien_trang             |                29.3 |          12.5 |         1195   |             137.8 |          11.6 |
+
+## Số ngày tồn kho theo nhóm XYZ
+
+| ma_chinh_sach          |    X |    Y |    Z |
+|:-----------------------|-----:|-----:|-----:|
+| cong_thuc_du_bao_ai    | 16   | 17.3 | 40.9 |
+| cong_thuc_du_bao_ai_hc | 15.9 | 18.6 | 49   |
+| cong_thuc_du_bao_moc   | 16.8 | 18   | 60.3 |
+| hien_trang             | 11.1 | 14.9 | 17.5 |
+
+## 10 mã tồn dư lớn nhất (AI + hiệu chỉnh)
+
+| ma_sku          | ten             | xyz   |   du_trieu |
+|:----------------|:----------------|:------|-----------:|
+| FOODS_3_134     | FOODS_3_134     | Y     |       45.6 |
+| FOODS_3_370     | FOODS_3_370     | Y     |       35.9 |
+| FOODS_3_797     | FOODS_3_797     | Y     |        7.9 |
+| HOUSEHOLD_1_223 | HOUSEHOLD_1_223 | Y     |        6.6 |
+| FOODS_3_216     | FOODS_3_216     | X     |        5.5 |
+| HOUSEHOLD_2_282 | HOUSEHOLD_2_282 | Y     |        5.2 |
+| FOODS_3_463     | FOODS_3_463     | Y     |        4.8 |
+| FOODS_3_093     | FOODS_3_093     | Y     |        4.4 |
+| HOUSEHOLD_2_466 | HOUSEHOLD_2_466 | Y     |        3.9 |
+| FOODS_2_310     | FOODS_2_310     | X     |        3.7 |
+
+### 10.5. Gom đơn trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/gom_don.md`; nhà cung cấp và chi phí là giả định)
+
+
+Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%, quy tắc lượng đặt eoq. Nguồn: số bán thật M5 (Walmart), dựng thành kho tổng; lead time, chi phí, nhà cung cấp là giả định; tỉ lệ chi phí chung của phiếu là **giả định**. Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).
+
+## Validation2: chọn k (tỉ lệ 0,5)
+
+| Phương án | Dòng đặt | Số phiếu | Fill Rate | Tồn TB (tr đ) | CP đặt riêng | CP đặt gom | CP liên quan riêng | CP liên quan gom |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chỉ gom cùng ngày | 1.361 | 953 | 99,63% | 1.539,3 | 224,6 | 190,9 | 574,7 | 541,1 |
+| k = 1 | 1.364 | 701 | 99,74% | 1.586,3 | 225,1 | 170,4 | 568,8 | 514,1 |
+| k = 2 | 1.364 | 568 | 99,76% | 1.639,6 | 225,1 | 159,4 | 581,5 | 515,8 |
+| k = 3 | 1.362 | 472 | 99,78% | 1.684,6 | 224,7 | 151,3 | 585,8 | 512,3 |
+| k = 5 | 1.364 | 362 | 99,82% | 1.798,8 | 225,1 | 142,4 | 601,2 | 518,5 |
+
+Theo luật: **đặt kèm k = 3**.
+
+## Test (chỉ báo cáo)
+
+| Phương án | Dòng đặt | Số phiếu | Fill Rate | Tồn TB (tr đ) | CP đặt riêng | CP đặt gom | CP liên quan riêng | CP liên quan gom |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Chỉ gom cùng ngày, tỉ lệ 0,3 | 1.418 | 1.008 | 99,71% | 1.623,3 | 234,0 | 213,7 | 581,4 | 561,1 |
+| Chỉ gom cùng ngày, tỉ lệ 0,5 | 1.418 | 1.008 | 99,71% | 1.623,3 | 234,0 | 200,1 | 581,4 | 547,5 |
+| Chỉ gom cùng ngày, tỉ lệ 0,7 | 1.418 | 1.008 | 99,71% | 1.623,3 | 234,0 | 186,6 | 581,4 | 534,0 |
+| Đặt kèm k = 3, tỉ lệ 0,3 | 1.427 | 473 | 99,78% | 1.758,6 | 235,5 | 188,2 | 604,3 | 557,1 |
+| Đặt kèm k = 3, tỉ lệ 0,5 | 1.427 | 473 | 99,78% | 1.758,6 | 235,5 | 156,8 | 604,3 | 525,6 |
+| Đặt kèm k = 3, tỉ lệ 0,7 | 1.427 | 473 | 99,78% | 1.758,6 | 235,5 | 125,3 | 604,3 | 494,1 |
+
+## Lợi ích đến từ đâu (test, tỉ lệ 0,5)
+
+- Mức 1, chỉ gom cùng ngày: giảm **33,8 triệu đ** chi phí liên quan, không đổi tồn kho, không đổi Fill Rate.
+- Mức 2 so với mức 1: giảm **22,0 triệu đ**, gồm đặt hàng 43,4, lưu kho -27,0, lợi nhuận mất 5,6.
+- Phần lớn lợi ích đến từ **chia sẻ chi phí phiếu** (đặt hàng 43,4 triệu đ), nên phụ thuộc giả định tỉ lệ chi phí chung; đổi lại hàng được đặt sớm hơn nên tồn kho tăng (lưu kho thêm 27,0 triệu đ).
+
+Chấm điểm nhà cung cấp, hạn sử dụng, sức chứa, newsvendor hàng dịp lễ không áp dụng cho M5 (docs/10 mục 10.13).
+
+### 10.6. Độ nhạy theo chi phí đặt trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/do_nhay_chi_phi_dat.md`)
+
+
+Luật ghi trước: docs/10 mục 10.13. Nguồn: số bán thật M5 (Walmart), dựng thành kho tổng; chi phí, lead time là giả định. Tập test, mức phục vụ 95%, quy tắc lượng đặt **eoq** (giữ nguyên), EOQ tính lại theo S. Quy tắc kinh nghiệm / hiện trạng giữ nguyên đơn, chỉ tính lại chi phí. Đây là phân tích độ nhạy, không đổi giả định chính.
+
+| S so với gốc | EOQ (ngày bán, trung vị) | Lợi ích AI so với dự báo mốc | Fill AI + HC | Fill dự báo mốc | Ngày-mã thiếu AI + HC | Ngày-mã thiếu dự báo mốc | Tồn AI + HC (tr đ) | Tồn dự báo mốc (tr đ) | CP liên quan AI + HC (tr đ) | CP liên quan dự báo mốc (tr đ) | CP liên quan hiện trạng (tr đ) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| × 0,10 | 11,6 | +6,4% | 99,41% | 99,30% | 315 | 265 | 863,1 | 901,4 | 299,8 | 320,3 | 379,2 |
+| × 0,25 | 18,4 | +0,4% | 99,42% | 99,30% | 256 | 229 | 1.068,9 | 1.099,8 | 385,6 | 387,0 | 523,5 |
+| × 0,50 | 26,0 | +2,6% | 99,63% | 99,45% | 149 | 159 | 1.287,7 | 1.319,5 | 462,7 | 475,2 | 764,0 |
+| × 1,00 | 36,7 | +1,7% | 99,71% | 99,67% | 126 | 112 | 1.623,3 | 1.658,6 | 594,9 | 605,1 | 1.245,0 |
+| × 2,00 | 51,9 | +0,1% | 99,78% | 99,73% | 103 | 84 | 2.082,9 | 2.122,1 | 807,2 | 808,1 | 2.206,9 |
+
+**Theo luật:** lợi ích AI ở S × 0,1 cao hơn ở S × 1 4,7 điểm %, ngưỡng 5,0 điểm → **không phụ thuộc rõ**.
 
 ## 11. Nguồn dữ liệu công khai cần trích dẫn
 

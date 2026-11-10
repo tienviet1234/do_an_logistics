@@ -1,7 +1,7 @@
 """GD G: cong cu ke hoach dat hang (Streamlit). DOC TU CO SO DU LIEU data/kho_hang.db, CHI DOC (khong ghi gi vao CSDL).
 Chay (tai thu muc goc du an):  streamlit run app/dashboard.py
 Can chay truoc:                python src/nap_database.py && python src/ton_kho.py
-4 man (app/trang/): Hom nay (viec can lam, duyet don, phieu dat hang) · Mat hang (ton kho, du bao, "Thu neu...")
+5 man (app/trang/): Hom nay (viec can lam, duyet don, phieu dat hang) · Du bao (28 ngay chua xay ra, chay mo hinh khi bam, giai thich) · Mat hang (ton kho, du bao, "Thu neu...")
 · Kich ban & ket qua (truoc - sau, theo nhom, thu do nhay) · Du lieu & phuong phap (cho hoi dong).
 Co che kieu Power BI: bo loc chung o dau phieu (ngay, chinh sach, nhom ABC / XYZ) ap cho moi man; bam bieu do / o trang thai
 / dong bang de loc cheo; tu dong ma hang di sau sang man Mat hang. Phan dung chung: app/chung.py.
@@ -19,6 +19,7 @@ import chung as C  # noqa: E402
 
 TRANG = {
     "hom-nay": st.Page("trang/hom_nay.py", title="Hôm nay", default=True),
+    "du-bao": st.Page("trang/du_bao.py", title="Dự báo", url_path="du-bao"),
     "mat-hang": st.Page("trang/mat_hang.py", title="Mặt hàng", url_path="mat-hang"),
     "ket-qua": st.Page("trang/ket_qua.py", title="Kịch bản & kết quả", url_path="ket-qua"),
     "du-lieu": st.Page("trang/du_lieu.py", title="Dữ liệu & phương pháp", url_path="du-lieu"),

@@ -1,6 +1,6 @@
 # Gom đơn theo nhà cung cấp
 
-Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%. Dữ liệu mô phỏng; tỉ lệ chi phí chung của phiếu là **giả định**. Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).
+Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%, quy tắc lượng đặt lai. Dữ liệu mô phỏng; tỉ lệ chi phí chung của phiếu là **giả định**. Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).
 
 ## Validation2: chọn k (tỉ lệ 0,5)
 

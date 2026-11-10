@@ -100,5 +100,59 @@ out["dl"] = dong_ket_qua("reports/ket_qua_mo_hinh.csv", ["ket_hop_v4", "ket_hop_
 out["nf"] = doc_json("reports/mo_hinh_nf_trang_thai.json")
 out["m5"] = dong_ket_qua("du_lieu_nguon/m5/reports/ket_qua_mo_hinh.csv", ["ket_hop_dl", "ket_hop", "lightgbm", "rnn", "lstm", "tb_truot", "prophet", "lap_tuan", "tide_tuan", "nhits_tuan", "tft_tuan", "ket_hop_nf"])
 out["m5_chon"] = (doc_json("du_lieu_nguon/m5/reports/kiem_chung_trang_thai.json") or {}).get("chon")
+# ---------------------------------------------------------------- du bao tuong lai, man Du bao, nghiep vu tren M5, do nhay, canh bao lech
+import sqlite3  # noqa: E402
+
+
+def tuong_lai(f_du_bao, f_ghi, f_dac_trung):
+    """Du bao 28 ngay chua xay ra: TB / ngay toan kho, so voi cung ky 1, 2 nam truoc (bo dong co khuyen mai) va 28 ngay gan nhat."""
+    if not os.path.exists(f_du_bao):
+        return None
+    d = pd.read_csv(f_du_bao, parse_dates=["date"])
+    g = d.groupby("date").du_bao.sum()
+    ft = pd.read_csv(f_dac_trung, usecols=["date", "y", "khuyen_mai"], parse_dates=["date"], encoding="utf-8-sig")
+    ra = {**(doc_json(f_ghi) or {}), **dict(tb=float(g.mean()), so_ma=int(d.ma_sku.nunique()), so_dong=int(len(d)), thieu_khoang=int(d.thap_80.isna().sum()),
+                                           gan=float(ft[ft.date > ft.date.max() - pd.Timedelta(days=28)].groupby("date").y.sum().mean()))}
+    for lui in (364, 728):
+        x = ft[ft.date.isin(g.index - pd.Timedelta(days=lui))]
+        ra[f"cung_ky_{lui // 364}"] = float(x.groupby("date").y.sum().mean()) if len(x) else None
+        ra[f"cung_ky_{lui // 364}_khong_km"] = float(x[x.khuyen_mai == 0].groupby("date").y.sum().mean()) if len(x) else None
+    return ra
+
+
+def ton_kho_db(f_db):
+    """Ket qua ton kho 95% theo chinh sach tu CSDL: Fill Rate, ngay-ma thieu, ton TB, chi phi lien quan (trieu d)."""
+    c = sqlite3.connect(f"file:{f_db}?mode=ro", uri=True)
+    k = pd.read_sql("SELECT * FROM ket_qua_ton_kho WHERE ROUND(muc_phuc_vu, 2) = 0.95", c)
+    g = k.groupby("ma_chinh_sach")
+    return {cs: dict(fill=float(100 * x.da_dap_ung.sum() / x.nhu_cau.sum()), thieu=int(x.so_ngay_thieu.sum()), ton=float(x.gia_tri_ton_tb.sum() / 1e6),
+                     cp=float((x.chi_phi_dat.sum() + x.chi_phi_luu.sum() + x.loi_nhuan_mat.sum()) / 1e6)) for cs, x in g}
+
+
+def ti_trong_z(f_db):
+    """Phan giam ton kho va loi nhuan mat cua AI + hieu chinh so voi du bao moc: ti trong cua nhom Z (phan loai tren tap huan luyen)."""
+    c = sqlite3.connect(f"file:{f_db}?mode=ro", uri=True)
+    k = pd.read_sql("""SELECT k.ma_chinh_sach, p.xyz_train AS xyz, SUM(k.gia_tri_ton_tb) AS ton, SUM(k.loi_nhuan_mat) AS lnm FROM ket_qua_ton_kho k
+                       JOIN phan_loai_sku p USING (ma_sku) WHERE ROUND(k.muc_phuc_vu, 2) = 0.95 GROUP BY 1, 2""", c).set_index(["ma_chinh_sach", "xyz"])
+    d = k.loc["cong_thuc_du_bao_moc"] - k.loc["cong_thuc_du_bao_ai_hc"]
+    so_z = int(pd.read_sql("SELECT COUNT(*) AS n FROM phan_loai_sku WHERE xyz_train = 'Z'", c).n.iloc[0])
+    fill_moc_z = pd.read_sql("""SELECT 100.0 * SUM(da_dap_ung) / SUM(nhu_cau) AS f FROM ket_qua_ton_kho k JOIN phan_loai_sku p USING (ma_sku)
+                                WHERE ROUND(muc_phuc_vu, 2) = 0.95 AND ma_chinh_sach = 'cong_thuc_du_bao_moc' AND xyz_train = 'Z'""", c).f.iloc[0]
+    return dict(ton=float(d.ton.get("Z", 0) / d.ton.sum()), lnm=float(d.lnm.get("Z", 0) / d.lnm.sum()), so_z=so_z, fill_moc_z=float(fill_moc_z))
+
+
+M5K = "du_lieu_nguon/m5_kho"
+out["tl"] = dict(mp=tuong_lai("reports/du_bao/ket_hop_v4_tuong_lai.csv", "reports/du_bao_tuong_lai.json", "data/features/dac_trung.csv"),
+                 m5=tuong_lai("du_lieu_nguon/m5/reports/du_bao/day_du/ket_hop_dl_tuong_lai.csv", "du_lieu_nguon/m5/reports/du_bao_tuong_lai.json",
+                              "du_lieu_nguon/m5/data/features/dac_trung.csv"))
+out["rnn_kl"] = doc_json("du_lieu_nguon/m5/reports/rnn_tuong_lai.json")
+out["ss_km"] = doc_json("reports/so_sanh_khuyen_mai.json")
+out["dn_s"] = dict(mp=doc_json("reports/do_nhay_chi_phi_dat_trang_thai.json"), m5=doc_json(f"{M5K}/reports/do_nhay_chi_phi_dat_trang_thai.json"))
+out["cb2"] = dict(mp=doc_json("reports/canh_bao_lech_v2_trang_thai.json"), m5=doc_json(f"{M5K}/reports/canh_bao_lech_v2_trang_thai.json"))
+out["m5_gom"] = doc_json(f"{M5K}/reports/gom_don_trang_thai.json")
+out["m5_tk"] = ton_kho_db(f"{M5K}/data/kho_hang.db") if os.path.exists(f"{M5K}/data/kho_hang.db") else None
+out["tk_db"] = ton_kho_db("data/kho_hang.db")
+out["z"] = ti_trong_z("data/kho_hang.db")
+out["z_m5"] = int(pd.read_sql("SELECT COUNT(*) AS n FROM phan_loai_sku WHERE xyz_train = 'Z'", sqlite3.connect(f"file:{M5K}/data/kho_hang.db?mode=ro", uri=True)).n.iloc[0])
 json.dump(out, open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=float)
 print("ok", list(out))

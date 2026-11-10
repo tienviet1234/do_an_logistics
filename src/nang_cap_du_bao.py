@@ -38,9 +38,11 @@ GRID_W = np.round(np.arange(0, 1.01, 0.1), 1)
 
 
 # ------------------------------------------------------------------ dac trung lich (tinh 1 lan theo ngay)
-def lich_su_kien(dates):
-    """Theo tung ngay: so ngay den / sau moi su kien biet truoc; do dich (ngay) de lay cung ngay am lich nam truoc."""
-    ev = pd.read_csv("data/reference/lich_su_kien_prophet.csv", encoding="utf-8-sig", parse_dates=["ds"])
+def lich_su_kien(dates, ev=None):
+    """Theo tung ngay: so ngay den / sau moi su kien biet truoc; do dich (ngay) de lay cung ngay am lich nam truoc.
+    ev: lich su kien (mac dinh doc tep tham chieu; du bao tuong lai truyen lich da mo rong, src/tuong_lai.py)."""
+    if ev is None:
+        ev = pd.read_csv("data/reference/lich_su_kien_prophet.csv", encoding="utf-8-sig", parse_dates=["ds"])
     d = pd.DatetimeIndex(sorted(dates))
     out = pd.DataFrame({"date": d})
     for e in EVENTS:
@@ -108,12 +110,19 @@ def make_model(cfg, cats, sk_cols, cal):
     buckets = BUCKETS if cfg["A"] else [(1, 28)]
     params = {**BASE_PARAMS, **OBJECTIVES["tweedie"], **cfg.get("params", {})}
 
+    def tap_du_doan(hist, fut, o, lo, hi, L):
+        """Bang dac trung cua cac ngay tuong lai trong tam [lo, hi] (gia tri tre chi tu lich su)."""
+        f = fut.merge(cal[["date"] + ev_cols], on="date", how="left") if cfg["B"] else fut
+        lags = add_lags(hist, fut, L, cal, cfg["B"])
+        return f[((f.date - o).dt.days >= lo) & ((f.date - o).dt.days <= hi)].merge(lags, on=["ma_sku", "date"], how="left")
+
     def fn(hist, fut):
         o = hist.date.max()
         h = hist.drop(columns=[c for c in hist.columns if c.startswith(("lag_", "tb7_tre", "tb28_tre", "dlc28_tre"))])
         if cfg["B"]:
-            h, fut = h.merge(cal[["date"] + ev_cols], on="date", how="left"), fut.merge(cal[["date"] + ev_cols], on="date", how="left")
+            h = h.merge(cal[["date"] + ev_cols], on="date", how="left")
         outs = []
+        fn.da_hoc = dict(hist=hist, o=o, mo_hinh=[])
         for lo, hi in buckets:
             L = 28 if not cfg["A"] else hi
             lf = lag_feats(L, cfg["B"])
@@ -121,14 +130,35 @@ def make_model(cfg, cats, sk_cols, cal):
             lags = add_lags(hist, fut, L, cal, cfg["B"])
             tr = h.merge(lags, on=["ma_sku", "date"])
             tr = tr[tr.y_cham.notna() & tr[f"lag_{L}"].notna()]
-            te = fut[((fut.date - o).dt.days >= lo) & ((fut.date - o).dt.days <= hi)].merge(lags, on=["ma_sku", "date"], how="left")
-            prep = lambda x: x[feats].assign(**{c: pd.Categorical(x[c], categories=cats[c]) for c in CAT})
+            te = tap_du_doan(hist, fut, o, lo, hi, L)
             m = lgb.LGBMRegressor(**params)
-            m.fit(prep(tr), tr.y_cham)
+            m.fit(chuan_bi(tr, feats), tr.y_cham)
             out = te[["date", "ma_sku", "la_ngay_nghi"]].copy()
-            out["du_bao"] = np.where(out.la_ngay_nghi == 1, 0, m.predict(prep(te)))
+            out["du_bao"] = np.where(out.la_ngay_nghi == 1, 0, m.predict(chuan_bi(te, feats)))
             outs.append(out[["date", "ma_sku", "du_bao"]])
+            fn.da_hoc["mo_hinh"].append(dict(lo=lo, hi=hi, L=L, feats=feats, m=m))
         return pd.concat(outs, ignore_index=True)
+
+    def chuan_bi(x, feats):
+        return x[feats].assign(**{c: pd.Categorical(x[c], categories=cats[c]) for c in CAT})
+
+    def du_doan_lai(fut, dong_gop=False):
+        """Dung lai cac mo hinh vua hoc (khong hoc lai) cho khung tuong lai khac (VD thu bat khuyen mai). dong_gop=True: them
+        dong gop tung cot theo thang log (Tweedie): cot 'dg_<ten cot>', 'dg_goc' la muc nen; tong cac cot dg_ = log(du bao)."""
+        hist, o = fn.da_hoc["hist"], fn.da_hoc["o"]
+        ra = []
+        for x in fn.da_hoc["mo_hinh"]:
+            te = tap_du_doan(hist, fut, o, x["lo"], x["hi"], x["L"])
+            X = chuan_bi(te, x["feats"])
+            r = te[["date", "ma_sku", "la_ngay_nghi"]].copy()
+            r["du_bao"] = np.where(r.la_ngay_nghi == 1, 0, x["m"].predict(X))
+            if dong_gop:
+                c = x["m"].predict(X, pred_contrib=True)
+                r = pd.concat([r.reset_index(drop=True), pd.DataFrame(c, columns=["dg_" + f for f in x["feats"]] + ["dg_goc"])], axis=1)
+            ra.append(r)
+        return pd.concat(ra, ignore_index=True)
+
+    fn.du_doan_lai = du_doan_lai
     return fn
 
 

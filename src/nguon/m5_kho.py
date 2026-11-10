@@ -20,7 +20,7 @@ NGUONG_GIA, TUAN_TRUOC, TOI_THIEU_TUAN = 0.95, 8, 3
 NGANH_THUC_PHAM = {"ber", "bjc", "cer", "che", "coo", "cra", "cso", "fec", "frd", "fre", "frj", "oat", "sdr", "sna", "tna"}
 NGANH_GIA_DUNG = {"bat", "did", "fsf", "lnd", "ptw", "soa", "tti"}
 NHOM_DOMINICKS = {"FOODS": NGANH_THUC_PHAM, "HOUSEHOLD": NGANH_GIA_DUNG}
-NGUON = {"ten": "số bán thật M5 (Walmart), dựng thành kho tổng", "la_mo_phong": False, "mo_hinh_chon": "ket_hop_dl", "mo_ta_ai": "Công thức + dự báo AI: kết hợp LightGBM + Prophet + RNN theo nhóm",
+NGUON = {"ten": "số bán thật M5 (Walmart), dựng thành kho tổng", "la_mo_phong": False, "mo_hinh_chon": "ket_hop_dl", "thu_muc_du_bao": "../m5", "lich_goc": "../../data/m5", "mo_ta_ai": "Công thức + dự báo AI: kết hợp LightGBM + Prophet + RNN theo nhóm",
          "ghi_chu": "Số bán và giá bán là dữ liệu thật M5 (Walmart, Mỹ, 2011–2016), cộng 10 cửa hàng thành một kho tổng; tiền quy đổi 25.000 đ/USD. Biên lãi đo từ Dominick's; lead time, chi phí, tồn kho là giả định.",
          "mo_ta": "<b>Số bán thật M5 (Walmart, Mỹ, 2011–2016)</b>, cộng 10 cửa hàng thành một kho tổng. Mã hàng do M5 ẩn tên; đây không phải số của một kho Việt Nam.",
          "that": "số bán theo ngày, giá bán theo tuần, sự kiện; khuyến mãi suy từ giá; biên lãi đo từ Dominick's (Kilts Center, Chicago Booth).",
@@ -119,8 +119,11 @@ def chep_du_bao(nguon, ra):
     """Du bao du moi moc cua mo hinh da chon va du bao moc, doi ten moc theo he thong. Khong hoc lai."""
     os.makedirs(f"{ra}/reports/du_bao", exist_ok=True)
     for cu, moi in MO_HINH_NAP.items():
-        for tap in ("validation2", "test"):
-            d = pd.read_csv(f"{nguon}/reports/du_bao/day_du/{cu}_{tap}.csv", encoding="utf-8-sig")
+        for tap in ("validation2", "test", "tuong_lai"):
+            f = f"{nguon}/reports/du_bao/day_du/{cu}_{tap}.csv"
+            if tap == "tuong_lai" and not os.path.exists(f):            # du bao tuong lai (src/du_bao_tuong_lai_kc.py) chi co khi da chay
+                continue
+            d = pd.read_csv(f, encoding="utf-8-sig")
             d.assign(du_bao=d.du_bao.clip(lower=0)).to_csv(f"{ra}/reports/du_bao/{moi}_{tap}.csv", index=False, encoding="utf-8-sig")
     kq = pd.read_csv(f"{nguon}/reports/ket_qua_mo_hinh.csv", encoding="utf-8-sig")
     kq.assign(mo_hinh=kq.mo_hinh.replace({"tb_truot": HE_THONG_MOC})).to_csv(f"{ra}/reports/ket_qua_mo_hinh.csv", index=False, encoding="utf-8-sig")

@@ -9,7 +9,7 @@ import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from gom_don import chi_phi_phieu, giu_dat_kem, gom_cung_ngay, mo_phong, so_luong, tach_loi_ich, tong_ket  # noqa: E402
+from gom_don import chi_phi_phieu, giu_dat_kem, gom_cung_ngay, mo_phong, nguon_loi_ich, quy_tac_theo_ma, so_luong, tach_loi_ich, tong_ket  # noqa: E402
 
 
 def test_phieu_mot_dong_dung_bang_chi_phi_cu():
@@ -88,6 +88,23 @@ def test_dat_kem_chi_khi_cung_nha_cung_cap_co_ma_phai_dat():
     assert r1["dat"][2, 0] == 0                            # C nha cung cap khac: khong dat kem
     r2 = mo_phong(inp, F, np.zeros(3), 1.64, 28, k_ngay=0)
     assert r2["dat"][1, 0] == 0                            # k = 0: khong dat kem
+
+
+def test_quy_tac_theo_ma_cung_ton_kho():
+    xyz = ["X", "Y", "Z"]
+    assert list(quy_tac_theo_ma("lai", xyz)) == ["eoq", "eoq", "dat_den_muc"]
+    assert list(quy_tac_theo_ma("eoq", xyz)) == ["eoq"] * 3
+    assert list(quy_tac_theo_ma("dat_den_muc", xyz)) == ["dat_den_muc"] * 3
+    with pytest.raises(ValueError):
+        quy_tac_theo_ma("khac", xyz)
+
+
+def test_giai_thich_loi_ich_theo_so_lieu():
+    assert "tăng thêm dự phòng" in nguon_loi_ich(dict(dat_hang=1.0, luu_kho=-2.0, loi_nhuan_mat=5.0, tong=4.0))
+    c = nguon_loi_ich(dict(dat_hang=43.4e6, luu_kho=-27.0e6, loi_nhuan_mat=5.6e6, tong=22.0e6))
+    assert "chia sẻ chi phí phiếu" in c and "27.0" in c and "dự phòng" not in c
+    assert "lưu kho" in nguon_loi_ich(dict(dat_hang=1.0, luu_kho=5.0, loi_nhuan_mat=2.0, tong=8.0))
+    assert "không giảm" in nguon_loi_ich(dict(dat_hang=-1.0, luu_kho=-2.0, loi_nhuan_mat=1.0, tong=-2.0))
 
 
 def test_luat_giu_dat_kem():

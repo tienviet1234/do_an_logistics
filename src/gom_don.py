@@ -52,6 +52,14 @@ def so_luong(rule, ip, muc, q_eoq, moq, fw_lr, ss):
     return float(np.ceil(max(moq, fw_lr + ss - ip)))
 
 
+def quy_tac_theo_ma(rule, xyz):
+    """Quy tac luong dat tung ma, cung cach ton_kho.simulate: "lai" = dat_den_muc cho nhom Z, eoq cho X/Y; quy tac khac ap cho moi ma."""
+    if rule not in ("eoq", "dat_den_muc", "lai"):
+        raise ValueError(f"Quy tac khong hop le: {rule}")
+    xyz = np.asarray(xyz)
+    return np.where(xyz == "Z", "dat_den_muc", "eoq") if rule == "lai" else np.full(len(xyz), rule, dtype=object)
+
+
 def mo_phong(inp, F, sig, z, buoc, k_ngay=0, horizon=28):
     """Mo phong ca kho theo tung ngay. k_ngay = 0: tung ma doc lap, phai trung dung ton_kho.simulate (co test). F: (ma, moc, 28)."""
     sku, D, closed, LT = inp["sku"], inp["dem"], inp["closed"], inp["LT"]
@@ -60,7 +68,7 @@ def mo_phong(inp, F, sig, z, buoc, k_ngay=0, horizon=28):
     S, H, moq = sku.chi_phi_dat_hang.values.astype(float), (sku.ty_le_chi_phi_luu_kho * sku.gia_von).values.astype(float), sku.moq.values.astype(float)
     L = np.maximum(1, np.round(sku.lead_time_tb.values).astype(int))
     lt_std = sku.lead_time_std.values.astype(float)
-    quy_tac = np.where(sku.xyz_train.values == "Z", "dat_den_muc", "eoq")
+    quy_tac = quy_tac_theo_ma(inp.get("quy_tac", "lai"), sku.xyz_train.values)    # quy tac da chon o ton_kho (bo mo phong: lai)
     onhand = np.array(inp["init"], dtype=float)
     pipe = [list(p) for p in inp["pipe0"]]
     ra = {c: np.zeros((S_ma, n)) for c in ["nhap", "xuat", "ton", "dat"]}
@@ -129,10 +137,31 @@ def tach_loi_ich(moi, goc):
     return dict(d, tong=sum(d.values()))
 
 
+def ghi_nguon():
+    from kiem_tra_du_lieu import nguon_du_lieu
+    n = nguon_du_lieu()
+    return "Dữ liệu mô phỏng" if n["la_mo_phong"] else f"Nguồn: {n['ten']}; lead time, chi phí, nhà cung cấp là giả định"
+
+
+def nguon_loi_ich(tach, tr=lambda v: f"{v / 1e6:.1f}"):
+    """Cau giai thich loi ich dat kem den tu khoan nao, theo so lieu (khong viet cung theo 1 bo du lieu)."""
+    if tach["tong"] <= 0:
+        return "- Đặt kèm không giảm chi phí liên quan so với chỉ gom cùng ngày."
+    lon = max(["dat_hang", "luu_kho", "loi_nhuan_mat"], key=lambda k: tach[k])
+    if lon == "loi_nhuan_mat":
+        return "- Đặt kèm làm hàng được đặt sớm hơn, nên có tác dụng như **tăng thêm dự phòng**; phần giảm lợi nhuận mất đến từ đó, không phải từ việc chia sẻ chi phí phiếu."
+    if lon == "dat_hang":
+        them = f"; đổi lại hàng được đặt sớm hơn nên tồn kho tăng (lưu kho thêm {tr(-tach['luu_kho'])} triệu đ)" if tach["luu_kho"] < 0 else ""
+        return f"- Phần lớn lợi ích đến từ **chia sẻ chi phí phiếu** (đặt hàng {tr(tach['dat_hang'])} triệu đ), nên phụ thuộc giả định tỉ lệ chi phí chung{them}."
+    return "- Phần lớn lợi ích đến từ giảm chi phí lưu kho."
+
+
 def chuan_bi(tap):
     from scipy.stats import norm
     import ton_kho as T
+    from csdl import doc
     inp = T.load_inputs(tap)
+    inp["quy_tac"] = doc("SELECT quy_tac_luong_dat FROM chinh_sach WHERE ma_chinh_sach = 'cong_thuc_du_bao_ai_hc'").quy_tac_luong_dat.iloc[0]
     _, model, hc = T.POLICIES["cong_thuc_du_bao_ai_hc"]
     F, buoc = T.forecasts(model, tap, inp["sku"], inp["origin0"])
     hs, sig = T.validation_stats(model, inp["sku"], hc)
@@ -160,7 +189,7 @@ if __name__ == "__main__":
     tr = lambda v: so(v / 1e6)
     dong = lambda t, r: f"| {t} | {so(r['so_dong'], 0)} | {so(r['so_phieu'], 0)} | {so(r['fill_rate'], 2)}% | {tr(r['ton_tb'])} | {tr(r['chi_phi_rieng'])} | {tr(r['chi_phi_gom'])} | {tr(r['cp_rieng'])} | {tr(r['cp_gom'])} |"
     dau = "| Phương án | Dòng đặt | Số phiếu | Fill Rate | Tồn TB (tr đ) | CP đặt riêng | CP đặt gom | CP liên quan riêng | CP liên quan gom |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n"
-    L = ["# Gom đơn theo nhà cung cấp", "", "Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%. Dữ liệu mô phỏng; tỉ lệ chi phí chung của phiếu là **giả định**. "
+    L = ["# Gom đơn theo nhà cung cấp", "", f"Luật ghi trước: docs/10 mục 10.6. Chính sách AI + hiệu chỉnh, mức phục vụ 95%, quy tắc lượng đặt {inp_t['quy_tac']}. {ghi_nguon()}; tỉ lệ chi phí chung của phiếu là **giả định**. "
          "Chi phí đặt ở đây tính theo dòng đặt nên hơi khác `ket_qua_ton_kho` (tính theo số ngày nhận hàng).", "",
          f"## Validation2: chọn k (tỉ lệ {so(TI_LE_CHINH)})", "", dau + "\n".join(dong(f"k = {k}" if k != "0" else "Chỉ gom cùng ngày", r) for k, r in bang.items()), "",
          f"Theo luật: **{'đặt kèm k = ' + str(k_chon) if k_chon else 'không dùng đặt kèm, chỉ gom cùng ngày'}**.", "", "## Test (chỉ báo cáo)", "", dau
@@ -172,7 +201,7 @@ if __name__ == "__main__":
         muc1 = g0["cp_rieng"] - g0["cp_gom"]
         L += ["## Lợi ích đến từ đâu (test, tỉ lệ 0,5)", "", f"- Mức 1, chỉ gom cùng ngày: giảm **{tr(muc1)} triệu đ** chi phí liên quan, không đổi tồn kho, không đổi Fill Rate.",
               f"- Mức 2 so với mức 1: giảm **{tr(tach['tong'])} triệu đ**, gồm đặt hàng {tr(tach['dat_hang'])}, lưu kho {tr(tach['luu_kho'])}, lợi nhuận mất {tr(tach['loi_nhuan_mat'])}.",
-              "- Đặt kèm làm hàng được đặt sớm hơn, nên có tác dụng như **tăng thêm dự phòng**; phần giảm lợi nhuận mất đến từ đó, không phải từ việc chia sẻ chi phí phiếu.", ""]
+              nguon_loi_ich(tach, tr), ""]
         json.dump(dict(validation2=bang, k_chon=k_chon, test=ket), open(STATE, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     open(REPORT, "w", encoding="utf-8").write("\n".join(L))
     print("\n".join(L))

@@ -42,7 +42,7 @@ C_TT = ["#c8443b", "#e0a030", "#7fa6c4"]       # to mau dien tich: het hang / da
 C_LICH = ["#d3e2ec", "#9cbdd4", "#5a8fb3", "#1d4f73"]   # lich ca nam: 1 tong mau (muc phieu), nhat -> dam
 C_KHO_NGHI, C_KHONG = "#b9bab5", "#eef1f2"     # o ngay kho nghi / ngay khong co ma nao
 NGAY_KHOI_DONG = 14                           # so ngay dau ky: ton dau ky chua dat theo chinh sach
-LIEN = {"hom-nay": "#fdfdfb", "mat-hang": "#fbf5d6", "ket-qua": "#f9ebe8", "du-lieu": "#eaf1e7"}   # mau lien giay
+LIEN = {"hom-nay": "#fdfdfb", "du-bao": "#eef3f8", "mat-hang": "#fbf5d6", "ket-qua": "#f9ebe8", "du-lieu": "#eaf1e7"}   # mau lien giay
 
 CS_TEN = {"hien_trang": "Hiện trạng*", "cong_thuc_du_bao_moc": "Công thức + dự báo mốc",
           "cong_thuc_du_bao_ai": "Công thức + dự báo AI", "cong_thuc_du_bao_ai_hc": "AI + hiệu chỉnh lệch (đề xuất)"}
@@ -615,7 +615,7 @@ def dau_phieu(trang, cac_trang):
     c[5].markdown(f'<div class="dp-so"><span class="nhan">Số phiếu</span><b>KH-{t[2:4]}{t[5:7]}{t[8:]}</b></div>',
                   unsafe_allow_html=True)
     with st.container(key="nav"):
-        cols = st.columns([1, 1, 1.25, 1.35, 2.2])
+        cols = st.columns([1, 0.9, 1, 1.25, 1.35, 1.1])
         for col, (k, p) in zip(cols, cac_trang.items()):
             with col.container(key=f"tab_{k.replace('-', '_')}{'_on' if k == trang else ''}"):
                 st.page_link(p, label=p.title)

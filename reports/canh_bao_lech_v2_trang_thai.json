@@ -1,0 +1,108 @@
+{
+ "nguon": "dữ liệu mô phỏng",
+ "mo_hinh": "ket_hop_v4",
+ "nguong": {
+  "p1": null,
+  "p2": null
+ },
+ "so_cap_dot": 166,
+ "so_dot_ngan_bi_loai": 0,
+ "validation2": {
+  "p1": [
+   {
+    "nguong": 3,
+    "so_cap": 4961,
+    "so_canh_bao": 1254,
+    "ti_le": 0.25277161862527714,
+    "cung_chieu": 0.5031897926634769,
+    "lech_cb": 0.15084472545151417,
+    "lech_khong": 0.11155386756986312,
+    "boi": 1.3522142148683842,
+    "ma_canh_bao_qua_nua": 7,
+    "dat": false
+   },
+   {
+    "nguong": 4,
+    "so_cap": 4961,
+    "so_canh_bao": 689,
+    "ti_le": 0.13888328965934288,
+    "cung_chieu": 0.502177068214804,
+    "lech_cb": 0.17871370605206388,
+    "lech_khong": 0.11414761304712756,
+    "boi": 1.5656368213173169,
+    "ma_canh_bao_qua_nua": 0,
+    "dat": false
+   },
+   {
+    "nguong": 5,
+    "so_cap": 4961,
+    "so_canh_bao": 408,
+    "ti_le": 0.08224148357186051,
+    "cung_chieu": 0.4950980392156863,
+    "lech_cb": 0.21830848821281562,
+    "lech_khong": 0.11487499794549767,
+    "boi": 1.9004003666349736,
+    "ma_canh_bao_qua_nua": 0,
+    "dat": false
+   },
+   {
+    "nguong": 6,
+    "so_cap": 4961,
+    "so_canh_bao": 238,
+    "ti_le": 0.04797419875025197,
+    "cung_chieu": 0.49159663865546216,
+    "lech_cb": 0.3422968099617761,
+    "lech_khong": 0.11529029149142014,
+    "boi": 2.9689994320749,
+    "ma_canh_bao_qua_nua": 0,
+    "dat": false
+   }
+  ],
+  "p2": [
+   {
+    "nguong": 3,
+    "so_cap_dot": 56,
+    "phat_hien": 0.42857142857142855,
+    "so_cap_nen": 4644,
+    "nen_duong": 0.08914728682170543,
+    "nen_tuyet_doi": 0.2392334194659776,
+    "gap": 4.807453416149068,
+    "dat": false
+   },
+   {
+    "nguong": 4,
+    "so_cap_dot": 56,
+    "phat_hien": 0.32142857142857145,
+    "so_cap_nen": 4644,
+    "nen_duong": 0.050387596899224806,
+    "nen_tuyet_doi": 0.12683031869078382,
+    "gap": 6.3791208791208796,
+    "dat": false
+   },
+   {
+    "nguong": 5,
+    "so_cap_dot": 56,
+    "phat_hien": 0.21428571428571427,
+    "so_cap_nen": 4644,
+    "nen_duong": 0.03359173126614987,
+    "nen_tuyet_doi": 0.07235142118863049,
+    "gap": 6.379120879120879,
+    "dat": false
+   },
+   {
+    "nguong": 6,
+    "so_cap_dot": 56,
+    "phat_hien": 0.14285714285714285,
+    "so_cap_nen": 4644,
+    "nen_duong": 0.022179155900086133,
+    "nen_tuyet_doi": 0.04285099052540913,
+    "gap": 6.441054091539528,
+    "dat": false
+   }
+  ]
+ },
+ "test": {
+  "p1": null,
+  "p2": null
+ }
+}

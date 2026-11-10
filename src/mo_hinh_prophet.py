@@ -24,8 +24,10 @@ SALE_WINDOW = (-1, 1)
 WORKERS = 4                    # 11 tien trinh bi loi BrokenProcessPool (nghi het RAM); 4 chay on dinh
 
 
-def holidays_table():
-    lich = pd.read_csv(f"{REF}/lich_su_kien_prophet.csv", encoding="utf-8-sig", parse_dates=["ds"])
+def holidays_table(lich=None):
+    """lich: mac dinh doc tep tham chieu; du bao tuong lai truyen lich da mo rong (src/tuong_lai.py)."""
+    if lich is None:
+        lich = pd.read_csv(f"{REF}/lich_su_kien_prophet.csv", encoding="utf-8-sig", parse_dates=["ds"])
     bad = {c.replace("sk_", "") for c in UNFORESEEABLE}
     lich = lich[~lich.holiday.str.startswith("bao_") & ~lich.holiday.isin(bad)]
     hol = lich[["holiday", "ds", "lower_window", "upper_window"]]
@@ -44,18 +46,26 @@ def _quiet():
     warnings.filterwarnings("ignore")
 
 
-def fit_one(args):
-    """Hoc 1 SKU, tra ve du bao cho cac ngay tuong lai. (Ham cap module de chay song song tren Windows.)"""
-    sku, train, future, hol, mode = args
+def hoc_prophet(train, hol, mode):
+    """Hoc Prophet cho 1 SKU (dung chung cho backtest va giai thich tren dashboard). Qua it du lieu -> None (du bao 0)."""
     _quiet()
     from prophet import Prophet
     if train.y.notna().sum() < 30 or train.y.fillna(0).sum() == 0:
-        return pd.DataFrame({"ma_sku": sku, "date": future.ds, "du_bao": 0.0})
+        return None
     m = Prophet(holidays=hol, seasonality_mode=mode, yearly_seasonality=True,
                 weekly_seasonality=True, daily_seasonality=False)
     if train.khuyen_mai.nunique() > 1:                     # du lieu khong co khuyen mai: cot hang so lam Prophet chia cho 0
         m.add_regressor("khuyen_mai")
     m.fit(train)
+    return m
+
+
+def fit_one(args):
+    """Hoc 1 SKU, tra ve du bao cho cac ngay tuong lai. (Ham cap module de chay song song tren Windows.)"""
+    sku, train, future, hol, mode = args
+    m = hoc_prophet(train, hol, mode)
+    if m is None:
+        return pd.DataFrame({"ma_sku": sku, "date": future.ds, "du_bao": 0.0})
     fc = m.predict(future)
     return pd.DataFrame({"ma_sku": sku, "date": fc.ds.values, "du_bao": fc.yhat.values})
 

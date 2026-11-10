@@ -901,12 +901,138 @@ Người làm đồ án yêu cầu (04/11) làm sạch dữ liệu công khai đ
 
 **Trả lời các câu hỏi ghi trước:**
 1. **So với dự báo mốc: lợi ích gần như biến mất.** Chi phí chỉ giảm 1,7%, tồn giảm 2,1%, Fill Rate tăng 0,04 điểm, số ngày thiếu còn **cao hơn** (126 so với 112). Trên bộ mô phỏng, chi phí giảm 35,3% và Fill Rate tăng 4,13 điểm.
-2. **Fill Rate đạt, nhưng con số 99,7% chủ yếu do giả định chứ không do dự báo.** Mức phục vụ đặt 95% mà đạt 99,7% vì lượng đặt quá lớn so với nhu cầu: trung vị 5,8 đơn vị/ngày (10 cửa hàng), EOQ bằng khoảng 35 ngày bán, trong khi tồn an toàn chỉ khoảng 4 ngày. Lượng đặt lớn che gần hết sai số dự báo, nên dự báo tốt hơn không đổi được bao nhiêu. Chi phí đặt 165.000 đ là giả định, chưa thử độ nhạy trên bộ này. Tồn cao hơn quy tắc kinh nghiệm 35,8%.
+2. **Fill Rate đạt, nhưng con số 99,7% chủ yếu do giả định chứ không do dự báo.** Mức phục vụ đặt 95% mà đạt 99,7% vì lượng đặt quá lớn so với nhu cầu: trung vị 5,8 đơn vị/ngày (10 cửa hàng), EOQ bằng khoảng 35 ngày bán, trong khi tồn an toàn chỉ khoảng 4 ngày. Lượng đặt lớn che gần hết sai số dự báo, nên dự báo tốt hơn không đổi được bao nhiêu. Chi phí đặt 165.000 đ là giả định, chưa thử độ nhạy trên bộ này. Tồn cao hơn quy tắc kinh nghiệm 35,8%. **Đính chính 08/11:** thử độ nhạy cho thấy nhận định này sai: với chi phí đặt × 0,1, lượng đặt chỉ còn 11,6 ngày bán mà Fill Rate vẫn 99,3–99,4%. Lượng đặt lớn không phải nguyên nhân chính (xem kết quả độ nhạy bên dưới).
 3. **Thứ hạng khác bộ mô phỏng:** trên mô phỏng AI hơn hẳn dự báo mốc; ở đây ba chính sách theo công thức gần như ngang nhau. So với quy tắc kinh nghiệm, chi phí thấp hơn 52,2%, nhưng phần lớn do quy tắc đó đặt 5.830 lần, tức cũng phụ thuộc giả định chi phí đặt.
 
-**Điều rút ra:** kết hợp với mục 9.8 (sai số dự báo giảm 13,8%, so với 39% trên mô phỏng), bộ số thật cho thấy **giá trị của AI phụ thuộc mạnh vào đặc điểm kho**: với hàng bán ít và lượng đặt lớn, dự báo tốt hơn gần như không đổi được kết quả tồn kho. Đây là kết luận thật, không nên che đi. Giới hạn: M5 chỉ là 10 cửa hàng nên quy mô nhỏ hơn kho tổng thật, số bán không phân biệt được hết hàng, và không có tồn kho thật để làm "hiện trạng". Hai bộ không so trực tiếp được vì đối thủ "hiện trạng" khác nhau.
+**Điều rút ra:** kết hợp với mục 9.8 (sai số dự báo giảm 13,8%, so với 39% trên mô phỏng), bộ số thật cho thấy **giá trị của AI phụ thuộc mạnh vào đặc điểm kho**: với hàng bán ít và lượng đặt lớn, dự báo tốt hơn gần như không đổi được kết quả tồn kho. Đây là kết luận thật, không nên che đi. Giới hạn: M5 chỉ là 10 cửa hàng nên quy mô nhỏ hơn kho tổng thật, số bán không phân biệt được hết hàng, và không có tồn kho thật để làm "hiện trạng". Hai bộ không so trực tiếp được vì đối thủ "hiện trạng" khác nhau. **Đính chính 08/11:** nguyên nhân không phải lượng đặt lớn mà là M5 gần như không có hàng mùa vụ (1 mã nhóm Z), trong khi trên mô phỏng khoảng 92% lợi ích nằm ở nhóm Z.
 
-**Chưa làm trên bộ này:** dashboard, gom đơn, chấm điểm nhà cung cấp, hạn sử dụng, sức chứa, thử độ nhạy theo chi phí đặt. Chạy sau khi hàng đợi mô hình xong để tránh thiếu bộ nhớ.
+**Nghiệp vụ kho trên bộ M5 (luật ghi ngày 08/11, TRƯỚC khi chạy):**
+
+| Phần việc | Trên M5 | Lý do |
+|---|---|---|
+| Chỉ số kho (`src/chi_so_kho.py`) | Chạy | Dùng nhu cầu thật |
+| Gom đơn (`src/gom_don.py`) | Chạy, **nguyên luật mục 10.6**, không chỉnh tham số | Khả năng gom phụ thuộc nhu cầu thật của các mã cùng nhà cung cấp |
+| Chấm điểm nhà cung cấp | Không chạy | 7 nhà cung cấp cùng lead time giả định 7 ± 1,5 ngày: xếp hạng chỉ phản ánh số ngẫu nhiên |
+| Hạn sử dụng, sức chứa | Không chạy | Hạn dùng và thể tích suy từ tên hàng; M5 không có tên nên mọi mã nhận giá trị mặc định |
+| Newsvendor hàng dịp lễ | Không áp dụng | M5 không có hàng chỉ bán dịp lễ |
+
+Ba phần không chạy giữ trên bộ mô phỏng (quyết định 05/11: mô phỏng cho nghiệp vụ). **Sửa trước khi chạy:** `gom_don.py` cố định quy tắc lượng đặt "lai" của bộ mô phỏng; nay đọc quy tắc đã chọn trong CSDL (M5: EOQ, chọn trên validation2 ở bước tồn kho), bộ mô phỏng vẫn là "lai" nên kết quả không đổi (có test, gồm đối chiếu từng mã từng ngày với CSDL). Trên M5 cũng phải đối chiếu: đặt kèm k = 0 trùng từng dòng `mo_phong_ngay`. Báo kết quả cả khi khác bộ mô phỏng.
+
+**Kết quả (chạy 08/11, `du_lieu_nguon/m5_kho/reports/chi_so_kho.md`, `gom_don.md`):** đối chiếu đạt: gom đơn với k = 0 trùng từng mã, từng ngày với `mo_phong_ngay` của M5 ở cả 4 cột (xuất, tồn, đặt, nhập).
+
+| Chỉ số kho, test, 95% | Vòng quay (lần/năm) | Số ngày tồn | Tồn dư / tồn |
+|---|---:|---:|---:|
+| AI + hiệu chỉnh | 21,6 | 16,9 | 15,5% |
+| AI | 22,1 | 16,5 | 15,3% |
+| Dự báo mốc | 21,1 | 17,3 | 15,9% |
+| Quy tắc kinh nghiệm | 29,3 | 12,5 | 11,6% |
+
+- **Chỉ số kho:** AI + hiệu chỉnh chỉ giảm số ngày tồn 2,3% so với dự báo mốc (bộ mô phỏng: giảm 41,2%), cùng kết luận với bước tồn kho: trên M5 dự báo tốt hơn gần như không đổi được tồn kho. Quy tắc kinh nghiệm có vòng quay cao nhất vì giữ ít hàng, đổi lại thiếu hàng nhiều hơn (mục trên). Tồn dư chỉ khoảng 15% tồn kho (mô phỏng 43–70%) vì M5 không có hàng mùa vụ bán xong là hết.
+- **Gom đơn, validation2:** theo luật chọn **đặt kèm k = 3**: chi phí liên quan giảm 5,3% so với chỉ gom cùng ngày, Fill Rate tăng (99,63% lên 99,78%). Bộ mô phỏng chọn k = 1.
+- **Gom đơn, test, tỉ lệ 0,5 (chỉ báo cáo):** gom cùng ngày gộp 1.418 dòng thành 1.008 phiếu, chi phí liên quan giảm 5,8% (mô phỏng 1,1%), tồn kho và Fill Rate không đổi. Đặt kèm k = 3 giảm thêm 4,0% (tổng 9,6% so với không gom), còn 473 phiếu, nhưng tồn kho tăng 8,3%.
+- **Khác bộ mô phỏng ở nguồn lợi ích:** trên M5 lợi ích đặt kèm chủ yếu đến từ chia sẻ chi phí phiếu (đặt hàng 43,4 triệu đ; lưu kho tăng 27,0; lợi nhuận mất giảm 5,6), nên **phụ thuộc mạnh giả định tỉ lệ chi phí chung**: với k = 3, tỉ lệ 0,3 chỉ giảm 0,7% so với gom cùng ngày, tỉ lệ 0,7 giảm 7,5%. Trên mô phỏng, lợi ích chủ yếu đến từ giảm lợi nhuận mất. Câu giải thích trong báo cáo gom đơn trước đây viết cứng theo bộ mô phỏng; nay tự viết theo số liệu (`nguon_loi_ich`, có test). Gom cùng ngày được nhiều vì M5 chỉ có 7 nhà cung cấp giả định, khoảng 17 mã mỗi nhà, đặt cùng chu kỳ.
+
+**Độ nhạy theo chi phí đặt (luật ghi ngày 08/11, TRƯỚC khi chạy):** trên M5 lượng đặt khoảng 35 ngày bán che gần hết sai số dự báo, do chi phí đặt S = 165.000 đ là giả định. Câu hỏi: lợi ích của AI có quay lại khi S thấp hơn không.
+- `src/do_nhay_chi_phi_dat.py`, chỉ đọc CSDL, chạy trên **cả hai bộ**: S × 0,1; 0,25; 0,5; 1; 2 cho mọi mã, EOQ tính lại. Giữ nguyên quy tắc lượng đặt đã chọn, mức phục vụ 95%, dự báo, hiệu chỉnh, tồn an toàn; tập test. Quy tắc kinh nghiệm giữ nguyên đơn, chỉ tính lại chi phí (như `do_nhay.py`).
+- Đo: lợi ích AI = (chi phí liên quan của dự báo mốc − của AI + hiệu chỉnh) / của dự báo mốc; kèm Fill Rate, số ngày-mã thiếu, tồn kho, lượng đặt EOQ tính bằng ngày bán (trung vị).
+- **Kết luận ghi trước:** "lợi ích AI phụ thuộc chi phí đặt" nếu lợi ích ở S × 0,1 cao hơn ở S × 1 ít nhất 5 điểm %. Không đạt thì ghi "không phụ thuộc rõ".
+- **Không đổi** giả định chính (S gốc), chính sách hay quy tắc đã chọn; đây là phân tích độ nhạy, không dùng để chọn S. S × 1 phải trùng kết quả tồn kho đã có (kiểm tra trong script).
+- Chạy kèm `do_nhay.py` nguyên bản trên M5 (tắc cảng, lead time, chi phí) để dashboard có khối Kịch bản.
+
+**Kết quả độ nhạy theo chi phí đặt (chạy 08/11, `reports/do_nhay_chi_phi_dat.md` và bản M5):** S × 1 trùng kết quả tồn kho ở cả hai bộ.
+
+| S so với gốc | M5: lượng đặt (ngày bán) | M5: lợi ích AI | M5: Fill AI + HC / dự báo mốc | Mô phỏng: lượng đặt (ngày bán) | Mô phỏng: lợi ích AI | Mô phỏng: Fill AI + HC / dự báo mốc |
+|---:|---:|---:|---:|---:|---:|---:|
+| × 0,10 | 11,6 | +6,4% | 99,41% / 99,30% | 4,8 | +37,1% | 95,12% / 90,95% |
+| × 0,25 | 18,4 | +0,4% | 99,42% / 99,30% | 7,6 | +37,2% | 95,34% / 91,15% |
+| × 0,50 | 26,0 | +2,6% | 99,63% / 99,45% | 10,8 | +36,5% | 95,50% / 91,45% |
+| × 1 (gốc) | 36,7 | +1,7% | 99,71% / 99,67% | 15,3 | +35,3% | 95,82% / 91,69% |
+| × 2 | 51,9 | +0,1% | 99,78% / 99,73% | 21,6 | +34,9% | 96,15% / 91,90% |
+
+- **Theo luật: cả hai bộ "không phụ thuộc rõ".** M5: lợi ích ở S × 0,1 cao hơn S × 1 là 4,7 điểm, dưới ngưỡng 5 điểm, và không đi một chiều. Mô phỏng: 1,8 điểm. Khoảng cách 35% so với 2% giữa hai bộ **không do giả định chi phí đặt**.
+- **Lời giải thích có số liệu:** trên bộ mô phỏng, nhóm Z (40 mã mùa vụ theo phân loại trên tập huấn luyện) đóng góp 91,6% mức giảm tồn kho và 92,1% mức giảm lợi nhuận mất của AI + hiệu chỉnh so với dự báo mốc; dự báo mốc ở nhóm này chỉ đạt Fill Rate 79,8%. Bộ M5 chỉ có 1 mã nhóm Z, và dự báo mốc đã đạt 99,7% ở nhóm X. Nói cách khác, AI có giá trị chủ yếu ở **hàng mùa vụ, hàng theo sự kiện**; với hàng bán đều, trung bình trượt cộng tồn an toàn đã đủ.
+- **Vì sao Fill Rate trên M5 cao hơn mục tiêu 95%:** mức phục vụ trong hệ thống là xác suất không hết hàng trong một chu kỳ (`z = norm.ppf(0,95)` nhân sai số trong thời gian chờ hàng), không phải Fill Rate. Khi sai số ước lượng đúng, Fill Rate thường cao hơn nhiều mức này; trên mô phỏng thì sai số của hàng mùa vụ bị ước lượng thấp nên Fill Rate chỉ sát 95%. Đây là giải thích theo lý thuyết, chưa đo riêng.
+
+**Dashboard trên M5 (thử 09/11, `KHO_GOC=du_lieu_nguon/m5_kho`):** AppTest đủ 4 màn, gồm khối Kịch bản (sau khi chạy `do_nhay.py` trên M5) và màn Dữ liệu: không lỗi. Bấm thật trong trình duyệt: lần 1 lỗi 1 bước (bấm thanh trên biểu đồ Fill Rate không đổi chính sách, không có lỗi JavaScript), lần 2 đạt toàn bộ, nên coi là lỗi thời gian chờ của bài thử, cần để ý khi trình diễn. Tràn ngang 0 ở 4 màn trên máy tính và điện thoại. Bài thử viết cho bộ mô phỏng phải đổi 2 chỗ cho M5: ngày lập phiếu mặc định (M5 không có Tết nên lấy ngày giữa kỳ test, 21/11/2015) và khóa biểu đồ theo mã hàng.
+
+**CSDL bộ mô phỏng nạp lại (09/11)** để có TiDE, N-HiTS, TFT: chạy lại `nap_database`, `ton_kho`, `do_nhay`; đối chiếu từng dòng với bản trước khi nạp: mọi bảng kết quả giống hệt, chỉ thêm 4 mô hình (`du_bao` 2.704.968 → 3.057.320 dòng).
+
+### 10.14. Cảnh báo dự báo bắt đầu lệch (luật ghi ngày 09/11, TRƯỚC khi chạy)
+
+Lấy từ bài viết người làm đồ án gửi (phần "thay đổi đột ngột"): hệ thống chưa có tín hiệu tự động báo dự báo của một mã đang lệch. Chỉ là **cảnh báo cho người lập kế hoạch**, không đổi dự báo hay chính sách đặt hàng. `src/canh_bao_lech.py`, có test, chỉ đọc CSDL, chạy trên cả hai bộ.
+
+- **Tín hiệu theo dõi (tracking signal, Brown):** tại ngày lập phiếu m, với từng mã: e = thực tế − dự báo của từng ngày trong 28 ngày đến hết m (dự báo dùng cho mỗi ngày là bản mới nhất lập trước ngày đó, như khi chấm mô hình); TS = tổng e / MAD, MAD = trung bình |e| cùng cửa sổ. Cần ít nhất 14 ngày có thực tế và MAD > 0. TS > 0: dự báo thấp hơn thực tế. Chỉ dùng thực tế đến hết ngày m (không nhìn trước). Dự báo gốc của mô hình đang chọn, chưa hiệu chỉnh theo nhóm.
+- **Đánh giá tại mỗi mốc tuần:** kết quả là độ lệch của dự báo lập tại mốc đó trong 28 ngày kế tiếp, B = (tổng thực tế − tổng dự báo) / tổng dự báo, chỉ tính ngày có thực tế.
+- **Ngưỡng |TS| thử 3, 4, 5, 6.** Chọn trên validation2 ngưỡng **nhỏ nhất** đạt cả 3 điều kiện: (a) ít nhất 70% cảnh báo cùng chiều với B; (b) trung vị |B| của nhóm bị cảnh báo ít nhất gấp 2 nhóm không bị cảnh báo; (c) cảnh báo không quá 20% số cặp (mã, mốc). Không ngưỡng nào đạt thì dashboard ghi "chưa đủ tin cậy", không đưa vào quyết định.
+- Test chạy một lần với ngưỡng đã chọn, chỉ báo cáo.
+- **Giới hạn biết trước:** mã lệch lâu dài (luôn dự báo thấp) sẽ bị cảnh báo liên tục, nên điều kiện (a) có thể đạt dễ; báo thêm tỉ lệ mã bị cảnh báo ở hơn một nửa số mốc để thấy điều này.
+
+**Kết quả vòng 1 (chạy 09/11, `reports/canh_bao_lech.md` và bản M5): theo luật, không ngưỡng nào đạt ở cả hai bộ.** Test không chạy. Dashboard không đưa cảnh báo vào.
+
+| Validation2, ngưỡng \|TS\| | Mô phỏng: tỉ lệ cảnh báo | Mô phỏng: cùng chiều | Mô phỏng: gấp | M5: tỉ lệ cảnh báo | M5: cùng chiều | M5: gấp |
+|---:|---:|---:|---:|---:|---:|---:|
+| 3 | 72,5% | 51,5% | 1,22 | 76,8% | 61,5% | 1,19 |
+| 4 | 65,1% | 51,8% | 1,23 | 68,8% | 62,5% | 1,23 |
+| 5 | 57,9% | 52,0% | 1,33 | 61,8% | 63,2% | 1,24 |
+| 6 | 50,5% | 52,9% | 1,38 | 54,7% | 64,4% | 1,30 |
+
+- **Lỗi thiết kế của luật:** ngưỡng ±4 kinh điển dùng cho vài kỳ (tuần, tháng). Áp cho 28 ngày lẻ thì chỉ riêng nhiễu ngẫu nhiên độc lập đã cho |TS| trung vị khoảng 4,5 và khoảng 55% trường hợp vượt 4, nên tỉ lệ cảnh báo quá cao (điều kiện c không đạt). Lỗi này lẽ ra phát hiện được trước khi chạy.
+- **Tín hiệu yếu kể cả với lệch mạnh:** ở nhóm bị cảnh báo, chiều lệch 28 ngày tới chỉ trùng chiều lệch 28 ngày qua ở 52–53% (mô phỏng), 62–64% (M5); trung vị |lệch| nhóm cảnh báo chỉ gấp 1,2–1,4 lần nhóm còn lại (điều kiện a, b không đạt). Lệch của tháng trước gần như không báo trước lệch tháng sau; có thể do mô hình đã cập nhật mỗi tuần, chưa kiểm chứng.
+- ~~Chưa đo được "thay đổi đột ngột": các ngày bão, đột biến không biết trước bị loại khỏi phần chấm điểm.~~ **Đính chính 09/11:** sai. Trong `danh_gia.py` chỉ ngày có **đơn B2B đột biến** (và ngày không tin được nhu cầu) bị để trống; các đợt nắng nóng, rét, cúm, sốt xuất huyết, tin đồn giá vẫn được chấm. Vòng 1 có tính các đợt này nhưng gộp chung với ngày thường, chưa đo riêng.
+
+**Vòng 2 (luật ghi ngày 09/11, TRƯỚC khi chạy; người làm đồ án chọn làm thêm 1 vòng, không đạt thì dừng):**
+- **Đổi so với vòng 1:** (1) gộp sai số theo tuần đúng như cách dùng tracking signal kinh điển: tại mốc m, sai số tuần j là tổng sai số các ngày (m − 7j − 6 … m − 7j]; TS = tổng 4 tuần gần nhất / MAD, MAD = trung bình |sai số tuần| của 13 tuần gần nhất; cần ít nhất 3/4 và 8/13 tuần có dữ liệu (tuần có ít nhất 4 ngày mở cửa). Với nhiễu độc lập, |TS| trung vị khoảng 1,7, vượt 4 khoảng 11%. (2) Sai số = **số bán thực tế** − dự báo (người lập kế hoạch chỉ thấy số bán), mọi ngày mở cửa; lệch 28 ngày tới cũng tính bằng số bán. Ngưỡng thử vẫn 3, 4, 5, 6.
+- **Phần 1, lệch kéo dài (cả hai bộ):** giữ điều kiện a, b, c của vòng 1.
+- **Phần 2, thay đổi đột ngột (chỉ bộ mô phỏng, M5 không có sự kiện):** đáp án lấy từ `sinh_du_lieu.py` (đọc bằng `ast`, không chạy trình sinh): các đợt nắng nóng, rét đậm, cúm, sốt xuất huyết, tin đồn giá (danh sách `OTHER`) và mã bị tác động theo từ khóa tên hàng với hệ số ≥ 0,5 (`OTHER_AFF`). Chỉ xét đợt dài ít nhất 7 ngày; bão và đơn B2B (thường 1–3 ngày) nằm ngoài phạm vi vì tín hiệu theo tuần không kịp, ghi số đợt bị loại. Một (mã, đợt) **được phát hiện** nếu tại mốc tuần đầu tiên đã thấy ít nhất 7 ngày của đợt, TS > ngưỡng (bán nhiều hơn dự báo). So với các cặp (mã, mốc) không có đợt nào tác động trong 35 ngày quanh mốc.
+- **Điều kiện phần 2:** (d) phát hiện ít nhất 50% số (mã, đợt); (e) tỉ lệ phát hiện ít nhất gấp 3 tỉ lệ TS > ngưỡng ở cặp không có sự kiện; (c') cảnh báo |TS| > ngưỡng ở cặp không có sự kiện không quá 20%.
+- **Chọn ngưỡng trên validation2**, mỗi phần riêng, ngưỡng nhỏ nhất đạt; test chỉ báo cáo. Phần nào đạt thì dashboard hiện cảnh báo đúng tên phần đó ("lệch kéo dài" hoặc "nhu cầu tăng đột ngột"); không phần nào đạt thì ghi kết quả âm tính, không đưa lên dashboard.
+
+**Kết quả vòng 2 (chạy 09/11, `reports/canh_bao_lech_v2.md` và bản M5): theo luật, không phần nào đạt ở cả hai bộ. Dừng theo cam kết, không đưa lên dashboard, test không chạy.**
+
+| Validation2 | Ngưỡng 3 | Ngưỡng 4 | Ngưỡng 5 | Ngưỡng 6 | Điều kiện |
+|---|---:|---:|---:|---:|---|
+| Mô phỏng, phần 1: tỉ lệ cảnh báo | 25,3% | 13,9% | 8,2% | 4,8% | c ≤ 20% |
+| Mô phỏng, phần 1: cùng chiều | 50,3% | 50,2% | 49,5% | 49,2% | a ≥ 70% ❌ |
+| Mô phỏng, phần 1: gấp | 1,35 | 1,57 | 1,90 | 2,97 | b ≥ 2 |
+| M5, phần 1: tỉ lệ cảnh báo | 29,2% | 15,1% | 6,2% | 2,9% | c ≤ 20% |
+| M5, phần 1: cùng chiều | 70,5% | 72,8% | 72,5% | 72,9% | a ≥ 70% ✅ |
+| M5, phần 1: gấp | 1,23 | 1,32 | 1,41 | 1,92 | b ≥ 2 ❌ |
+| Mô phỏng, phần 2: phát hiện (56 cặp mã, đợt) | 42,9% | 32,1% | 21,4% | 14,3% | d ≥ 50% ❌ |
+| Mô phỏng, phần 2: TS > ngưỡng ở cặp không sự kiện | 8,9% | 5,0% | 3,4% | 2,2% | |
+| Mô phỏng, phần 2: gấp | 4,81 | 6,38 | 6,38 | 6,44 | e ≥ 3 ✅ |
+| Mô phỏng, phần 2: \|TS\| > ngưỡng ở cặp không sự kiện | 23,9% | 12,7% | 7,2% | 4,3% | c' ≤ 20% |
+
+- **Đổi sang theo tuần đã sửa được lỗi thang:** tỉ lệ cảnh báo ở ngưỡng 4 còn 13,9–15,1% (vòng 1: 65–69%), khớp ước tính lý thuyết khoảng 11% với nhiễu độc lập.
+- **Lệch kéo dài:** trên mô phỏng, lệch 4 tuần qua không báo trước chiều lệch 28 ngày tới (cùng chiều 49–50%, như tung đồng xu). Trên M5 có báo trước chiều (khoảng 72%) nhưng độ lớn lệch của nhóm bị cảnh báo chỉ gấp 1,2–1,9 lần nhóm còn lại. Mô hình cập nhật mỗi tuần nên phần lệch kéo dài đã nhỏ; đây là giải thích hợp lý, chưa kiểm chứng riêng.
+- **Thay đổi đột ngột:** tín hiệu có thật (tỉ lệ phát hiện gấp 4,8–6,4 lần tỉ lệ báo nhầm) nhưng **chậm**: chỉ phát hiện 21–43% số (mã, đợt) ở tuần đầu tiên, chưa đạt 50%. Vì gộp 4 tuần nên một tuần đột biến bị pha loãng. Đây là kết quả âm tính có ích cho đồ án: cảnh báo dựa trên sai số đã qua đến muộn với đợt ngắn 1–2 tuần; muốn bắt kịp phải có thông tin từ bên ngoài (tin thời tiết, dịch bệnh), đúng với ý của bài viết về dữ liệu ngoài doanh nghiệp.
+- **Dữ liệu dùng:** 166 cặp (mã, đợt) có hệ số ≥ 0,5 trong cả kỳ, 56 cặp xét được trên validation2; không đợt nào bị loại vì ngắn.
+- **Phân tích sau khi có kết quả (09/11, validation2, chỉ để giải thích, không đổi kết luận; nhóm nhỏ nên chỉ tham khảo):** sai số tuần thông thường khoảng 18% nhu cầu tuần (trung vị MAD tuần / dự báo tuần). Ở ngưỡng 4, mã **có hết hàng** trong tuần đầu của đợt chỉ được phát hiện 23% (35 cặp), mã không hết hàng 48% (21 cặp): hết hàng làm số bán bị chặn nên đột biến nhu cầu không hiện ra ở số bán. Hệ số tác động gần như không đổi kết quả (0,5–1: 30%; ≥ 1: 34%). TS trung vị tại mốc phát hiện chỉ khoảng 2,5–2,7, do một tuần đột biến bị pha loãng trong tổng 4 tuần.
+
+### 10.15. Dự báo cho ngày chưa xảy ra, mô hình chạy khi bấm, giải thích (theo nhận xét giảng viên, 09/11)
+
+**Nhận xét của giảng viên:** chưa thấy chỗ nào là dự đoán; hệ thống giống đang đọc dữ liệu, chưa thật sự suy nghĩ rồi đưa ra kết quả. **Kiểm tra lại thấy đúng:** dashboard chỉ đọc bảng `du_bao` tính sẵn; mọi ngày trên dashboard là quá khứ đã có số thật (dự báo dừng trước ngày cuối dữ liệu); không có phần giải thích vì sao ra con số. Thầy xem cả trên dashboard và trong Word. Người làm đồ án chọn làm theo thứ tự: (1) dự báo ngày chưa xảy ra, (2) mô hình chạy khi bấm, (3) giải thích theo yếu tố, (4) thử nếu cho dự báo.
+
+**Bước 1, dự báo 28 ngày sau ngày cuối dữ liệu:**
+- **Lịch biết trước của 28 ngày tới** (`src/tuong_lai.py`, có test): bộ mô phỏng mở rộng lịch theo đúng quy tắc của lịch hiện có (ngày dương lịch lặp lại ở ít nhất 2 năm thì lặp tiếp; Tết, Trung thu, Giỗ Tổ lấy từ bảng âm lịch, hết bảng thì báo lỗi; sự kiện không biết trước và lịch thể thao không tự suy ra). M5 lấy thẳng lịch gốc `calendar.csv` (có sẵn đến 19/06/2016) bằng đúng hàm đã dựng tệp tham chiếu. Khuyến mãi tương lai chỉ có khi có lịch gửi trước; không có thì coi như không khuyến mãi.
+- **Không đổi dữ liệu cũ:** phần dựng lịch tách khỏi `dac_trung.py` thành hàm dùng chung (`src/lich_dac_trung.py`); chạy lại `dac_trung.py` cho tệp đặc trưng, tệp phân loại và báo cáo giống hệt (cùng mã băm). Dựng 28 ngày cho 4 khoảng ngày **đã qua** trùng 38/38 cột với tệp đặc trưng. Mở rộng lịch từ mốc cắt 30/09/2025 ra 1 năm: 12/12 sự kiện và 12/12 ngày nghỉ biết trước suy ra đúng, không thừa.
+- **Chạy đúng mô hình đã chấm** (`src/du_bao_tuong_lai.py`, `src/du_bao_tuong_lai_kc.py`): dùng chung hàm chạy 1 mốc với backtest (`du_bao_mot_moc`). Kiểm tra lại trước khi tin: chạy lại mốc tuần cuối của test phải ra đúng dự báo đã lưu. Mô phỏng `ket_hop_v4` mốc 01/09/2026: 3.388/3.388 dòng, lệch lớn nhất 4,5 × 10⁻¹³. M5: LightGBM và Prophet mốc 23/04/2016 lệch 1,4 × 10⁻¹⁴. RNN học tiếp qua từng mốc nên phải chạy lại cả chuỗi mốc test rồi học tiếp đến ngày cuối.
+- **Kết quả bộ mô phỏng** (`reports/du_bao_tuong_lai.md`): ngày lập 30/09/2026, dự báo 01–28/10/2026 cho 121 mã, có khoảng 80% / 95% từng mã (phân vị sai số đã qua, cùng cách `ket_hop_v4`), nạp vào CSDL với tập `tuong_lai`. Trung bình 5.719 / ngày, thấp hơn cùng kỳ 2025 (7.764) vì tháng 10/2025 có Trung thu (06/10) và khuyến mãi; bỏ khuyến mãi và cửa sổ Trung thu thì tháng 10/2025 là 5.486, tháng 10/2024 bỏ khuyến mãi là 5.369. Ở mốc 01/09/2026 mô hình dự báo 9.284 / ngày, thực tế 9.179. **Không cộng khoảng của từng mã thành khoảng của tổng** (tổng các khoảng rộng hơn khoảng thật của tổng); bản đầu báo cáo làm sai điều này, đã sửa trước khi dùng.
+- **Giới hạn:** lịch thể thao và sự kiện không lặp theo ngày cố định không tự suy ra được; chưa có lịch khuyến mãi tương lai nên dự báo coi như không khuyến mãi; bảng âm lịch (Tết 2027–2028, Trung thu, Giỗ Tổ) cần đối chiếu lại với lịch chính thức trước khi dùng thật.
+- **Kết quả M5** (`du_lieu_nguon/m5/reports/du_bao_tuong_lai.md`): ngày lập 22/05/2016, dự báo 23/05–19/06/2016; lịch biết trước lấy từ `calendar.csv` (30 ngày tem phiếu SNAP ở 3 bang, Memorial Day, chung kết NBA, Ramadan, Ngày của Cha). RNN chạy lại 49 mốc test: mốc cuối trùng bản đã lưu (lệch lớn nhất 5 × 10⁻⁶, tổng lệch 1,5 × 10⁻⁸), rồi học tiếp 5 mốc đến 22/05/2016. Trung bình 1.350 / ngày (cùng kỳ 2015: 1.255; 2014: 1.395; 28 ngày gần nhất: 1.456). Dựng lại bộ M5 kho: 3 báo cáo tồn kho, chọn quy tắc, độ nhạy giống hệt; CSDL chỉ thêm 3.388 dòng tương lai.
+
+**Bước 2–3, màn "Dự báo" trên dashboard** (`app/trang/du_bao.py`, lõi `src/chay_du_bao.py`, giải thích `src/giai_thich.py`, có test):
+- Hiện 28 ngày tới (toàn kho theo bộ lọc, từng mã có khoảng 80% / 95%), ghi rõ "chưa xảy ra"; màn luôn đứng ở ngày cuối dữ liệu, không theo ô "Ngày lập phiếu".
+- **Nút "Chạy mô hình"**: hiện từng bước (đọc dữ liệu, dựng 28 ngày, học LightGBM trên toàn bộ lịch sử, học Prophet cho mã đang xem, RNN dùng bản đã học tiếp, ghép theo trọng số nhóm) và so với bản đã lưu. Lần đầu khoảng 30–50 giây (học LightGBM), các mã sau vài giây.
+- **"Vì sao ra con số này"**: chọn 1 ngày → công thức ghép có số; LightGBM: mức nền (trung bình mọi mã) nhân hệ số của 9 nhóm yếu tố (tách từ `pred_contrib`, hàm Tweedie nên đóng góp cộng theo log = nhân theo số lượng; test chứng minh tích các hệ số đúng bằng dự báo); Prophet: xu hướng + mùa tuần + mùa năm + ngày lễ + khuyến mãi. RNN chỉ hiện tổng (không tách được theo yếu tố).
+- `make_model` của LightGBM chỉ thêm phần lưu mô hình đã học và hàm dự báo lại (không học lại); chạy lại mốc cũ vẫn trùng (4,5 × 10⁻¹³).
+- **Kiểm tra** (cả hai bộ): AppTest (mở màn, bấm chạy, kết quả trùng bản đã lưu, đổi ngày, đổi mã) không lỗi; bấm thật trong Edge: chạy xong 26–53 giây, trùng bản đã lưu, không lỗi JavaScript, tràn ngang 0 ở cả 5 màn trên máy tính và điện thoại. Ảnh chụp lộ ra 4 lỗi hiển thị mà phép đo không bắt được (nhãn trục bị ẩn xen kẽ, nhãn đè lên thanh âm, nhãn bị cắt mép, biểu đồ Prophet bị dồn vì chiều cao gồm cả chú giải và trục): đã sửa và chụp lại.
+
+**Bước 4, "Thử nếu: bật khuyến mãi"** (cuối màn Dự báo; `bat_khuyen_mai`, `km_lich_su`, `so_sanh_khuyen_mai` ở `src/chay_du_bao.py`, có test): chọn khoảng ngày, chỉ cột khuyến mãi của mã đang xem đổi; LightGBM và Prophet tính lại bằng mô hình vừa học (không học lại), RNN giữ nguyên. Hiện dự báo gốc so với nếu khuyến mãi, mức tăng của từng thành phần và **đối chiếu với lịch sử của mã**.
+- **Đối chiếu lịch sử phải so cùng mùa:** so thô (ngày có khuyến mãi với mọi ngày thường) phóng đại vì khuyến mãi hay rơi vào mùa cao điểm (SKU060: thô × 3,74, cùng mùa × 2,29). Dùng "ngày có khuyến mãi so với trung bình 28 ngày thường ngay trước", vẫn hiện số thô để tham khảo.
+- **Kiểm tra mô hình có phản ứng hợp lý:** nút "So sánh toàn kho" bật khuyến mãi 7 ngày đầu cho mọi mã (phần LightGBM). Bộ mô phỏng: mô hình tăng trung vị × 1,61 (khoảng giữa 1,51–1,71), lịch sử cùng mùa × 1,65–1,68 (1,50–1,84); tương quan thứ hạng 0,37–0,39. Mô hình phản ứng với khuyến mãi gần đúng mức lịch sử trên toàn kho, nhưng chưa phân biệt tốt mã nào tăng mạnh. Hàng mùa vụ ngoài mùa tăng ít hơn lịch sử (SKU060 tháng 10: × 1,06) vì các đợt khuyến mãi cũ rơi vào mùa cao điểm. Backtest: ngày có khuyến mãi thực tế / dự báo 1,05–1,07, ngày thường 1,03–1,06: mô hình không dự báo thiếu ngày khuyến mãi.
+- **M5 không có lịch khuyến mãi** nên mô hình không học được tác động: bật lên thì +0,0%, màn hình ghi rõ lý do; nút so sánh toàn kho ẩn.
+- **Lỗi đã gặp:** thanh chọn khoảng `st.select_slider` (dạng 2 đầu) của Streamlit 1.45 lỗi ở trình duyệt ("TypeError: Cannot read properties of null"), làm thanh không dùng được; AppTest không lộ ra lỗi này, phép đo lỗi JavaScript cũng không (Streamlit tự bắt lỗi). Đổi sang `st.slider` kiểu ngày; bài bấm thật thêm phép tìm chữ lỗi trên trang và kéo thanh trượt bằng bàn phím như người dùng. Ô kết quả viết in hoa bằng CSS nên tìm chữ phải không phân biệt hoa thường.
+- **Kiểm tra cuối** (cả hai bộ): AppTest (gồm đổi khoảng 7 → 14 ngày, so sánh toàn kho) và bấm thật trong Edge (kéo thanh trượt, kết quả đổi đúng, không lỗi, tràn ngang 0 ở 5 màn) đều đạt.
 
 ## 11. Mô phỏng và bảng trước–sau ✅ (24/10)
 
@@ -1098,6 +1224,15 @@ Hiện trạng chỉ so được ở kịch bản chi phí: đơn hàng của n�
 | 05/11 | Quyết định không dùng dữ liệu đơn vị thực tập: M5 cho dự báo, mô phỏng cho nghiệp vụ (mục 10.13) | `docs/01`, `docs/09` | Chưa có xác nhận của giảng viên |  |
 | 05/11 | Chương 3 đổi thành mô tả bài toán và dữ liệu, không viết thực trạng kho vì chưa thực tập | `docs/09_lo_trinh.md`, `do_an/chuong_1_mo_dau.md` | Chưa kiểm tra mẫu của trường, chưa có xác nhận của giảng viên |  |
 | 05/11 | TiDE, N-HiTS, TFT xong trên M5, giữ `ket_hop_dl`; đính chính: mã 139 chưa rõ nguyên nhân (mục 9.9) | `du_lieu_nguon/m5/reports/mo_hinh_nf.md` | Luật ghi trước; bản ghép không đạt ngưỡng |  |
+| 08/11 | Chỉ số kho, gom đơn trên M5 (mục 10.13); gom đơn đọc quy tắc đã chọn, câu giải thích theo số liệu | `src/gom_don.py`, `src/chi_so_kho.py`, `du_lieu_nguon/m5_kho/reports/gom_don.md` | Có test; bộ mô phỏng không đổi số; NCC, hạn dùng, sức chứa không áp dụng cho M5 |  |
+| 08/11 | Độ nhạy theo chi phí đặt trên cả hai bộ: không phụ thuộc rõ; lợi ích AI nằm ở hàng mùa vụ; đính chính giải thích Fill Rate M5 (mục 10.13) | `src/do_nhay_chi_phi_dat.py`, `reports/do_nhay_chi_phi_dat.md` | Có test; luật ghi trước; S × 1 trùng kết quả tồn kho |  |
+| 09/11 | Dashboard M5 đủ 4 màn (AppTest, bấm thật, tràn ngang); nạp lại CSDL mô phỏng có TiDE/N-HiTS/TFT (mục 10.13) | `trinh_bay/luong_he_thong.html`, `reports/so_lieu_do_an.md` | Bấm thật M5: 1/2 lần lỗi thời gian chờ; bảng kết quả giống hệt trước khi nạp |  |
+| 09/11 | Cảnh báo dự báo lệch, vòng 1: không ngưỡng nào đạt ở cả hai bộ; ngưỡng sai thang, tín hiệu yếu (mục 10.14) | `src/canh_bao_lech.py`, `reports/canh_bao_lech.md` | Có test; luật ghi trước; chưa đưa lên dashboard |  |
+| 09/11 | Cảnh báo dự báo lệch, vòng 2 (theo tuần, đo riêng đột biến): không đạt luật ở cả hai bộ; dừng, ghi kết quả âm tính (mục 10.14) | `src/canh_bao_lech_v2.py`, `reports/canh_bao_lech_v2.md` | Có test; luật ghi trước; đột biến phát hiện gấp 6 lần báo nhầm nhưng chậm |  |
+| 09/11 | Nhận xét GV: chưa thấy dự đoán. Bước 1: dự báo 28 ngày chưa xảy ra cho bộ mô phỏng, chạy lại mốc cũ trùng dự báo đã lưu (mục 10.15) | `src/tuong_lai.py`, `src/du_bao_tuong_lai.py`, `reports/du_bao_tuong_lai.md` | Có test; tệp đặc trưng giống hệt sau khi tách hàm |  |
+| 09/11 | Dự báo tương lai M5 (RNN chạy lại chuỗi, trùng bản lưu); màn Dự báo trên dashboard: chạy khi bấm, giải thích theo yếu tố (mục 10.15) | `app/trang/du_bao.py`, `src/chay_du_bao.py`, `src/giai_thich.py`, `src/du_bao_tuong_lai_kc.py` | Có test; AppTest và bấm thật đạt cả hai bộ |  |
+| 10/11 | Bước 4: thử nếu bật khuyến mãi trên màn Dự báo, đối chiếu lịch sử cùng mùa, so sánh toàn kho (mục 10.15) | `app/trang/du_bao.py`, `src/chay_du_bao.py` | Có test; mô hình tăng trung vị × 1,61 so với lịch sử × 1,65; sửa lỗi thanh chọn khoảng của Streamlit |  |
+| 10/11 | Cập nhật báo cáo Word v3 cho GV xem: mục 8.4 (nghiệp vụ kho M5), 8.5 (cảnh báo lệch), 9.3 (dự báo ngày chưa xảy ra: Bảng 9.1, Hình 9.1–9.8 chụp lại từ dashboard); sửa trục biểu đồ giải thích bị cắt, dấu nghìn kiểu Việt, bỏ cách viết số kiểu 1e-8 | `reports/word/bao_cao_tong_hop_do_an_v3.docx` (+ `.pdf`, 43 trang), `src/bao_cao_word/`, `reports/word/anh/` | 252 test đạt; PDF 0 chữ lỗi, 12/12 số mới và 18/18 số cũ khớp tệp nguồn; bấm thật màn Dự báo đạt cả hai bộ |  |
 
 *(Thêm dòng mới ở cuối bảng sau mỗi lần làm xong một việc.)*
 

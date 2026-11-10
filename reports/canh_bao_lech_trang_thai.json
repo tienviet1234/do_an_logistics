@@ -1,0 +1,58 @@
+{
+ "nguon": "dữ liệu mô phỏng",
+ "mo_hinh": "ket_hop_v4",
+ "nguong": null,
+ "cua_so": 28,
+ "toi_thieu": 14,
+ "validation2": [
+  {
+   "nguong": 3,
+   "so_cap": 5657,
+   "so_canh_bao": 4102,
+   "ti_le": 0.7251193211949797,
+   "cung_chieu": 0.514627011214042,
+   "lech_cb": 0.12426988774758767,
+   "lech_khong": 0.10208851406932505,
+   "boi": 1.2172758990614747,
+   "ma_canh_bao_qua_nua": 120,
+   "dat": false
+  },
+  {
+   "nguong": 4,
+   "so_cap": 5657,
+   "so_canh_bao": 3685,
+   "ti_le": 0.6514053385186495,
+   "cung_chieu": 0.517774762550882,
+   "lech_cb": 0.12568291234736736,
+   "lech_khong": 0.10254130262373508,
+   "boi": 1.2256808635301628,
+   "ma_canh_bao_qua_nua": 112,
+   "dat": false
+  },
+  {
+   "nguong": 5,
+   "so_cap": 5657,
+   "so_canh_bao": 3274,
+   "ti_le": 0.578751988686583,
+   "cung_chieu": 0.5195479535736103,
+   "lech_cb": 0.13192633776645818,
+   "lech_khong": 0.0993221654768008,
+   "boi": 1.3282668287903259,
+   "ma_canh_bao_qua_nua": 83,
+   "dat": false
+  },
+  {
+   "nguong": 6,
+   "so_cap": 5657,
+   "so_canh_bao": 2855,
+   "ti_le": 0.5046844617288315,
+   "cung_chieu": 0.5285464098073556,
+   "lech_cb": 0.13778253576038219,
+   "lech_khong": 0.09986374480367285,
+   "boi": 1.3797052777387409,
+   "ma_canh_bao_qua_nua": 59,
+   "dat": false
+  }
+ ],
+ "test": null
+}

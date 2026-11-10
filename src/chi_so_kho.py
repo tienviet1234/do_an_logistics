@@ -57,6 +57,12 @@ def ton_du_theo_ma(m, gia_von):
     return pd.DataFrame(dong, columns=["ma_sku", "ton_tb", "du_tb"])
 
 
+def ghi_nguon():
+    from kiem_tra_du_lieu import nguon_du_lieu
+    n = nguon_du_lieu()
+    return "Dữ liệu mô phỏng, không phải số liệu kho thật." if n["la_mo_phong"] else f"Nguồn: {n['ten']}; tồn kho là kết quả mô phỏng chính sách, lead time và chi phí là giả định, không phải số liệu kho thật."
+
+
 def bao_cao():
     sys.path.insert(0, os.path.dirname(__file__))
     from csdl import doc
@@ -76,7 +82,7 @@ def bao_cao():
                          "ti_le_du_pt": [round(100 * du[c].du_tb.sum() / du[c].ton_tb.sum(), 1) for c in tong.index]})
     chon = "cong_thuc_du_bao_ai_hc"
     top = du[chon].sort_values("du_tb", ascending=False).head(10).assign(du_trieu=lambda f: (f.du_tb / 1e6).round(1))
-    L = ["# Chỉ số kho", "", f"Mô phỏng {so_ngay} ngày của tập kiểm tra, mức phục vụ 95%. Dữ liệu mô phỏng, không phải số liệu kho thật.", "",
+    L = ["# Chỉ số kho", "", f"Mô phỏng {so_ngay} ngày của tập kiểm tra, mức phục vụ 95%. {ghi_nguon()}", "",
          "Tồn dư = phần tồn cuối ngày vượt nhu cầu thật của 28 ngày kế tiếp (nhìn lại để chấm, không dùng để ra quyết định); bỏ 28 ngày cuối kỳ.", "",
          "## Theo chính sách", "", bang.to_markdown(), "", "## Số ngày tồn kho theo nhóm XYZ", "",
          nhom.doh.unstack("xyz").round(1).to_markdown(), "", "## 10 mã tồn dư lớn nhất (AI + hiệu chỉnh)", "",

@@ -45,7 +45,8 @@ TB = "cuda" if torch.cuda.is_available() else "cpu"
 class DuLieu:
     """Mang (ma, ngay, dac trung). Phan co dinh chi dung cot biet truoc; nhu cau + gia tri tre tinh lai o tung moc tu lich su."""
 
-    def __init__(self, df):
+    def __init__(self, df, ev=None):
+        """ev: lich su kien (mac dinh tep tham chieu; du bao tuong lai truyen lich da mo rong)."""
         self.df = df
         self.skus = sorted(df.ma_sku.unique())
         self.ngay = pd.DatetimeIndex(sorted(df.date.unique()))
@@ -67,7 +68,7 @@ class DuLieu:
         cot.append(ca(np.eye(7, dtype=np.float32)[self.ngay.weekday]))
         for chu_ky, v in [(365.25, self.ngay.dayofyear), (12, self.ngay.month)]:
             cot.append(ca(np.c_[np.sin(2 * np.pi * v / chu_ky), np.cos(2 * np.pi * v / chu_ky)]))
-        cal = N.lich_su_kien(df.date.unique()).set_index("date").reindex(self.ngay)
+        cal = N.lich_su_kien(df.date.unique(), ev).set_index("date").reindex(self.ngay)
         ev = [c for c in cal.columns if c.startswith(("den_", "sau_"))]
         cot.append(ca(cal[ev].values / np.array([N.CLIP_DEN if c.startswith("den_") else N.CLIP_SAU for c in ev])))
         self.dich_am = cal.dich_am_lich.values

@@ -62,6 +62,16 @@ def folds(kind="test", step=STEP):
     return out
 
 
+def du_bao_mot_moc(model_fn, hist, fut, o):
+    """Chay mo hinh tai 1 moc: hist (date <= o), fut (28 ngay toi, chi cot biet truoc). Dung chung cho backtest va du bao tuong lai."""
+    p = model_fn(hist, fut)
+    p = p[["date", "ma_sku", "du_bao"]].reset_index(drop=True)
+    p["du_bao"] = p.du_bao.clip(lower=0)
+    p["moc"] = np.full(len(p), np.datetime64(o, "ns"))  # mang (khong gan scalar: loi concat cua pandas 2.1)
+    p["ngay_thu"] = (p.date - o).dt.days.values        # 1..28: du bao truoc bao nhieu ngay
+    return p
+
+
 def backtest(model_fn, df, origins, name="", verbose=True):
     known = df.attrs["known_ahead"]
     res = []
@@ -69,12 +79,7 @@ def backtest(model_fn, df, origins, name="", verbose=True):
     for i, o in enumerate(origins, 1):
         hist = df[df.date <= o]
         fut = df[(df.date > o) & (df.date <= o + pd.Timedelta(days=HORIZON))][known].copy()
-        p = model_fn(hist, fut)
-        p = p[["date", "ma_sku", "du_bao"]].reset_index(drop=True)
-        p["du_bao"] = p.du_bao.clip(lower=0)
-        p["moc"] = np.full(len(p), np.datetime64(o, "ns"))  # mang (khong gan scalar: loi concat cua pandas 2.1)
-        p["ngay_thu"] = (p.date - o).dt.days.values        # 1..28: du bao truoc bao nhieu ngay
-        res.append(p)
+        res.append(du_bao_mot_moc(model_fn, hist, fut, o))
         if verbose:
             print(f"  {name} moc {i}/{len(origins)} ({o.date()}) - {time.time() - t0:.0f}s", end="\r")
     if verbose:

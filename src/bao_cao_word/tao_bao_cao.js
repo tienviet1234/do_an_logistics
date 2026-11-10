@@ -146,7 +146,9 @@ const mucLuc = [
   gach([B("Rủi ro và độ nhạy: "), "bảng rủi ro định lượng từ dữ liệu (bão, thời tiết, dịch, khuyến mãi, đơn B2B, nhà cung cấp chậm); tắc cảng trễ 3–7 ngày chỉ làm Fill Rate giảm 0,5–1,5 điểm; lead time dài ra lâu dài mà không cập nhật công thức là rủi ro lớn nhất."]),
   gach([B("Nghiệp vụ kho: "), "thêm chỉ số kho, gom đơn, chấm điểm nhà cung cấp, hạn sử dụng theo lô, sức chứa, newsvendor cho hàng dịp lễ và trữ hàng phiên livestream; phát hiện chính sách còn đặt quá tay với hàng chỉ bán dịp lễ, newsvendor đã thử nhưng tập kiểm tra chưa xác nhận nên chưa đưa vào chính sách."]),
   gach([B("Kiểm chứng trên số thật: "), `trên số bán thật M5, mô hình giảm ${vn(100 * (1 - D.m5.ket_hop_dl.test.wmape / D.m5.tb_truot.test.wmape))}% sai số so với trung bình trượt, so với ${vn(100 * (1 - M.ket_hop_v4.wmape / M.tb_truot_28_tuan.wmape), 0)}% trên dữ liệu mô phỏng; số thật Dominick's cho thấy mức tài trợ khuyến mãi và đuôi nhu cầu khác giả định ban đầu.`]),
-  gach([B("Hệ thống: "), "CSDL SQLite chạy lại được từ đầu, dashboard 4 màn (Hôm nay, Mặt hàng, Kịch bản & kết quả, Dữ liệu & phương pháp) có duyệt đơn, tải phiếu đặt hàng và “Thử nếu…”, dữ liệu xuất cho Power BI."]),
+  gach([B("Hệ thống: "), "CSDL SQLite chạy lại được từ đầu, dashboard 5 màn (Hôm nay, Dự báo, Mặt hàng, Kịch bản & kết quả, Dữ liệu & phương pháp) có duyệt đơn, tải phiếu đặt hàng và “Thử nếu…”, dữ liệu xuất cho Power BI."]),
+  gach([B("Dự báo cho ngày chưa xảy ra: "), `màn Dự báo đứng ở ngày cuối của dữ liệu, dự báo 28 ngày tới, chạy lại mô hình khi bấm (trùng bản đã chấm), giải thích từng con số theo nhóm yếu tố và thử nếu bật khuyến mãi; trên toàn kho mô hình tăng trung vị × ${vn(D.ss_km.mo_hinh.p50, 2)} khi bật khuyến mãi, sát mức lịch sử × ${vn(D.ss_km.lich_su.p50, 2)}.`]),
+  gach([B("AI có giá trị ở đâu: "), `trên bộ dữ liệu kho dựng từ số bán thật M5, AI chỉ giảm ${vn(-100 * (D.m5_tk.cong_thuc_du_bao_ai_hc.cp / D.m5_tk.cong_thuc_du_bao_moc.cp - 1))}% chi phí tồn kho so với dự báo mốc, không do giả định chi phí đặt; trên mô phỏng, ${vn(100 * D.z.ton)}% mức giảm tồn kho đến từ hàng mùa vụ (nhóm Z), loại hàng M5 gần như không có.`]),
   new Paragraph({ children: [new PageBreak()] }),
 ];
 
@@ -426,6 +428,14 @@ const giamM5 = 1 - M5.ket_hop_dl.test.wmape / M5.tb_truot.test.wmape, giamMP = 1
 const TEN_NF = { ket_hop_v4: "Kết hợp v4 (đang dùng)", ket_hop_v5: "Kết hợp v5 (thêm học sâu)", lstm_tuan: "LSTM", rnn_tuan: "RNN", tide_tuan: "TiDE", nhits_tuan: "N-HiTS", tft_tuan: "TFT", ket_hop_nf: "Kết hợp v4 + mô hình tốt nhất trong ba" };
 const NF_DU = Boolean(DLM.tide_tuan.test && DLM.nhits_tuan.test && DLM.tft_tuan.test);
 const dongNF = (nguonNf) => Object.keys(TEN_NF).filter((k) => nguonNf[k] && (nguonNf[k].validation2 || nguonNf[k].test));
+const M5T = D.m5_tk, TKD = D.tk_db, DNS = D.dn_s, TL = D.tl, SSK = D.ss_km;
+const g5 = D.m5_gom.test;
+const theoNguong = (ds, k) => ds.find((r) => r.nguong === k);
+const cbmp = theoNguong(D.cb2.mp.validation2.p1, 4), cbm5 = theoNguong(D.cb2.m5.validation2.p1, 4), cbz = theoNguong(D.cb2.mp.validation2.p2, 4);
+const ngay_ = (x) => x.split("-").reverse().join("/");
+const muTu = (x) => { const [m, e] = x.toExponential(1).split("e"); const so = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+  return `${m.replace(".", ",")} × 10${[...String(+e)].map((c) => so[c]).join("")}`; };
+const ANH = (f) => path.join(DU_AN, "reports", "word", "anh", f);
 const c8 = [
   H1("CHƯƠNG 8. HỌC SÂU VÀ KIỂM CHỨNG TRÊN SỐ THẬT"),
   P("Kết quả ở các chương trước dùng dữ liệu mô phỏng, do chính đề tài sinh ra. Chương này trả lời hai câu hỏi hội đồng dễ đặt ra nhất: mô hình phức tạp hơn có tốt hơn không, và kết quả có giữ được trên số bán thật không."),
@@ -453,6 +463,24 @@ const c8 = [
   ], [4.4, 1.8, 3, 3], { traiCot: [2, 3] }),
   nguon("Dominick's Dataset, James M. Kilts Center, University of Chicago Booth School of Business; đề tài tính lại toàn chuỗi theo mã và tuần."),
   P(`Đo hệ số khuyến mãi trên 2/3 đầu rồi kiểm trên 1/3 sau: phép gộp mọi mức giảm không đạt (chỉ ${DM.phu_nganh_dat} / ${Object.keys(DM.phu.theo_nganh).length} ngành giữ được), chia theo dải giảm giá thì đạt ${Object.values(LS.phu).filter((x) => x.dat).length} / ${Object.keys(LS.phu).length} dải. Trên dữ liệu mô phỏng cùng phép kiểm lại đạt, vì một quy luật sinh ra cả hai giai đoạn. Do đó hệ số phải được đo lại định kỳ, không thể đo một lần rồi dùng mãi. Độ co giãn chỉ là tương quan vì khuyến mãi siêu thị đi kèm trưng bày và tờ rơi; giá vốn là giá bình quân tồn kho nên mức tài trợ chỉ là ước lượng.`),
+  H2("8.4. Nghiệp vụ kho trên số thật M5 và AI có giá trị ở đâu"),
+  P("Đề tài dựng thêm một bộ dữ liệu kho từ số bán thật M5: số bán và giá bán giữ nguyên, khuyến mãi suy từ giá, biên lãi đo từ Dominick's; lead time, chi phí đặt, chi phí lưu kho và nhà cung cấp là giả định. Bộ này chạy nguyên chính sách tồn kho của chương 5."),
+  tenBang("Tồn kho trên bộ dữ liệu kho từ M5, tập kiểm tra, mức phục vụ 95%"),
+  bang(["Chính sách", "Fill Rate", "Ngày-mã thiếu", "Tồn kho TB (triệu đ)", "Chi phí liên quan (triệu đ)"],
+    [["cong_thuc_du_bao_ai_hc", "AI + hiệu chỉnh lệch"], ["cong_thuc_du_bao_ai", "AI"], ["cong_thuc_du_bao_moc", "Dự báo mốc (trung bình trượt)"], ["hien_trang", "Quy tắc kinh nghiệm (giả định)"]]
+      .map(([k, t]) => [t, `${vn(M5T[k].fill, 2)}%`, vn(M5T[k].thieu, 0), vn(M5T[k].ton), vn(M5T[k].cp)]), [4.6, 2, 2, 2.6, 2.8], {}),
+  nguon("bộ dữ liệu kho dựng từ M5 Forecasting (Walmart) và Dominick's, tính bằng chương trình của đề tài; lead time, chi phí, tồn kho là giả định."),
+  P(`Trên M5, chính sách AI + hiệu chỉnh chỉ giảm ${vn(-100 * lech(M5T.cong_thuc_du_bao_ai_hc.cp, M5T.cong_thuc_du_bao_moc.cp))}% chi phí liên quan so với dự báo mốc, trong khi trên dữ liệu mô phỏng là ${vn(-100 * lech(TKD.cong_thuc_du_bao_ai_hc.cp, TKD.cong_thuc_du_bao_moc.cp))}%. Thử độ nhạy theo chi phí đặt (từ × 0,1 đến × 2) cho thấy khoảng cách này không do giả định chi phí đặt: theo luật ghi trước, cả hai bộ đều “không phụ thuộc rõ” (lợi ích của AI ở chi phí đặt × 0,1 chỉ cao hơn ở × 1 là ${vn(DNS.m5.ket_luan.chenh_diem)} điểm trên M5 và ${vn(DNS.mp.ket_luan.chenh_diem)} điểm trên mô phỏng, ngưỡng 5 điểm).`),
+  tenBang("Lợi ích của AI + hiệu chỉnh so với dự báo mốc theo chi phí đặt, tập kiểm tra"),
+  bang(["Chi phí đặt so với gốc", "M5: lượng đặt (ngày bán)", "M5: lợi ích AI", "Mô phỏng: lượng đặt (ngày bán)", "Mô phỏng: lợi ích AI"],
+    Object.keys(DNS.m5.ket_qua).map((k) => [`× ${vn(+k, 2)}`, vn(DNS.m5.ket_qua[k].eoq_ngay), pt(DNS.m5.ket_qua[k].loi_ich / 100), vn(DNS.mp.ket_qua[k].eoq_ngay), pt(DNS.mp.ket_qua[k].loi_ich / 100)]),
+    [3, 2.6, 2.2, 2.8, 2.2], {}),
+  nguon("tính bằng chương trình của đề tài; lợi ích = (chi phí liên quan của dự báo mốc − của AI + hiệu chỉnh) / của dự báo mốc; lượng đặt EOQ tính bằng số ngày bán, trung vị."),
+  P(["Lời giải thích nằm ở loại hàng. Trên dữ liệu mô phỏng, ", B(`${vn(100 * D.z.ton)}%`), " mức giảm tồn kho và ", B(`${vn(100 * D.z.lnm)}%`),
+    ` mức giảm lợi nhuận mất của AI so với dự báo mốc đến từ ${D.z.so_z} mã nhóm Z (mùa vụ, theo sự kiện), nơi trung bình trượt chỉ đạt Fill Rate ${vn(D.z.fill_moc_z)}%. Bộ M5 chỉ có ${D.z_m5} mã nhóm Z; với hàng bán đều, trung bình trượt cộng tồn kho an toàn đã đủ. AI đáng dùng nhất cho hàng mùa vụ và hàng theo sự kiện.`]),
+  P(`Các nghiệp vụ còn lại trên M5: gom đơn theo nhà cung cấp chọn đặt kèm k = ${D.m5_gom.k_chon}; trên tập kiểm tra, gom cùng ngày giảm ${vn(-100 * lech(g5.goc["0.5"].cp_gom, g5.goc["0.5"].cp_rieng))}% chi phí liên quan, đặt kèm giảm thêm ${vn(-100 * lech(g5.dat_kem["0.5"].cp_gom, g5.goc["0.5"].cp_gom))}% nhưng tồn kho tăng ${vn(100 * lech(g5.dat_kem["0.5"].ton_tb, g5.goc["0.5"].ton_tb))}%; lợi ích chủ yếu đến từ chia sẻ chi phí phiếu nên phụ thuộc giả định tỉ lệ chi phí chung. Chấm điểm nhà cung cấp, hạn sử dụng, sức chứa và newsvendor hàng dịp lễ không áp dụng cho M5 (mọi nhà cung cấp cùng lead time giả định, không có tên hàng để suy hạn dùng và thể tích, không có hàng chỉ bán dịp lễ).`),
+  H2("8.5. Cảnh báo dự báo bắt đầu lệch: kết quả âm tính"),
+  P(`Đề tài thử thêm tín hiệu theo dõi (tracking signal): tổng sai số 4 tuần gần nhất chia cho sai số tuyệt đối trung bình theo tuần, cảnh báo khi vượt ngưỡng. Luật ghi trước yêu cầu cảnh báo phải báo đúng chiều lệch của 28 ngày tới và không báo quá nhiều. Sau hai vòng, kết quả không đạt ở cả hai bộ. Ở ngưỡng 4, trên mô phỏng chiều lệch của 28 ngày tới chỉ trùng ${vn(100 * cbmp.cung_chieu)}% (như tung đồng xu), có thể vì mô hình đã cập nhật mỗi tuần; trên M5 trùng ${vn(100 * cbm5.cung_chieu)}% nhưng độ lệch của nhóm bị cảnh báo chỉ gấp ${vn(cbm5.boi, 2)} lần nhóm còn lại. Với các đợt tăng đột ngột (nắng nóng, rét, dịch), tín hiệu phát hiện ${vn(100 * cbz.phat_hien)}% số đợt ngay tuần đầu, gấp ${vn(cbz.gap, 1)} lần tỉ lệ báo nhầm, nhưng chưa đạt 50%: cảnh báo dựa trên sai số đã qua đến muộn, nhất là khi hết hàng làm số bán không phản ánh nhu cầu. Muốn bắt kịp cần thông tin bên ngoài như dự báo thời tiết, tin dịch bệnh.`),
 ];
 
 // ================================================================ CHUONG 9 (he thong)
@@ -464,13 +492,41 @@ const c9 = [
   H2("9.1. Cơ sở dữ liệu và luồng chạy lại"),
   P(`Toàn bộ dữ liệu và kết quả nằm trong một tệp SQLite (${nBang} bảng, ${nView} khung nhìn): danh mục (mã hàng, nhà cung cấp, phân nhóm), giao dịch thô và sạch, lịch sự kiện / khuyến mãi / ngày nghỉ, mô hình và dự báo (có khoảng 80 / 95%), tham số và kết quả tồn kho, mô phỏng theo ngày, thử độ nhạy, nhật ký chạy. Mỗi bước là một chương trình chạy lại được (Phụ lục A); chạy lại từ đầu cho kết quả trùng từng byte.`),
   H2("9.2. Dashboard cho người lập kế hoạch"),
-  P("Dashboard (Streamlit, chạy trên máy, không cần mạng) gồm 4 màn với cơ chế tương tự Power BI: bộ lọc chung (ngày, chính sách, nhóm ABC / XYZ) áp cho mọi màn; bấm vào biểu đồ / ô trạng thái để lọc chéo; bấm một dòng để đi sâu sang màn Mặt hàng.", { keepNext: true }),
+  P("Dashboard (Streamlit, chạy trên máy, không cần mạng) gồm 5 màn với cơ chế tương tự Power BI: bộ lọc chung (ngày, chính sách, nhóm ABC / XYZ) áp cho mọi màn; bấm vào biểu đồ / ô trạng thái để lọc chéo; bấm một dòng để đi sâu sang màn Mặt hàng.", { keepNext: true }),
   gach([B("Hôm nay: "), `tình trạng cuối ngày, các đơn đề xuất kèm lý do bằng số (trong kho + đang về ≤ ROP), duyệt / sửa / bỏ qua từng dòng, tải phiếu đặt hàng theo nhà cung cấp. Ví dụ ngày 09/02/2026 (trước Tết): ${cb["Hết hàng"]} mã hết hàng, ${cb["Đặt hàng hôm nay"]} mã cần đặt, ${cb["Dưới ROP, hàng đang về"]} mã dưới ROP nhưng hàng đang về, ${cb["Đủ hàng"]} mã đủ hàng.`]),
+  gach([B("Dự báo: "), "dự báo 28 ngày chưa xảy ra, mô hình chạy lại khi bấm, giải thích từng con số theo yếu tố và thử nếu bật khuyến mãi (mục 9.3)."]),
   gach([B("Mặt hàng: "), "tồn kho 12 tháng, dải trạng thái theo ngày, dự báo so với thực tế kèm khoảng 80%, khung “Thử nếu…” tính lại SS / ROP / EOQ và lượng đặt khi đổi mức phục vụ hoặc lead time (tái lập đúng 127.776 / 127.776 dòng của mô phỏng); khối trữ hàng cho phiên livestream dùng được cho mọi mã."]),
   gach([B("Kịch bản & kết quả: "), "bảng trước – sau, 4 chỉ số chính, đánh đổi tồn kho – mức đáp ứng theo nhóm, chỉ số kho, gom đơn, chấm điểm nhà cung cấp, hạn sử dụng và sức chứa, newsvendor hàng dịp lễ, thử độ nhạy."]),
   gach([B("Dữ liệu & phương pháp: "), "dữ liệu là gì, cái gì thật / giả định, các biểu đồ phân tích, xếp hạng mô hình, công thức."]),
-  ...hinh(ANH_DASH, "Màn “Hôm nay” của dashboard (ngày 09/02/2026)", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
-  H2("9.3. Dữ liệu cho Power BI và kiểm thử"),
+  ...hinh(ANH("hom_nay_mp.png"), "Màn “Hôm nay” của dashboard (ngày 09/02/2026)", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  H2("9.3. Dự báo ngày chưa xảy ra: mô hình chạy khi bấm và giải thích"),
+  P("Các màn trên đứng ở một ngày đã qua để so dự báo với thực tế. Màn “Dự báo” trả lời câu hỏi người lập kế hoạch thật sự cần: 28 ngày tới sẽ bán bao nhiêu, vì sao mô hình nghĩ vậy, và nếu thay đổi thì sao."),
+  gach([B("Dự báo cho ngày chưa xảy ra: "), "đứng ở ngày cuối của dữ liệu, dự báo 28 ngày tiếp theo bằng đúng mô hình đã chọn. Thông tin biết trước của 28 ngày này (thứ, lễ, Tết, sale, khuyến mãi đã lên lịch) được dựng theo đúng quy tắc của lịch hiện có; dựng thử cho các khoảng ngày đã qua thì trùng mọi cột với dữ liệu. Sự kiện không biết trước (bão, dịch, thời tiết) không được đoán. Dữ liệu M5 lấy thẳng lịch gốc có sẵn đến hết 28 ngày tới."]),
+  gach([B("Chạy lại phải trùng bản đã chấm: "), `chạy lại mốc tuần cuối của tập kiểm tra cho ra đúng dự báo đã lưu, chỉ lệch ở mức làm tròn của máy. RNN trên M5 học tiếp qua từng tuần nên phải chạy lại cả chuỗi mốc của tập kiểm tra rồi học tiếp ${D.rnn_kl.hoc_tiep.length} lần đến ngày cuối; mốc cuối của tập kiểm tra lệch tổng ${muTu(D.rnn_kl.kiem_lai.lech_tuong_doi_tong)} so với bản đã lưu.`]),
+  tenBang("Dự báo 28 ngày chưa xảy ra và đối chiếu với số bán đã qua (toàn kho, trung bình mỗi ngày)"),
+  bang(["", "Dữ liệu mô phỏng", "Số bán thật M5"], [
+    ["Ngày đứng dự báo", ngay_(TL.mp.ngay_lap), ngay_(TL.m5.ngay_lap)],
+    ["Dự báo cho", `${ngay_(TL.mp.tu)} – ${ngay_(TL.mp.den)}`, `${ngay_(TL.m5.tu)} – ${ngay_(TL.m5.den)}`],
+    ["Mô hình", TL.mp.mo_hinh, TL.m5.mo_hinh],
+    ["Dự báo", vn(TL.mp.tb, 0), vn(TL.m5.tb, 0)],
+    ["Cùng kỳ 1 năm trước", vn(TL.mp.cung_ky_1, 0), vn(TL.m5.cung_ky_1, 0)],
+    ["Cùng kỳ 1 năm trước, bỏ dòng có khuyến mãi", vn(TL.mp.cung_ky_1_khong_km, 0), "không có khuyến mãi"],
+    ["Cùng kỳ 2 năm trước, bỏ dòng có khuyến mãi", vn(TL.mp.cung_ky_2_khong_km, 0), vn(TL.m5.cung_ky_2_khong_km, 0)],
+    ["28 ngày gần nhất trước ngày đứng dự báo", vn(TL.mp.gan, 0), vn(TL.m5.gan, 0)],
+  ], [5.2, 3, 3], {}),
+  nguon("tính bằng chương trình của đề tài; cùng kỳ lùi 364 hoặc 728 ngày để cùng thứ trong tuần."),
+  P(`Trên dữ liệu mô phỏng, dự báo thấp hơn cùng kỳ năm trước vì tháng 10/2025 có Trung thu và khuyến mãi; bỏ dòng có khuyến mãi, cùng kỳ 2 năm trước (không có Trung thu trong tháng 10) là ${vn(TL.mp.cung_ky_2_khong_km, 0)}, sát mức dự báo ${vn(TL.mp.tb, 0)}. Dự báo coi như không khuyến mãi vì chưa có lịch khuyến mãi gửi trước.`),
+  ...hinh(ANH("db_tong_mp.png"), "Màn “Dự báo”: 28 ngày chưa xảy ra so với 8 tuần số bán đã qua", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  ...hinh(ANH("db_ma_mp.png"), "Dự báo từng ngày của một mã kèm khoảng 80% và 95%", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  P("Bấm “Chạy mô hình”, hệ thống làm lại từng bước và hiện ra: đọc dữ liệu đến ngày cuối, dựng 28 ngày chưa xảy ra, học LightGBM trên toàn bộ lịch sử (lần đầu khoảng nửa phút, các mã sau dùng lại), học Prophet riêng cho mã đang xem, ghép theo trọng số đã chọn của nhóm hàng, rồi tự so với bản đã lưu trong cơ sở dữ liệu.", { keepNext: true }),
+  ...hinh(ANH("db_chay_mp.png"), "Các bước mô hình chạy khi bấm và kết quả so với bản đã lưu", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  P("Phần “Vì sao ra con số này” chọn một ngày bất kỳ: hiện công thức ghép có số, hệ số nhân của từng nhóm yếu tố trong LightGBM (tách từ đóng góp của từng cột; LightGBM dùng hàm Tweedie theo thang log nên các đóng góp nhân với nhau, và tích các hệ số đúng bằng dự báo) và các thành phần cộng của Prophet (xu hướng, mùa trong tuần, mùa trong năm, ngày lễ, khuyến mãi). Mức nền là dự báo trung bình của mọi mã; “đặc điểm mã hàng” cho biết mã này bán nhiều hay ít hơn mã trung bình.", { keepNext: true }),
+  ...hinh(ANH("db_giai_thich_mp.png"), "Giải thích một ngày dự báo (dữ liệu mô phỏng)", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  ...hinh(ANH("db_giai_thich_m5.png"), "Giải thích một ngày dự báo trên M5: RNN ghép với LightGBM và Prophet", "dashboard của đề tài, số bán thật M5. Phần RNN chỉ có con số tổng: mạng nơ-ron không tách được theo từng yếu tố.", 15.5),
+  P(`Phần “Thử nếu” bật khuyến mãi cho mã đang xem trong khoảng ngày tự chọn; LightGBM và Prophet tính lại bằng chính mô hình vừa học, RNN giữ nguyên. Để người xem tự kiểm tra mô hình có “nghĩ” hợp lý không, màn hình đặt cạnh mức tăng lịch sử của chính mã đó, so ngày có khuyến mãi với 28 ngày thường ngay trước (so với mọi ngày thường thì bị phóng đại vì khuyến mãi hay rơi vào mùa cao điểm). Trên toàn kho, bật khuyến mãi 7 ngày làm mô hình tăng trung vị × ${vn(SSK.mo_hinh.p50, 2)} (khoảng giữa ${vn(SSK.mo_hinh.p25, 2)}–${vn(SSK.mo_hinh.p75, 2)}), sát mức lịch sử × ${vn(SSK.lich_su.p50, 2)} (${vn(SSK.lich_su.p25, 2)}–${vn(SSK.lich_su.p75, 2)}); nhưng tương quan thứ hạng chỉ ${vn(SSK.tuong_quan_hang, 2)}: mô hình đúng ở mức chung, chưa phân biệt tốt mã nào tăng mạnh. Dữ liệu M5 không có khuyến mãi nên mô hình không học được tác động này; màn hình ghi rõ.`, { keepNext: true }),
+  ...hinh(ANH("db_thu_neu_mp.png"), "Thử nếu bật khuyến mãi 7 ngày cho một mã", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  ...hinh(ANH("db_toan_kho_mp.png"), "Mức tăng khi bật khuyến mãi: mô hình so với lịch sử cùng mùa, từng mã", "dashboard của đề tài, dữ liệu mô phỏng.", 15.5),
+  H2("9.4. Dữ liệu cho Power BI và kiểm thử"),
   P("Sáu tệp CSV theo mô hình hình sao (3 danh mục, 3 sự kiện) được xuất kèm sổ đối chiếu số liệu với CSDL. Hệ thống được kiểm thử bằng: chạy lại toàn chuỗi so sánh mã băm, đối chiếu tự động mọi con số trong báo cáo với CSDL, kiểm thử tự động giao diện và bấm chuột thật trên trình duyệt cho các thao tác chính."),
 ];
 
@@ -483,18 +539,23 @@ const c10 = [
   gach("“Hiện trạng” trong dữ liệu biết trước nhu cầu kỳ vọng nên là đối thủ mạnh hơn thực tế."),
   gach(`Trên số bán thật M5, mức giảm sai số so với trung bình trượt chỉ ${vn(100 * giamM5)}%, so với ${vn(100 * giamMP, 0)}% trên dữ liệu mô phỏng.`),
   gach("Chính sách cho hàng chỉ bán dịp lễ còn đặt quá tay ở mùa cao điểm; newsvendor đã thử nhưng chưa được tập kiểm tra xác nhận (mục 7.6)."),
+  gach(`Trên bộ dữ liệu kho từ M5, AI gần như không giảm được chi phí tồn kho (${vn(-100 * lech(D.m5_tk.cong_thuc_du_bao_ai_hc.cp, D.m5_tk.cong_thuc_du_bao_moc.cp))}%); lợi ích của AI tập trung ở hàng mùa vụ (mục 8.4).`),
+  gach(`Phần RNN không giải thích được theo từng yếu tố và giữ nguyên khi thử nếu; M5 không có khuyến mãi nên mô hình không học được tác động khuyến mãi; mô hình chưa phân biệt tốt mã nào tăng mạnh khi khuyến mãi (tương quan thứ hạng ${vn(D.ss_km.tuong_quan_hang, 2)}).`),
+  gach("Cảnh báo dự báo lệch dựa trên sai số đã qua chưa đạt luật (mục 8.5). Lịch âm lịch cho ngày tương lai (Tết, Trung thu, Giỗ Tổ) lấy từ bảng nhập tay, cần đối chiếu lịch chính thức; lịch thể thao không tự suy ra được."),
   gach("Hạn sử dụng, thể tích, sức chứa và phiên livestream đều dùng giả định; hạn sử dụng và sức chứa được xét riêng, chưa gộp. Chưa xét lịch đặt hàng cố định theo nhà cung cấp, gom đủ xe và số chuyến xe nhận hàng."),
   H2("10.2. Hướng phát triển"),
   gach([B("Dữ liệu thật: "), "nạp dữ liệu nhập – xuất – tồn từ hệ thống quản lý kho vào cùng cấu trúc và chạy lại toàn bộ."]),
   gach([B("Hàng chỉ bán dịp lễ: "), "đưa đặt một lần vào chính sách khi có thêm dữ liệu để kiểm chứng độc lập; hàng hạn ngắn có mùa dài cần giao nhiều đợt."]),
   gach([B("Phiên livestream: "), "thay tham số giả định bằng lịch phiên, đơn theo giờ và tỉ lệ hoàn đơn thật; kết nối đơn từ sàn."]),
   gach([B("Tồn kho an toàn theo phân vị sai số thực "), "thay cho giả định phân phối chuẩn (luật đã ghi, chưa chạy)."]),
+  gach([B("Thông tin bên ngoài: "), "dự báo thời tiết, tin dịch bệnh để báo sớm các đợt tăng đột ngột mà cảnh báo dựa trên sai số đã qua chưa bắt kịp (mục 8.5)."]),
   gach([B("Ràng buộc vận hành: "), "gộp hạn sử dụng với sức chứa, lịch đặt hàng cố định, ước tính chuyến xe khi có thể tích và trọng lượng thật của từng mã."]),
 ];
 const kl = [
   H1("KẾT LUẬN"),
   P(`Đề tài đã xây dựng được quy trình hoàn chỉnh từ dữ liệu đến quyết định đặt hàng cho kho tổng của một chuỗi siêu thị. Dự báo AI cập nhật mỗi tuần sai ${vn(100 * M.ket_hop_v4.wmape)}% theo ngày, gần mức tối thiểu do nhu cầu ngẫu nhiên, và mỗi con số dự báo có khoảng tin cậy đã được kiểm chứng. Khi đưa vào chính sách tồn kho, chính sách đề xuất đạt Fill Rate ${vn(ai.fill_rate_pt, 2)}%, giảm ${vn(-100 * lech(ai.chi_phi_lien_quan_trieu, moc.chi_phi_lien_quan_trieu))}% chi phí so với cùng công thức dùng dự báo đơn giản, và tốt hơn cả “hiện trạng” được biết trước nhu cầu về tồn kho, số ngày thiếu hàng lẫn tổng chi phí. Bài học quan trọng nhất là cách dùng dự báo – cập nhật thường xuyên, quy tắc đặt hàng hợp với từng loại hàng, cập nhật tham số khi lead time thay đổi – quan trọng không kém độ chính xác của mô hình.`),
   P(`Các con số trên đo trên dữ liệu mô phỏng. Khi chạy nguyên quy trình trên số bán thật M5, mô hình vẫn tốt hơn phương pháp đơn giản nhưng mức giảm sai số chỉ ${vn(100 * giamM5)}%, so với ${vn(100 * giamMP, 0)}% trên mô phỏng; đối chiếu với Dominick's cũng cho thấy một số giả định chưa sát. Đề tài cũng tự phát hiện điểm yếu của chính sách với hàng chỉ bán dịp lễ, đã thử newsvendor nhưng chưa đủ căn cứ đưa vào chính sách chính. Đóng góp của đề tài vì vậy là quy trình và phương pháp kiểm chứng có thể chạy lại trên dữ liệu thật, chưa phải một con số tiết kiệm cho kho cụ thể.`),
+  P(`Hệ thống không chỉ đọc lại kết quả đã tính: màn Dự báo đứng ở ngày cuối của dữ liệu, dự báo 28 ngày chưa xảy ra, chạy lại mô hình ngay khi bấm (ra đúng bản đã chấm), giải thích từng con số theo nhóm yếu tố và cho thử nếu bật khuyến mãi. Khi bật khuyến mãi, mô hình tăng gần đúng mức lịch sử trên toàn kho. Kiểm chứng trên số thật cũng chỉ ra nơi AI có giá trị: lợi ích tồn kho gần như biến mất trên M5 nhưng rất lớn với hàng mùa vụ trên mô phỏng (${vn(100 * D.z.ton)}% mức giảm tồn kho); người quản lý kho nên ưu tiên dùng AI cho hàng mùa vụ, hàng theo sự kiện.`),
   new Paragraph({ children: [new PageBreak()] }),
   H1("PHỤ LỤC"),
   H2("A. Lệnh chạy lại toàn bộ (tại thư mục gốc dự án)"),
@@ -505,6 +566,8 @@ const kl = [
     "python src/bieu_do_ket_qua.py; python src/xuat_power_bi.py; python src/tao_trang_luong.py",
     "python src/chi_so_kho.py; python src/gom_don.py; python src/cham_diem_ncc.py; python src/rang_buoc_kho.py; python src/newsvendor_mua_vu.py; python src/tru_hang_live.py",
     "python src/phan_tich_dominicks.py --buoc gop; … --buoc tinh; … --buoc sau_doi_chieu; python src/so_lieu_do_an.py",
+    "python src/do_nhay_chi_phi_dat.py; python src/canh_bao_lech_v2.py; python src/du_bao_tuong_lai.py; python src/chay_du_bao.py --so_sanh_km",
+    "cd du_lieu_nguon/m5; python ../../src/du_bao_tuong_lai_kc.py --rnn ../../data/m5; python ../../src/du_bao_tuong_lai_kc.py ../../data/m5",
     "streamlit run app/dashboard.py"].map((l) => new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: l, font: "Consolas", size: 20 })] })),
   H2("B. Tài liệu kỹ thuật kèm theo"),
   gach("docs/10_bao_cao_giai_doan_2.md: báo cáo kỹ thuật chi tiết, luật ghi trước và nhật ký từng bước."),

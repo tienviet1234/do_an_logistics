@@ -22,7 +22,7 @@ from kiem_tra_du_lieu import nguon_du_lieu  # noqa: E402
 REF = "data/reference"
 # GD E vong 4: cap nhat moi tuan (docs/10 muc 9.6); truoc do: ket_hop_v3. Nguon du lieu khac ghi mo hinh da chon trong tep nguon
 MO_HINH_DUOC_CHON = nguon_du_lieu().get("mo_hinh_chon", "ket_hop_v4")
-TAPS = ("validation2", "validation", "test")     # thu tu quan trong: "validation2" truoc "validation"
+TAPS = ("validation2", "validation", "test", "tuong_lai")     # thu tu quan trong: "validation2" truoc "validation"; tuong_lai: src/du_bao_tuong_lai.py
 
 
 def now():

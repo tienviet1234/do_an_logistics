@@ -108,6 +108,10 @@ def tao():
     L += ["", "### 8.6. Trữ hàng livestream, bản sau đối chiếu (nguồn: `reports/tru_hang_live_sau_doi_chieu.md`)", ""] + doc_tep("reports/tru_hang_live_sau_doi_chieu.md")
     L += ["", "### 8.7. Hạn sử dụng và sức chứa (nguồn: `reports/rang_buoc_kho.md`; hạn, thể tích, sức chứa là giả định)", ""] + doc_tep("reports/rang_buoc_kho.md")
     L += ["", "### 8.8. Newsvendor cho hàng chỉ bán dịp lễ (nguồn: `reports/newsvendor_mua_vu.md`)", ""] + doc_tep("reports/newsvendor_mua_vu.md")
+    L += ["", "### 8.9. Độ nhạy theo chi phí đặt (nguồn: `reports/do_nhay_chi_phi_dat.md`)", ""] + doc_tep("reports/do_nhay_chi_phi_dat.md")
+    L += ["", "### 8.10. Cảnh báo dự báo lệch, mô phỏng (nguồn: `reports/canh_bao_lech.md`; M5: `du_lieu_nguon/m5_kho/reports/canh_bao_lech.md`)", ""] + doc_tep("reports/canh_bao_lech.md") + ["", "M5:", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/canh_bao_lech.md")
+    L += ["", "### 8.11. Cảnh báo dự báo lệch, vòng 2 (nguồn: `reports/canh_bao_lech_v2.md`; M5: `du_lieu_nguon/m5_kho/reports/canh_bao_lech_v2.md`)", ""] + doc_tep("reports/canh_bao_lech_v2.md") + ["", "M5:", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/canh_bao_lech_v2.md")
+    L += ["", "### 8.12. Dự báo 28 ngày chưa xảy ra (nguồn: `reports/du_bao_tuong_lai.md`; M5: `du_lieu_nguon/m5/reports/du_bao_tuong_lai.md`)", ""] + doc_tep("reports/du_bao_tuong_lai.md") + ["", "M5:", ""] + doc_tep("du_lieu_nguon/m5/reports/du_bao_tuong_lai.md")
     L += ["", "## 9. Học sâu trên dữ liệu mô phỏng", "", "### 9.1. LSTM, RNN (nguồn: `reports/mo_hinh_dl.md`)", ""]
     if dl.get("quyet_dinh"):
         L += [f"Quyết định theo luật: giữ **{dl['quyet_dinh']['chon']}**; học sâu tốt hơn trên validation2: {dl['quyet_dinh']['hoc_sau_tot_hon']}; trọng số ghép {dl['quyet_dinh']['w']}."]
@@ -117,6 +121,10 @@ def tao():
     L += ["", "## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)", "", "### 10.1. Các mô hình (nguồn: `du_lieu_nguon/m5/reports/kiem_chung.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/kiem_chung.md")
     L += ["", "### 10.2. TiDE, N-HiTS, TFT trên M5 (nguồn: `du_lieu_nguon/m5/reports/mo_hinh_nf.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/mo_hinh_nf.md")
     L += ["", "### 10.3. Tồn kho trên bộ dữ liệu dựng từ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md`; lead time, chi phí, tồn kho là giả định)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md")
+    L += ["", "### 10.4. Chỉ số kho trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/chi_so_kho.md`)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/chi_so_kho.md")
+    L += ["", "### 10.5. Gom đơn trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/gom_don.md`; nhà cung cấp và chi phí là giả định)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/gom_don.md")
+    L += ["", "Chấm điểm nhà cung cấp, hạn sử dụng, sức chứa, newsvendor hàng dịp lễ không áp dụng cho M5 (docs/10 mục 10.13)."]
+    L += ["", "### 10.6. Độ nhạy theo chi phí đặt trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/do_nhay_chi_phi_dat.md`)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/do_nhay_chi_phi_dat.md")
     L += ["", "## 11. Nguồn dữ liệu công khai cần trích dẫn", "", "- M5 Forecasting: bản sao Zenodo record 12636070, gốc từ Kaggle (Walmart, University of Nicosia). Zenodo ghi CC BY 4.0, người đăng là bên thứ ba: cần hỏi giảng viên.",
           "- Dominick's Dataset: Kilts Center for Marketing, University of Chicago Booth School of Business. Chỉ dùng cho nghiên cứu học thuật, phải ghi nguồn.", "",
           "## 12. Hình cho đồ án", "", "- Kết quả: `reports/ket_qua/k01`–`k07`. Khám phá dữ liệu: `reports/eda/h01`–`h08`. Sơ đồ: `reports/so_do/`.", "",
