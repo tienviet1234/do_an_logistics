@@ -34,7 +34,7 @@ Xây dựng và đánh giá một quy trình ứng dụng trí tuệ nhân tạo
 
 1. Xây dựng bộ dữ liệu đầu vào và quy trình tiền xử lý: làm sạch dữ liệu xuất nhập tồn, nhận diện ngày hết hàng, xây dựng lịch các yếu tố tác động đến nhu cầu (ngày lễ, khuyến mãi, sale, bão lũ).
 2. Phân tích đặc điểm nhu cầu và phân loại mã hàng theo ABC, XYZ và mức độ bán rời rạc.
-3. Xây dựng và so sánh các mô hình dự báo: nhóm mô hình mốc (Naive, trung bình trượt, ETS, ARIMA, Croston/TSB) và nhóm mô hình trí tuệ nhân tạo (Prophet, LightGBM/XGBoost), trên cùng một khung đánh giá theo thời gian.
+3. Xây dựng và so sánh các mô hình dự báo: nhóm mô hình mốc (Naive, trung bình trượt, ETS, ARIMA, Croston/TSB) và nhóm mô hình trí tuệ nhân tạo (Prophet, LightGBM, học sâu LSTM, RNN, TiDE, N-HiTS, TFT) và các phương án kết hợp, trên cùng một khung đánh giá theo thời gian.
 4. Từ kết quả dự báo, xác định lượng đặt hàng tối ưu (EOQ), tồn kho an toàn (Safety Stock) và điểm đặt hàng lại (Reorder Point) cho từng mã hàng.
 5. Mô phỏng và so sánh chính sách tồn kho dựa trên dự báo với chính sách hiện có qua các chỉ tiêu: tỷ lệ đáp ứng (Fill Rate), số ngày hết hàng, tồn kho bình quân, số ngày tồn kho (DOH), tổng chi phí đặt hàng và lưu kho.
 6. Đề xuất cách áp dụng kết quả cho doanh nghiệp.
@@ -66,11 +66,11 @@ Hoạt động dự báo nhu cầu và quản lý tồn kho theo từng mã hàn
 1. **Nghiên cứu tài liệu:** tổng hợp lý thuyết về quản lý tồn kho, dự báo chuỗi thời gian và học máy (Chương 2).
 2. **Xây dựng và xử lý dữ liệu:** dựng bộ dữ liệu kho từ số bán M5 và mô phỏng dữ liệu bằng Python; với bộ mô phỏng, làm sạch dựa trên đẳng thức tồn kho (tồn cuối = tồn đầu + nhập − xuất); nhận diện ngày hết hàng để không coi lượng xuất ngày đó là nhu cầu.
 3. **Thống kê mô tả và phân tích khám phá:** phân tích chu kỳ tuần, mùa vụ, tác động khuyến mãi; phân loại ABC/XYZ và phân loại nhu cầu theo Syntetos–Boylan.
-4. **Mô hình hóa dự báo:** các mô hình thống kê (ETS, ARIMA, Croston, TSB) và mô hình trí tuệ nhân tạo (Prophet, LightGBM/XGBoost).
+4. **Mô hình hóa dự báo:** các mô hình thống kê (ETS, ARIMA, Croston, TSB), mô hình trí tuệ nhân tạo (Prophet, LightGBM), mô hình học sâu (LSTM, RNN, TiDE, N-HiTS, TFT) và kết hợp dự báo.
 5. **Đánh giá theo thời gian (backtest cuốn chiếu):** chia dữ liệu theo trình tự thời gian (12 tháng cuối để kiểm tra, phần trước để huấn luyện), dự báo lặp lại tại nhiều mốc; đo bằng MAE, RMSE, WMAPE, MASE và Bias. Mô hình chỉ được sử dụng thông tin biết trước tại thời điểm dự báo.
 6. **Mô hình tồn kho và mô phỏng:** tính EOQ, Safety Stock, Reorder Point từ kết quả dự báo; mô phỏng vận hành kho trong 12 tháng để so sánh các chính sách.
 
-Công cụ: Python (pandas, statsmodels, statsforecast, Prophet, LightGBM), Excel, Streamlit (dashboard).
+Công cụ: Python (pandas, statsforecast, Prophet, LightGBM, PyTorch, NeuralForecast), SQLite (cơ sở dữ liệu), Streamlit (dashboard), Power BI.
 
 ## 1.6. Ý nghĩa của đề tài
 

@@ -22,6 +22,9 @@ from kiem_tra_du_lieu import nguon_du_lieu  # noqa: E402
 REF = "data/reference"
 # GD E vong 4: cap nhat moi tuan (docs/10 muc 9.6); truoc do: ket_hop_v3. Nguon du lieu khac ghi mo hinh da chon trong tep nguon
 MO_HINH_DUOC_CHON = nguon_du_lieu().get("mo_hinh_chon", "ket_hop_v4")
+# --mo_hinh_chon <ten>: nap voi mo hinh da chon o thoi diem truoc (chay lai vong 4: luc do la ket_hop_v3, chua co ket_hop_v4)
+if "--mo_hinh_chon" in sys.argv:
+    MO_HINH_DUOC_CHON = sys.argv[sys.argv.index("--mo_hinh_chon") + 1]
 TAPS = ("validation2", "validation", "test", "tuong_lai")     # thu tu quan trong: "validation2" truoc "validation"; tuong_lai: src/du_bao_tuong_lai.py
 
 

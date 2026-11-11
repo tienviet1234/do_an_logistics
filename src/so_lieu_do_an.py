@@ -57,6 +57,44 @@ MO_HINH = [("ket_hop_v4", "Kết hợp v4, cập nhật tuần (đang dùng)"), 
            ("ket_hop_nf", "Ghép v4 + mô hình mới"), ("tb_truot_28_tuan", "TB trượt 28 ngày, cập nhật tuần"), ("tb_truot_28", "TB trượt 28 ngày"), ("croston_sba", "Croston SBA"), ("tsb", "TSB"), ("ets", "ETS"), ("naive", "Naive"), ("seasonal_naive_7", "Seasonal Naive")]
 
 
+THU = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ nhật"]
+M5_DB = "du_lieu_nguon/m5_kho/data/kho_hang.db"
+
+
+def dac_diem(f_db, day_du=False):
+    """Dac diem du lieu doc tu 1 CSDL (dung cho ca 2 bo): quy mo, ngay nghi, khuyen mai, phan loai, chu ky tuan. Khong co CSDL -> chua co."""
+    import sqlite3
+    if not os.path.exists(f_db):
+        return [CHUA_CO]
+    c = sqlite3.connect(f"file:{f_db}?mode=ro", uri=True)
+    q = lambda s: pd.read_sql(s, c)
+    L = []
+    if day_du:
+        n = q("""SELECT (SELECT COUNT(*) FROM dm_sku) sku, (SELECT COUNT(DISTINCT nhom_hang) FROM dm_sku) nhom, (SELECT COUNT(*) FROM dm_nha_cung_cap) ncc,
+                        (SELECT COUNT(*) FROM giao_dich_sach) dong, (SELECT COUNT(DISTINCT ngay) FROM giao_dich_sach) ngay, (SELECT MIN(ngay) FROM giao_dich_sach) tu,
+                        (SELECT MAX(ngay) FROM giao_dich_sach) den""").iloc[0]
+        abc = q("SELECT abc_train a, xyz_train x, COUNT(*) n FROM phan_loai_sku GROUP BY 1, 2").pivot(index="a", columns="x", values="n").fillna(0).astype(int)
+        L += bang(["Hạng mục", "Giá trị"], [["Số mã / nhóm hàng / nhà cung cấp", f"{int(n.sku)} / {int(n.nhom)} / {int(n.ncc)}"],
+                                             ["Thời gian", f"{n.tu} – {n.den} ({so(n.ngay, 0)} ngày)"], ["Số dòng (mã × ngày)", so(n.dong, 0)]])
+        L += ["", "Ma trận ABC × XYZ (số mã, phân loại trên tập huấn luyện):", ""] + bang(["ABC \\ XYZ"] + list(abc.columns), [[a] + list(abc.loc[a]) for a in abc.index])
+        L += [""]
+    g = q("SELECT ngay, SUM(qty_out) x, MAX(la_ngay_nghi) nghi FROM giao_dich_sach GROUP BY ngay")
+    mo = g[g.nghi == 0].assign(thu=lambda d: pd.to_datetime(d.ngay).dt.dayofweek)
+    ma = q("SELECT qty_out FROM giao_dich_sach WHERE la_ngay_nghi = 0").qty_out
+    km = q("SELECT COUNT(*) n, COUNT(DISTINCT ma_sku) m, AVG(so_ngay) d FROM lich_khuyen_mai").iloc[0]
+    lnc = q("SELECT loai_nhu_cau l, COUNT(*) n FROM phan_loai_sku GROUP BY 1 ORDER BY 2 DESC")
+    L += bang(["Đặc điểm", "Giá trị"], [
+        ["Ngày kho nghỉ (cả kho)", f"{so((g.nghi == 1).sum(), 0)} ngày"],
+        ["Xuất kho mỗi ngày mở cửa (toàn kho): trung bình / trung vị", f"{so(mo.x.mean(), 0)} / {so(mo.x.median(), 0)}"],
+        ["Xuất kho mỗi mã mỗi ngày: trung vị; tỉ lệ ngày-mã bằng 0", f"{so(ma.median(), 1)}; {so(100 * (ma == 0).mean())}%"],
+        ["Khuyến mãi: số đợt / số mã có / độ dài trung bình", f"{so(km.n, 0)} / {so(km.m, 0)} / {so(km.d or 0)} ngày" if km.n else "không có"],
+        ["Phân loại nhu cầu (Syntetos–Boylan)", ", ".join(f"{r.l} {r.n}" for r in lnc.itertuples())]])
+    tb = mo.groupby("thu").x.mean() / mo.x.mean()
+    L += ["", "Chu kỳ tuần (xuất trung bình theo thứ ÷ trung bình mọi ngày mở cửa):", ""] + bang(THU, [[so(tb.get(i, 0), 2) for i in range(7)]])
+    c.close()
+    return L
+
+
 def tao():
     from csdl import doc
     kq = pd.read_csv("reports/ket_qua_mo_hinh.csv", encoding="utf-8-sig")
@@ -76,6 +114,7 @@ def tao():
     L += bang(["Hạng mục", "Giá trị"], [["Số mã / nhóm hàng / nhà cung cấp", f"{int(n.sku)} / {int(n.nhom)} / {int(n.ncc)}"], ["Thời gian", f"{n.tu} – {n.den} ({so(n.ngay, 0)} ngày)"], ["Dòng thô / sạch / đã sửa", f"{so(n.tho, 0)} / {so(n.dong, 0)} / {so(n.sua, 0)}"],
                                          ["Tỉ lệ ngày-mã hết hàng", f"{so(100 * n.het)}%"]])
     L += ["", "Ma trận ABC × XYZ (số mã):", ""] + bang(["ABC \\ XYZ"] + list(abc.columns), [[a] + list(abc.loc[a]) for a in abc.index])
+    L += ["", "Đặc điểm thêm:", ""] + dac_diem("data/kho_hang.db")
     L += ["", "## 2. Dự báo trên tập kiểm tra (nguồn: `reports/ket_qua_mo_hinh.csv`)", ""] + bang_mo_hinh(kq, MO_HINH, "test")
     L += ["", "## 3. Dự báo trên validation2 (dùng để chọn mô hình)", ""] + bang_mo_hinh(kq, MO_HINH, "validation2")
     L += ["", "## 4. Sàn sai số và khoảng dự báo (nguồn: `reports/nang_cap_du_bao_v4_trang_thai.json`)", ""]
@@ -118,7 +157,9 @@ def tao():
     else:
         L.append(CHUA_CO)
     L += ["", "### 9.2. TiDE, N-HiTS, TFT (nguồn: `reports/mo_hinh_nf.md`)", ""] + doc_tep("reports/mo_hinh_nf.md")
-    L += ["", "## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)", "", "### 10.1. Các mô hình (nguồn: `du_lieu_nguon/m5/reports/kiem_chung.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/kiem_chung.md")
+    L += ["", "## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)", "",
+          "### 10.0. Dữ liệu bộ kho dựng từ M5 (nguồn: CSDL `du_lieu_nguon/m5_kho/data/kho_hang.db`; số bán thật, phần còn lại giả định)", ""]
+    L += dac_diem(M5_DB, True) + ["", "### 10.1. Các mô hình (nguồn: `du_lieu_nguon/m5/reports/kiem_chung.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/kiem_chung.md")
     L += ["", "### 10.2. TiDE, N-HiTS, TFT trên M5 (nguồn: `du_lieu_nguon/m5/reports/mo_hinh_nf.md`)", ""] + doc_tep("du_lieu_nguon/m5/reports/mo_hinh_nf.md")
     L += ["", "### 10.3. Tồn kho trên bộ dữ liệu dựng từ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md`; lead time, chi phí, tồn kho là giả định)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/ton_kho_so_sanh.md")
     L += ["", "### 10.4. Chỉ số kho trên bộ M5 (nguồn: `du_lieu_nguon/m5_kho/reports/chi_so_kho.md`)", ""] + doc_tep("du_lieu_nguon/m5_kho/reports/chi_so_kho.md")

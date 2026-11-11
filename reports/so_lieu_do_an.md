@@ -1,6 +1,6 @@
 # Sổ số liệu đồ án
 
-Tạo tự động lúc 10/11/2026 16:41 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
+Tạo tự động lúc 10/11/2026 22:07 bằng `python src/so_lieu_do_an.py`: mọi số đọc từ CSDL và tệp kết quả, không ghi tay. Khi viết đồ án lấy số ở đây.
 
 **Lưu ý chung:** các số ở mục 1–9 là kết quả trên **dữ liệu mô phỏng**, không phải số liệu kho thật. Dữ liệu đổi thì số đổi, và mô hình được chọn có thể đổi.
 
@@ -20,6 +20,22 @@ Ma trận ABC × XYZ (số mã):
 | A | 20 | 3 | 5 |
 | B | 19 | 6 | 15 |
 | C | 32 | 1 | 20 |
+
+Đặc điểm thêm:
+
+| Đặc điểm | Giá trị |
+|---|---|
+| Ngày kho nghỉ (cả kho) | 38 ngày |
+| Xuất kho mỗi ngày mở cửa (toàn kho): trung bình / trung vị | 7.435 / 6.864 |
+| Xuất kho mỗi mã mỗi ngày: trung vị; tỉ lệ ngày-mã bằng 0 | 28,0; 6,8% |
+| Khuyến mãi: số đợt / số mã có / độ dài trung bình | 1.338 / 121 / 7,9 ngày |
+| Phân loại nhu cầu (Syntetos–Boylan) | smooth (đều) 58, erratic (thất thường) 54, lumpy (rời rạc + thất thường) 9 |
+
+Chu kỳ tuần (xuất trung bình theo thứ ÷ trung bình mọi ngày mở cửa):
+
+| Thứ Hai | Thứ Ba | Thứ Tư | Thứ Năm | Thứ Sáu | Thứ Bảy | Chủ nhật |
+|---|---|---|---|---|---|---|
+| 1,02 | 1,05 | 1,04 | 1,07 | 1,15 | 1,16 | 0,53 |
 
 ## 2. Dự báo trên tập kiểm tra (nguồn: `reports/ket_qua_mo_hinh.csv`)
 
@@ -994,6 +1010,36 @@ Luật ghi trước: docs/10 mục 9.9. Quyết định chỉ dựa trên valida
 Quyết định: **ket_hop_v4** (trọng số ghép theo nhóm {'X': 0.5, 'Y': 0.3, 'Z': 0.0}, ghép với tft).
 
 ## 10. Kiểm chứng trên dữ liệu thật M5 (số bán thật, không phải mô phỏng)
+
+### 10.0. Dữ liệu bộ kho dựng từ M5 (nguồn: CSDL `du_lieu_nguon/m5_kho/data/kho_hang.db`; số bán thật, phần còn lại giả định)
+
+| Hạng mục | Giá trị |
+|---|---|
+| Số mã / nhóm hàng / nhà cung cấp | 121 / 7 / 7 |
+| Thời gian | 2011-01-29 – 2016-05-22 (1.941 ngày) |
+| Số dòng (mã × ngày) | 234.861 |
+
+Ma trận ABC × XYZ (số mã, phân loại trên tập huấn luyện):
+
+| ABC \ XYZ | X | Y | Z |
+|---|---|---|---|
+| A | 27 | 14 | 0 |
+| B | 26 | 8 | 0 |
+| C | 31 | 14 | 1 |
+
+| Đặc điểm | Giá trị |
+|---|---|
+| Ngày kho nghỉ (cả kho) | 5 ngày |
+| Xuất kho mỗi ngày mở cửa (toàn kho): trung bình / trung vị | 1.146 / 1.124 |
+| Xuất kho mỗi mã mỗi ngày: trung vị; tỉ lệ ngày-mã bằng 0 | 3,0; 30,1% |
+| Khuyến mãi: số đợt / số mã có / độ dài trung bình | 157 / 67 / 14,7 ngày |
+| Phân loại nhu cầu (Syntetos–Boylan) | smooth (đều) 92, intermittent (rời rạc) 17, erratic (thất thường) 7, lumpy (rời rạc + thất thường) 5 |
+
+Chu kỳ tuần (xuất trung bình theo thứ ÷ trung bình mọi ngày mở cửa):
+
+| Thứ Hai | Thứ Ba | Thứ Tư | Thứ Năm | Thứ Sáu | Thứ Bảy | Chủ nhật |
+|---|---|---|---|---|---|---|
+| 0,96 | 0,89 | 0,87 | 0,87 | 0,98 | 1,23 | 1,20 |
 
 ### 10.1. Các mô hình (nguồn: `du_lieu_nguon/m5/reports/kiem_chung.md`)
 

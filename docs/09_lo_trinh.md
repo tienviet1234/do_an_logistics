@@ -83,7 +83,7 @@ Từ GĐ F trở đi: các bước **đọc trực tiếp từ CSDL** (bảng `d
 | | Bias trong khoảng **±5%** (không thừa, thiếu có hệ thống) | Cột Bias_pct | ✅ Mô hình v4 +3,0% (01/11; v3 +3,9%, v2 +6,3%) |
 | **3. Tồn kho** (trọng tâm đề tài) | Chính sách dùng dự báo AI đạt Fill Rate ≥ **95%** với tồn kho bình quân **không cao hơn** hiện trạng | Bảng trước–sau GĐ F | ✅ Fill Rate 95,82%; tồn kho −0,7% so với hiện trạng (biết trước nhu cầu); nhóm X −29% (dự báo cập nhật mỗi tuần, 01/11; v3: +37%) |
 | | Giảm số ngày hết hàng và tổng chi phí đặt hàng + lưu kho so với hiện trạng | Bảng trước–sau GĐ F | ✅ Ngày thiếu −53%; chi phí liên quan −9,8% so với hiện trạng, −35% so với dự báo mốc (01/11) |
-| **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | 🔄 Đúng đến GĐ C |
+| **4. Tin cậy và học được** | Chạy lại toàn bộ từ đầu bằng các lệnh trong README, ra đúng kết quả | Chạy thử trên máy sạch | ✅ 12/11: chạy lại 114 bước trên bản sạch (11 giờ máy), 226 tệp giống hệt; 8 tệp khác không lệch số nào (bảng cũ thiếu dòng NF, báo cáo tạo bằng code cũ, nhật ký chạy) |
 | | Không rò rỉ dữ liệu: chia theo thời gian, chỉ dùng thông tin biết trước | Kiểm tra trong `danh_gia.py` | ✅ |
 | | Tự giải thích được từng bước và trả lời câu hỏi phản biện | `docs/11` câu hỏi tự kiểm tra | 🔄 Bài 1–4 |
 

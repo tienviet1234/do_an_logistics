@@ -79,6 +79,11 @@ def ton_tai(p):
 
 def kiem_tra():
     thieu = sorted({p for _, _, ds in LUONG for v, ct, _, r, _ in ds for p in [*v, ct, *r] if not ton_tai(p)})
+    if "--chua_co_word" in sys.argv:   # chay lai tu dau (src/chay_lai_toan_bo.py): bao cao Word dung tay sau, chua co
+        bo = [p for p in thieu if p.startswith("reports/word/")]
+        thieu = [p for p in thieu if p not in bo]
+        if bo:
+            print("Bo qua kiem tra (bao cao Word chua dung trong lan chay nay):\n  " + "\n  ".join(bo))
     if thieu:
         sys.exit("Duong dan trong so do khong ton tai:\n  " + "\n  ".join(thieu))
 

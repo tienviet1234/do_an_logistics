@@ -28,6 +28,12 @@ mức độ tác động và các đột biến khác là giả định.
     python src/xuat_power_bi.py      # 16. xuất CSV cho Power BI -> reports/power_bi/ (hướng dẫn: docs/12_power_bi.md)
     python src/xem_database.py       # chạy các truy vấn mẫu trong database/truy_van_mau.sql
 
+Chạy lại TOÀN BỘ từ đầu trên một bản sạch (mã nguồn đang commit + dữ liệu đầu vào, không có kết quả cũ), gồm cả bộ M5 và các bước học sâu (GPU):
+    python src/chay_lai_toan_bo.py --ds                  # danh sách 114 bước theo thứ tự
+    python src/chay_lai_toan_bo.py --tao <thu_muc>       # tạo bản sạch
+    python src/chay_lai_toan_bo.py --chay <thu_muc>      # chạy các bước chưa xong (lỗi thì dừng, chạy lại thì tiếp), nhật ký <thu_muc>/nhat_ky_chay_lai/
+    python src/so_sanh_chay_lai.py <thu_muc> [--chi_co]  # so kết quả chạy lại với kết quả hiện có (chỉ đọc); --chi_co khi chạy chưa xong
+
 Lệnh phụ (ít dùng):
     python src/sinh_du_lieu.py <thu_muc_ra>                 # sinh lại toàn bộ dữ liệu mô phỏng (ra 1 thư mục, tự chia vào data/)
     python src/cap_nhat_gia.py                              # áp giá thị trường (data/reference/gia_thi_truong.csv) vào sku_master; chạy lại sau khi sinh lại dữ liệu, trước dac_trung
